@@ -1,8 +1,16 @@
 #include "head.h"
+#include "Wnd.h"
 #include <iostream>
 
-int main()
+int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
-	using namespace std;
-	cout << "hello world" << endl;
+	Wnd wnd = Wnd::Create(hInstance).WndClassName(L"test_cls").WndName(L"test_wnd").Size(800, 600).init();
+
+	while (!Wnd::app_should_close())
+	{
+		wnd.peekMessage();
+		//...
+	}
+
+	return 0;
 }
