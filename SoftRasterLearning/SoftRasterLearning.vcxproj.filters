@@ -21,12 +21,18 @@
     <ClCompile Include="Wnd.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="DC_WND.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="head.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Wnd.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DC_WND.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

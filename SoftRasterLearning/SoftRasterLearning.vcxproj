@@ -140,10 +140,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DC_WND.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Wnd.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DC_WND.h" />
     <ClInclude Include="head.h" />
     <ClInclude Include="Wnd.h" />
   </ItemGroup>
