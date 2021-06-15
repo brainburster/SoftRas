@@ -145,9 +145,9 @@
     <ClCompile Include="Wnd.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DC_WND.h" />
-    <ClInclude Include="head.h" />
-    <ClInclude Include="Wnd.h" />
+    <ClInclude Include="buffer_view.hpp" />
+    <ClInclude Include="DC_WND.hpp" />
+    <ClInclude Include="Wnd.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,4 +1,4 @@
-#include "Wnd.h"
+#include "Wnd.hpp"
 
 #define $_str(x) #x
 #define $str(x) $_str(x)
@@ -74,9 +74,15 @@ DWORD Wnd::WndStyle() const noexcept
 	return m_wnd_style;
 }
 
+Wnd& Wnd::AddWndStyle(DWORD wnd_style) noexcept
+{
+	m_wnd_style &= wnd_style;
+	return *this;
+}
+
 LRESULT Wnd::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	if (message== WM_DESTROY)
+	if (message == WM_DESTROY)
 	{
 		Wnd::abort();
 	}
@@ -91,10 +97,12 @@ LRESULT Wnd::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 Wnd& Wnd::RegisterWndProc(UINT message, const MSG_Handler& wndProc)
 {
 	const MSG_ID msg_id = { m_hwnd, message };
-	if (msg_map.find(msg_id) == msg_map.end()) {
+	if (msg_map.find(msg_id) == msg_map.end())
+	{
 		msg_map[msg_id] = wndProc;
 	}
-	else {
+	else
+	{
 		auto previous = std::move(msg_map[msg_id]);
 		msg_map[msg_id] = [previous, wndProc](auto a, auto b) {return previous(a, b) && wndProc(a, b); };
 	}
@@ -103,13 +111,13 @@ Wnd& Wnd::RegisterWndProc(UINT message, const MSG_Handler& wndProc)
 
 Wnd& Wnd::Init()
 {
-	WNDCLASS wc = {0};
+	WNDCLASS wc = { 0 };
 	wc.lpfnWndProc = Wnd::WndProc;
 	wc.hInstance = m_hinst;
 	wc.lpszClassName = m_wnd_class_name.c_str();
 	RegisterClass(&wc);
 
-	m_hwnd = CreateWindowEx(NULL,m_wnd_class_name.c_str(), m_wnd_name.c_str(), m_wnd_style,
+	m_hwnd = CreateWindowEx(NULL, m_wnd_class_name.c_str(), m_wnd_name.c_str(), m_wnd_style,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, m_hinst, NULL);
 
 	if (!m_hwnd)
@@ -119,6 +127,10 @@ Wnd& Wnd::Init()
 	}
 
 	AdjustWnd();
+
+	HCURSOR hcur = LoadCursor(NULL, IDC_ARROW);
+	SetCursor(hcur);
+
 	return *this;
 }
 
@@ -140,7 +152,7 @@ void Wnd::ShowLastError()
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 		(LPTSTR)&lpMsgBuf,
 		0, NULL);
-	wsprintf((LPWSTR)szBuf, TEXT("location:%s\nerror code: %d\ninfo: %s"), 
+	wsprintf((LPWSTR)szBuf, TEXT("location:%s\nerror code: %d\ninfo: %s"),
 		$get_location_str(),
 		dw, (LPWSTR)lpMsgBuf);
 	LocalFree(lpMsgBuf);
@@ -175,9 +187,9 @@ void Wnd::PeekMsg()
 
 BOOL Wnd::GetMsg()
 {
-	if (BOOL bRet = GetMessage(&msg, NULL, 0, 0)) 
+	if (BOOL bRet = GetMessage(&msg, NULL, 0, 0))
 	{
-		if(bRet==-1)
+		if (bRet == -1)
 		{
 			return -1;
 		}
@@ -230,7 +242,7 @@ Wnd::Wnd(Wnd&& other) noexcept :
 	m_wnd_style{ other.m_wnd_style },
 	m_wnd_class_name{ std::move(other.m_wnd_class_name) },
 	m_wnd_name{ std::move(other.m_wnd_name) }
-{	
+{
 	//memcpy(this, &other, sizeof(Wnd));
 	memset(&other, 0, sizeof(Wnd));
 };

@@ -1,4 +1,4 @@
-#include "DC_WND.h"
+#include "DC_WND.hpp"
 
 DC_WND::DC_WND(HINSTANCE hinst) : 
 	Wnd{ hinst },
@@ -39,6 +39,11 @@ void DC_WND::drawBuffer()
 void DC_WND::setPixel(UINT32 x, UINT32 y, UINT32 color)
 {
 	m_buffer_view.set(x, y, color);
+}
+
+BufferView<UINT32>& DC_WND::getFrameBufferView()
+{
+	return m_buffer_view;
 }
 
 DC_WND& DC_WND::operator=(DC_WND&& other) noexcept
@@ -98,6 +103,6 @@ DC_WND& DC_WND::operator=(DC_WND&& other) noexcept
 
 	 HBITMAP temp = (HBITMAP)SelectObject(m_hcdc, m_bm);
 	 DeleteObject(temp);
-
+	 
 	 return *this;
  }

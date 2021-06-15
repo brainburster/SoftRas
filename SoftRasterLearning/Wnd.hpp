@@ -18,7 +18,8 @@ public:
 	Wnd& Size(UINT w, UINT h) noexcept;
 	Wnd& WndName(const string& wnd_name);
 	Wnd& WndClassName(const  string& wnd_cls_name);
-	Wnd& WndStyle(DWORD wnd_style) noexcept;;
+	Wnd& WndStyle(DWORD wnd_style) noexcept;
+	Wnd& AddWndStyle(DWORD wnd_style) noexcept;
 	const string& WndName() const noexcept;
 	const string& WndClassName() const noexcept;
 	DWORD WndStyle() const noexcept;
