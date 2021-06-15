@@ -24,12 +24,12 @@ Wnd Wnd::Create(HINSTANCE hinst)
 	return Wnd{ hinst };
 }
 
-HWND Wnd::GetHwnd() const noexcept
+HWND Wnd::Hwnd() const noexcept
 {
 	return m_hwnd;
 }
 
-HINSTANCE Wnd::GetHinst() const noexcept
+HINSTANCE Wnd::Hinst() const noexcept
 {
 	return m_hinst;
 }
@@ -41,24 +41,24 @@ Wnd& Wnd::Size(UINT w, UINT h) noexcept
 	return *this;
 }
 
-Wnd& Wnd::WndName(const std::wstring& wnd_name)
+Wnd& Wnd::WndName(const string& wnd_name)
 {
 	m_wnd_name = wnd_name;
 	return *this;
 }
 
-const std::wstring& Wnd::WndName() const noexcept
+const Wnd::string& Wnd::WndName() const noexcept
 {
 	return m_wnd_name;
 }
 
-Wnd& Wnd::WndClassName(const std::wstring& wnd_class_name)
+Wnd& Wnd::WndClassName(const string& wnd_class_name)
 {
 	m_wnd_class_name = wnd_class_name;
 	return *this;
 }
 
-const std::wstring& Wnd::WndClassName() const noexcept
+const Wnd::string& Wnd::WndClassName() const noexcept
 {
 	return m_wnd_class_name;
 }
@@ -101,7 +101,7 @@ Wnd& Wnd::RegisterWndProc(UINT message, const MSG_Handler& wndProc)
 	return *this;
 }
 
-Wnd& Wnd::init()
+Wnd& Wnd::Init()
 {
 	WNDCLASS wc = {0};
 	wc.lpfnWndProc = Wnd::WndProc;
@@ -120,6 +120,16 @@ Wnd& Wnd::init()
 
 	AdjustWnd();
 	return *this;
+}
+
+Wnd Wnd::Move()
+{
+	return std::move(*this);
+}
+
+void Wnd::clear()
+{
+	UnregisterClass(m_wnd_class_name.c_str(), m_hinst);
 }
 
 void Wnd::ShowLastError()
@@ -202,5 +212,33 @@ void Wnd::abort() noexcept
 
 Wnd::~Wnd()
 {
-	UnregisterClass(m_wnd_class_name.c_str(),m_hinst);
+	clear();
 }
+
+Wnd& Wnd::operator=(Wnd&& other) noexcept {
+	if (this == &other)
+	{
+		return *this;
+	}
+
+	m_hwnd = other.m_hwnd;
+	m_hinst = other.m_hinst;
+	m_width = other.m_width;
+	m_height = other.m_height;
+	m_wnd_style = other.m_wnd_style;
+	m_wnd_class_name = std::move(other.m_wnd_class_name);
+	m_wnd_name = std::move(other.m_wnd_name);
+	memset(&other, 0, sizeof(Wnd));
+};
+
+Wnd::Wnd(Wnd&& other) noexcept :
+	m_hwnd{ other.m_hwnd },
+	m_hinst{ other.m_hinst },
+	m_width{ other.m_width },
+	m_height{ other.m_height },
+	m_wnd_style{ other.m_wnd_style },
+	m_wnd_class_name{ std::move(other.m_wnd_class_name) },
+	m_wnd_name{ std::move(other.m_wnd_name) }
+{
+	memset(&other, 0, sizeof(Wnd));
+};
