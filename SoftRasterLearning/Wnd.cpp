@@ -122,14 +122,9 @@ Wnd& Wnd::Init()
 	return *this;
 }
 
-Wnd Wnd::Move()
+Wnd&& Wnd::Move()
 {
 	return std::move(*this);
-}
-
-void Wnd::clear()
-{
-	UnregisterClass(m_wnd_class_name.c_str(), m_hinst);
 }
 
 void Wnd::ShowLastError()
@@ -212,7 +207,8 @@ void Wnd::abort() noexcept
 
 Wnd::~Wnd()
 {
-	clear();
+	::SendMessage(m_hwnd, WM_QUIT, 0, 0);
+	UnregisterClass(m_wnd_class_name.c_str(), m_hinst);
 }
 
 Wnd& Wnd::operator=(Wnd&& other) noexcept {
@@ -221,14 +217,9 @@ Wnd& Wnd::operator=(Wnd&& other) noexcept {
 		return *this;
 	}
 
-	m_hwnd = other.m_hwnd;
-	m_hinst = other.m_hinst;
-	m_width = other.m_width;
-	m_height = other.m_height;
-	m_wnd_style = other.m_wnd_style;
-	m_wnd_class_name = std::move(other.m_wnd_class_name);
-	m_wnd_name = std::move(other.m_wnd_name);
+	memcpy(this, &other, sizeof(Wnd));
 	memset(&other, 0, sizeof(Wnd));
+	return *this;
 };
 
 Wnd::Wnd(Wnd&& other) noexcept :
@@ -239,6 +230,7 @@ Wnd::Wnd(Wnd&& other) noexcept :
 	m_wnd_style{ other.m_wnd_style },
 	m_wnd_class_name{ std::move(other.m_wnd_class_name) },
 	m_wnd_name{ std::move(other.m_wnd_name) }
-{
+{	
+	//memcpy(this, &other, sizeof(Wnd));
 	memset(&other, 0, sizeof(Wnd));
 };

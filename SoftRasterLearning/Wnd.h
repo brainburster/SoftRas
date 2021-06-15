@@ -27,8 +27,8 @@ public:
 	static Wnd Create(HINSTANCE hinst);
 
 	Wnd& RegisterWndProc(UINT message, const MSG_Handler& wndProc);
-	Wnd& Init();
-	Wnd Move();
+	virtual Wnd& Init();
+	Wnd&& Move();
 
 	static void ShowLastError();
 	static void PeekMsg();
@@ -36,10 +36,10 @@ public:
 	static MSG Msg() noexcept;
 	static bool app_should_close() noexcept;
 	static void abort() noexcept;
-	~Wnd();
-	virtual void clear();
+	virtual ~Wnd();
 	Wnd& operator=(Wnd&& other) noexcept;
 	Wnd(Wnd&& other) noexcept;
+
 protected:
 	Wnd(HINSTANCE hinst);
 	Wnd(const Wnd&) = delete;
