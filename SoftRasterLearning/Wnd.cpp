@@ -13,6 +13,7 @@ Wnd::Wnd(HINSTANCE hinst) :
 	m_hwnd{ 0 },
 	m_width{ 0 },
 	m_height{ 0 },
+	m_wnd_style{ WS_OVERLAPPEDWINDOW & ~WS_THICKFRAME },
 	m_wnd_name{ L"default_wnd_name" },
 	m_wnd_class_name{ L"default_wnd_class_name" }
 {
@@ -46,10 +47,31 @@ Wnd& Wnd::WndName(const std::wstring& wnd_name)
 	return *this;
 }
 
+const std::wstring& Wnd::WndName() const noexcept
+{
+	return m_wnd_name;
+}
+
 Wnd& Wnd::WndClassName(const std::wstring& wnd_class_name)
 {
 	m_wnd_class_name = wnd_class_name;
 	return *this;
+}
+
+const std::wstring& Wnd::WndClassName() const noexcept
+{
+	return m_wnd_class_name;
+}
+
+Wnd& Wnd::WndStyle(DWORD wnd_style) noexcept
+{
+	m_wnd_style = wnd_style;
+	return *this;
+}
+
+DWORD Wnd::WndStyle() const noexcept
+{
+	return m_wnd_style;
 }
 
 LRESULT Wnd::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -79,12 +101,6 @@ Wnd& Wnd::RegisterWndProc(UINT message, const MSG_Handler& wndProc)
 	return *this;
 }
 
-Wnd& Wnd::RegisterLoopBody(const std::function<void()>& loopbody)
-{
-	m_loopbody = loopbody;
-	return *this;
-}
-
 Wnd& Wnd::init()
 {
 	WNDCLASS wc = {0};
@@ -93,7 +109,7 @@ Wnd& Wnd::init()
 	wc.lpszClassName = m_wnd_class_name.c_str();
 	RegisterClass(&wc);
 
-	m_hwnd = CreateWindowEx(NULL,m_wnd_class_name.c_str(), m_wnd_name.c_str(), WS_OVERLAPPEDWINDOW & ~WS_THICKFRAME,
+	m_hwnd = CreateWindowEx(NULL,m_wnd_class_name.c_str(), m_wnd_name.c_str(), m_wnd_style,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, m_hinst, NULL);
 
 	if (!m_hwnd)
@@ -143,7 +159,7 @@ void Wnd::AdjustWnd()
 	ShowWindow(m_hwnd, SW_SHOW);
 }
 
-void Wnd::peekMessage()
+void Wnd::PeekMsg()
 {
 	if (PeekMessage(&msg, NULL, NULL, NULL, PM_REMOVE))
 	{
@@ -152,17 +168,34 @@ void Wnd::peekMessage()
 	}
 }
 
-MSG Wnd::getMsg()
+BOOL Wnd::GetMsg()
+{
+	if (BOOL bRet = GetMessage(&msg, NULL, 0, 0)) 
+	{
+		if(bRet==-1)
+		{
+			return -1;
+		}
+
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+
+		return 1;
+	}
+	return 0;
+}
+
+MSG Wnd::Msg() noexcept
 {
 	return msg;
 }
 
-bool Wnd::app_should_close()
+bool Wnd::app_should_close() noexcept
 {
 	return bClose;
 }
 
-void Wnd::abort()
+void Wnd::abort() noexcept
 {
 	bClose = true;
 }

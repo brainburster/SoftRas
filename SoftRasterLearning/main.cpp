@@ -8,7 +8,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 
 	while (!Wnd::app_should_close())
 	{
-		wnd.peekMessage();
+		wnd.PeekMsg();
 		//...
 	}
 
