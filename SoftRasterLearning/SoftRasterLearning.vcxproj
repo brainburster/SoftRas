@@ -143,7 +143,6 @@
     <ClCompile Include="DC_WND.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SoftRasterRenderer.cpp" />
-    <ClCompile Include="Wnd.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="buffer_view.hpp" />
