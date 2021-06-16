@@ -1,8 +1,9 @@
 #pragma once
 
-#include "Wnd.hpp"
 #include "buffer_view.hpp"
+#include "Wnd.hpp"
 #include <vector>
+
 
 class DC_WND : public Wnd
 {
@@ -16,11 +17,11 @@ public:
 	void FillBuffer(UINT32 color);
 	void drawBuffer();
 	void setPixel(UINT32 x, UINT32 y, UINT32 color);
-	BufferView<UINT32>& getFrameBufferView();
+	Buffer2DView<UINT32>& getFrameBufferView();
 private:
 	DC_WND(const DC_WND&) = delete;
 	HDC m_hdc;
 	HDC m_hcdc;
 	HBITMAP m_bm;
-	BufferView<UINT32> m_buffer_view;
+	Buffer2DView<UINT32> m_buffer_view;
 };

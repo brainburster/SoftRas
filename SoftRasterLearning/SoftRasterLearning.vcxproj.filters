@@ -24,12 +24,21 @@
     <ClCompile Include="DC_WND.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="SoftRasterRenderer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Wnd.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="DC_WND.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SoftRasterRenderer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="triangles_view.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="buffer_view.hpp">

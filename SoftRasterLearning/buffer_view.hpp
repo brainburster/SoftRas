@@ -1,33 +1,63 @@
 #pragma once
 
+using uint32 = unsigned int;
+
 template<typename T>
-struct BufferView
+struct Buffer2DView
 {
-	void resize(UINT w, UINT h)
+	void ReSize(uint32 w, uint32 h)
 	{
 		this->w = w;
 		this->h = h;
 	}
 
-	void set(UINT x, UINT y, T v)
+	void Set(uint32 x, uint32 y, T v)
 	{
 		size_t index = (size_t)y * w + x;
 		if (index<0 || index>w * h - 1) return;
 		buffer[index] = v;
 	}
-	T get(UINT x, UINT y)
+	T Get(uint32 x, uint32 y)
 	{
 		size_t index = (size_t)y * w + x;
 		if (index<0 || index>w * h - 1) return;
 		return buffer[index];
 	}
 
+	struct Iter
+	{
+		T* location;
+		bool operator!= (const Iter& other) const noexcept
+		{
+			return this->location != other.location;
+		}
+		T& operator* () const
+		{
+			return *location;
+		}
+		const Iter& operator++() noexcept
+		{
+			++location;
+			return *this;
+		}
+	};
+
+	Iter begin() const
+	{
+		return Iter{ buffer };
+	}
+
+	Iter end() const
+	{
+		return Iter{ buffer + w * h };
+	}
+
 	T* buffer;
-	UINT w;
-	UINT h;
+	uint32 w;
+	uint32 h;
 };
 
-struct BufferColor
+struct Color32
 {
 	union
 	{
@@ -38,7 +68,7 @@ struct BufferColor
 			unsigned char r;
 			unsigned char a;
 		};
-		UINT32 color;
-		UINT32 bgra;
+		uint32 color;
+		uint32 bgra;
 	};
 };

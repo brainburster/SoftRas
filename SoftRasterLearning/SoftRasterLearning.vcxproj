@@ -142,11 +142,14 @@
   <ItemGroup>
     <ClCompile Include="DC_WND.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="SoftRasterRenderer.cpp" />
     <ClCompile Include="Wnd.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="buffer_view.hpp" />
     <ClInclude Include="DC_WND.hpp" />
+    <ClInclude Include="SoftRasterRenderer.h" />
+    <ClInclude Include="triangles_view.hpp" />
     <ClInclude Include="Wnd.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

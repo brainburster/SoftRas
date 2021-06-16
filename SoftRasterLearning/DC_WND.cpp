@@ -21,12 +21,16 @@ DC_WND::DC_WND(DC_WND&& other) noexcept :
 
 void DC_WND::FillBuffer(UINT32 color)
 {
-	for (UINT y = 0; y < m_buffer_view.h; ++y)
+	//for (UINT y = 0; y < m_buffer_view.h; ++y)
+	//{
+	//	for (UINT x = 0; x < m_buffer_view.w; ++x)
+	//	{
+	//		m_buffer_view.Set(x, y, color);
+	//	}
+	//}
+	for (auto& pixel_color : m_buffer_view)
 	{
-		for (UINT x = 0; x < m_buffer_view.w; ++x)
-		{
-			m_buffer_view.set(x, y, color);
-		}
+		pixel_color = color;
 	}
 }
 
@@ -38,10 +42,10 @@ void DC_WND::drawBuffer()
 
 void DC_WND::setPixel(UINT32 x, UINT32 y, UINT32 color)
 {
-	m_buffer_view.set(x, y, color);
+	m_buffer_view.Set(x, y, color);
 }
 
-BufferView<UINT32>& DC_WND::getFrameBufferView()
+Buffer2DView<UINT32>& DC_WND::getFrameBufferView()
 {
 	return m_buffer_view;
 }
@@ -92,7 +96,7 @@ DC_WND& DC_WND::operator=(DC_WND&& other) noexcept
 	 _bitmap_info.bmiHeader.biCompression = BI_RGB;
 	 _bitmap_info.bmiHeader.biSizeImage = (DWORD)m_width * m_height * 4;
 
-	 m_buffer_view.resize(m_width, m_height);
+	 m_buffer_view.ReSize(m_width, m_height);
 
 	 m_bm = CreateDIBSection(m_hcdc, &_bitmap_info, DIB_RGB_COLORS, (void**)&m_buffer_view.buffer, 0, 0);
 	 if (!m_bm)
