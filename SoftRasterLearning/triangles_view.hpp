@@ -1,6 +1,5 @@
 #pragma once
 
-#pragma pack(1)
 template<typename T>
 struct Trangle
 {
@@ -21,13 +20,13 @@ struct TrianglesView
 {
 	T* data;
 	size_t len;
-	Trangle<T>& Get(unsigned int i)
+	Trangle<T>* Get(unsigned int i)
 	{
 		if (i>len/3-1)
 		{
 			return nullptr;
 		}
-		return *reinterpret_cast<Trangle<T>*>(&data[i * 3]);
+		return reinterpret_cast<Trangle<T>*>(&data[i * 3]);
 	}
 	struct Iter
 	{
@@ -38,12 +37,12 @@ struct TrianglesView
 		}
 		const Iter& operator++() noexcept
 		{
-			++location;
+			location+=3;
 			return *this;
 		}
 		Trangle<T>& operator*() const
 		{
-			return *reinterpret_cast<Trangle<T>*>(&data[i * 3]);
+			return *reinterpret_cast<Trangle<T>*>(location);
 		}
 	};
 
