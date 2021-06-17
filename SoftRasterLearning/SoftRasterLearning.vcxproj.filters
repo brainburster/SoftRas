@@ -35,10 +35,10 @@
     <ClInclude Include="SoftRasterRenderer.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="triangles_view.hpp">
+    <ClInclude Include="buffer_view.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="buffer_view.hpp">
+    <ClInclude Include="mat_math.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

@@ -29,7 +29,7 @@ DC_WND& DC_WND::operator=(DC_WND&& other) noexcept
 	return *this;
 }
 
-void DC_WND::FillBuffer(UINT32 color)
+void DC_WND::FillBuffer(uint32 color)
 {
 	for (UINT y = 0; y < m_buffer_view.h; ++y)
 	{
@@ -49,12 +49,12 @@ void DC_WND::drawBuffer()
 	::BitBlt(m_hdc, 0, 0, m_width, m_height, m_hcdc, 0, 0, SRCCOPY);
 }
 
-void DC_WND::setPixel(UINT32 x, UINT32 y, UINT32 color)
+void DC_WND::setPixel(uint32 x, uint32 y, uint32 color)
 {
 	m_buffer_view.Set(x, y, color);
 }
 
-Buffer2DView<UINT32>& DC_WND::getFrameBufferView()
+Buffer2DView<uint32>& DC_WND::getFrameBufferView()
 {
 	return m_buffer_view;
 }

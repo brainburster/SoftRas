@@ -57,6 +57,41 @@ struct Buffer2DView
 	uint32 h;
 };
 
+template<typename T>
+struct Buffer1DView
+{
+	T* buffer;
+	uint32 size;
+
+	struct Iter
+	{
+		T* location;
+		bool operator!= (const Iter& other) const noexcept
+		{
+			return this->location != other.location;
+		}
+		T& operator* () const
+		{
+			return *location;
+		}
+		const Iter& operator++() noexcept
+		{
+			++location;
+			return *this;
+		}
+	};
+
+	Iter begin() const
+	{
+		return Iter{ buffer };
+	}
+
+	Iter end() const
+	{
+		return Iter{ buffer + size };
+	}
+};
+
 struct Color32
 {
 	union

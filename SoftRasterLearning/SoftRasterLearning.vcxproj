@@ -147,8 +147,8 @@
   <ItemGroup>
     <ClInclude Include="buffer_view.hpp" />
     <ClInclude Include="DC_WND.hpp" />
+    <ClInclude Include="mat_math.hpp" />
     <ClInclude Include="SoftRasterRenderer.hpp" />
-    <ClInclude Include="triangles_view.hpp" />
     <ClInclude Include="Wnd.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
