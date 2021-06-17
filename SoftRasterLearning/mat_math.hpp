@@ -8,9 +8,15 @@ struct Vec4
 	float y;
 	float z;
 	float w;
+
 	Vec4 operator+(const Vec4& rhs) const
 	{
 		return { x + rhs.x,y + rhs.y,z + rhs.z,w + rhs.w };
+	}
+
+	Vec4 operator-(const Vec4& rhs) const
+	{
+		return { x - rhs.x,y - rhs.y,z - rhs.z,w - rhs.w };
 	}
 
 	float operator*(const Vec4& rhs) const
@@ -41,6 +47,11 @@ struct Vec3
 		return { x + rhs.x,y + rhs.y,z + rhs.z };
 	}
 
+	Vec3 operator-(const Vec3& rhs) const
+	{
+		return { x - rhs.x,y - rhs.y,z - rhs.z };
+	}
+
 	float operator*(const Vec3& rhs) const
 	{
 		return x * rhs.x + y * rhs.y + z * rhs.z;
@@ -68,6 +79,12 @@ struct Vec2
 		return { x + rhs.x,y + rhs.y};
 	}
 
+
+	Vec2 operator-(const Vec2& rhs) const
+	{
+		return { x - rhs.x,y - rhs.y };
+	}
+
 	float operator*(const Vec2& rhs) const
 	{
 		return x * rhs.x + y * rhs.y;
@@ -80,11 +97,6 @@ struct Vec2
 
 	friend Vec2 operator*(const Vec2& lhs, float rhs)
 	{
-		return { lhs.x * rhs,lhs.y * rhs };
-	}
-
-	float length()const
-	{
-		return pow(x*x+y*y ,0.5);
+		return { lhs.x * rhs, lhs.y * rhs };
 	}
 };

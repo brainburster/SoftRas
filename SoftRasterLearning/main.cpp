@@ -18,15 +18,15 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 	srr::Vertex triangle[3] = {
 		{
 			{300,400,1,1},
-			{233,1,1,255}
+			{1,0,0,1}
 		},
 		{
 			{400,500,1,1},
-			{1,233,1,255}
+			{0,1,0,1}
 		},
 		{
 			{500,300,1,1},
-			{1,1,233,255}
+			{0,0,1,1}
 		}
 	};
 

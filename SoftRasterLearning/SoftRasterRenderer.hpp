@@ -82,8 +82,16 @@ namespace srr
 		template<typename T>
 		static T get_interpolation(uint32 x, uint32 y, T* triangle)
 		{
-			//暂时返回最后一个点
-			return triangle[2];
+			float a1 = triangle[1].position.x - triangle[0].position.x;
+			float b1 = triangle[2].position.x - triangle[0].position.x;
+			float c1 = x - triangle[0].position.x;
+			float a2 = triangle[1].position.y - triangle[0].position.y;
+			float b2 = triangle[2].position.y - triangle[0].position.y;
+			float c2 = y - triangle[0].position.y;
+			float u = (a1 * c2 - a2 * c1) / (b2 * a1 - a2 * b1);
+			float v = (b2 * c1 - b1 * c2) / (b2 * a1 - a2 * b1);
+			float w = 1 - u - v;
+			return (triangle[0] * w) + (triangle[1] * v) + (triangle[2] * u);
 		}
 	};
 
