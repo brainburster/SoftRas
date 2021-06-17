@@ -32,7 +32,7 @@
     <ClInclude Include="DC_WND.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="SoftRasterRenderer.h">
+    <ClInclude Include="SoftRasterRenderer.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="triangles_view.hpp">
