@@ -1,4 +1,0 @@
-#include "SoftRasterRenderer.hpp"
-
-
-

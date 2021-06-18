@@ -21,9 +21,6 @@
     <ClCompile Include="DC_WND.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="SoftRasterRenderer.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Wnd.hpp">

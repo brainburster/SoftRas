@@ -78,6 +78,10 @@ namespace srr
 
 		void CopyToScreen(Buffer2DView<uint32>& screen_buffer_view)
 		{
+			if (!fragment_buffer_view.buffer)
+			{
+				return;
+			}
 			for (uint32 y = 0; y < screen_buffer_view.h; ++y)
 			{
 				for (uint32 x = 0; x < screen_buffer_view.w; ++x)
@@ -95,7 +99,7 @@ namespace srr
 			fragment_buffer_view = { &fragment_buffer[0],w , h };
 			depth_buffer_view = { &depth_buffer[0],w , h };
 		}
-		Context() = default;
+		Context() : fragment_buffer{}, depth_buffer{}, fragment_buffer_view{ nullptr }, depth_buffer_view{ nullptr }{};
 	protected:
 		std::vector<ColorF4> fragment_buffer;
 		std::vector<float> depth_buffer;
@@ -215,21 +219,22 @@ namespace srr
 					{
 						Processed_Vertex interp = { };
 						
-						//MSAA4
-						int msaa_count = 0;
-						int Mn = 2;
+						//MSAA4x
+						float msaa_count = 0;
+						float Mn = 2;
 						for (float i = 0; i <= Mn; ++i)
 						{
 							for (float j =0; j <= Mn; ++j)
 							{
-								Vec3<float>w = Impl::get_interpolation_rate(x + i / (Mn + 1) + 0.5/(Mn+1), y + j / (Mn + 1) + 0.5 / (Mn + 1), triangle);
-								if (w.x * w.y * w.z > 1e-10)
+								Vec3<float>w = Impl::get_interpolation_rate(x + i / (Mn + 1) + 0.5f/(Mn+1), y + j / (Mn + 1) + 0.5f / (Mn + 1), triangle);
+								if ((double)w.x * w.y * w.z > 1e-8)
 								{
 									interp += triangle[0] * w.x + triangle[1] * w.y + triangle[2] * w.z;
 									++msaa_count;
 								}
 							}
 						}
+
 						if (msaa_count)
 						{
 							interp = interp  / msaa_count;

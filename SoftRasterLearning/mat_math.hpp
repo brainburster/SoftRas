@@ -115,8 +115,7 @@ struct Vec4
 	}
 };
 
-//暂时这么定义
-template<typename T = float>
+template<typename T>
 struct Vec4_hc
 {
 	T x;
