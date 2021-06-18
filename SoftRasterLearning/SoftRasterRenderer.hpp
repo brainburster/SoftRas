@@ -44,8 +44,6 @@ namespace srr
 		std::vector<float> depth_buffer;
 	};
 
-
-
 	struct Impl
 	{
 		template<typename T>
@@ -57,7 +55,7 @@ namespace srr
 			return a.cross(b) > 0 && b.cross(c) > 0 && c.cross(a) > 0;
 		}
 
-		static Color32 trans_float4color_to_uint32color(const Vec4 & color)
+		static Color32 trans_float4color_to_uint32color(const Vec4HC & color)
 		{
 			//交换r通道和b通道
 			return Color32{ 
@@ -69,9 +67,9 @@ namespace srr
 		}
 
 		template<typename T>
-		static bool is_pixel_in_triangle(uint32 x, uint32 y, T* triangle)
+		static bool is_pixel_in_triangle(float x, float y, T* triangle)
 		{
-			Vec2<> p = { (float)x,(float)y };
+			Vec2<> p = { x,y };
 			Vec2<> pa = (Vec2<>)triangle[0].position - p;
 			Vec2<> pb = (Vec2<>)triangle[1].position - p;
 			Vec2<> pc = (Vec2<>)triangle[2].position - p;;
@@ -81,7 +79,7 @@ namespace srr
 
 		//获取插值
 		template<typename T>
-		static T get_interpolation(uint32 x, uint32 y, T* triangle)
+		static T get_interpolation(float x, float y, T* triangle)
 		{
 			float a1 = triangle[1].position.x - triangle[0].position.x;
 			float b1 = triangle[2].position.x - triangle[0].position.x;
@@ -92,6 +90,10 @@ namespace srr
 			float u = (a1 * c2 - a2 * c1) / (b2 * a1 - a2 * b1);
 			float v = (b2 * c1 - b1 * c2) / (b2 * a1 - a2 * b1);
 			float w = 1 - u - v;
+			if (u*v*w<0) 
+			{
+				return T{};
+			}
 			return (triangle[0] * w) + (triangle[1] * v) + (triangle[2] * u);
 		}
 	};
@@ -99,8 +101,9 @@ namespace srr
 	//
 	struct Vertex
 	{
-		Vec4 position;
-		Vec4 color;
+		Vec4HC position;
+		Vec4<> color;
+
 		Vertex operator+(const Vertex& rhs) const
 		{
 			return {position+rhs.position,color+rhs.color};
@@ -108,6 +111,14 @@ namespace srr
 		friend Vertex operator*(const Vertex& lhs, float rhs)
 		{
 			return { lhs.position * rhs,lhs.color * rhs };
+		}
+		friend Vertex operator*(float lhs, const Vertex& rhs)
+		{
+			return { rhs.position / lhs,rhs.color / lhs };
+		}
+		friend Vertex operator/(const Vertex& lhs, float rhs)
+		{
+			return { lhs.position / rhs,lhs.color / rhs };
 		}
 	};
 
@@ -119,6 +130,7 @@ namespace srr
 		using out_type = Vertex;
 		out_type operator()(in_type v)
 		{
+			v.position = v.position.normalize();
 			return v;
 		}
 	};
@@ -128,7 +140,7 @@ namespace srr
 	{
 	public:
 		using in_type = Vertex;
-		using out_type = Vec4;
+		using out_type = Vec4<>;
 		out_type operator()(in_type v)
 		{
 			return v.color;
@@ -140,7 +152,7 @@ namespace srr
 	{
 	public:
 		using VertexShaderDelegate = std::function<Processed_Vertex(IN_Vertex)>;
-		using FragmentShaderDelegate = std::function<Vec4(Processed_Vertex)>;
+		using FragmentShaderDelegate = std::function<Vec4HC(Processed_Vertex)>;
 
 		void DrawTriangles(IN_Vertex* data, size_t n)
 		{
@@ -152,8 +164,7 @@ namespace srr
 					{vertexShader(data[i + 1])},
 					{vertexShader(data[i + 2])}
 				};
-
-				//正责化
+				
 				//...	
 				//culling
 				if (Impl::is_backface(triangle))
@@ -168,7 +179,7 @@ namespace srr
 				{
 					if (left > triangle[i].position.x)
 					{
-						left = (uint32)triangle[i].position.x;
+						left = (uint32)triangle[i].position.x-1;
 					}
 					else if (right < triangle[i].position.x)
 					{
@@ -180,32 +191,33 @@ namespace srr
 					}
 					if (bottom > triangle[i].position.y)
 					{
-						bottom = (uint32)triangle[i].position.y;
+						bottom = (uint32)triangle[i].position.y-1;
 					}
 				}
 
 				//...
 				//光栅化
-				for (uint32 y = bottom; y < top; ++y)
+				for (float y = bottom; y < top; ++y)
 				{
-					for (uint32 x = left; x < right; ++x)
+					for (float x = left; x < right; ++x)
 					{
-						if (Impl::is_pixel_in_triangle(x, y, triangle))
+						Processed_Vertex interp = { };
+						
+						//MSAA16
+						for (float i = -2; i < 2; ++i)
 						{
-							//获得深度与插值
-							Processed_Vertex interp = Impl::get_interpolation(x, y, triangle);
-							//调用像素着色器
-							Vec4 fcolor = fragShader(interp);
+							for (float j = -2; j < 2; ++j)
+							{
+									//获得深度与插值
+								interp = interp + Impl::get_interpolation(x + i/4, y + j/4, triangle);
+							}
+						}
+						if (interp.color.w)
+						{
+							interp = interp / 16;
+							Vec4HC fcolor = fragShader(interp);
 							Color32 color = Impl::trans_float4color_to_uint32color(fcolor);
-							//判断混合模式
-							//float depth = interp.position.z;
-							//...
-							//if (depth > ...)
-							//{
-							//	continue;
-							//}
-							//写入缓冲区
-							context.fragment_buffer_view.Set(x,y,color.bgra);
+							context.fragment_buffer_view.Set(x, y, color.bgra);
 						}
 					}
 				}
