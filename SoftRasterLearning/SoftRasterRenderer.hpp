@@ -60,7 +60,13 @@ namespace srr
 		}
 
 		//颜色混合
-
+		static ColorF4 blend_color(ColorF4 color0, ColorF4 color1)
+		{
+			float a = 1.0f - (1.0f - color1.a) * (1.0f - color0.a);
+			ColorF4 color = 1.0f/a*(color1 * color1.a + (1.0f - color1.a)*color0.a * color0);
+			color.a = a;
+			return color;
+		}
 	};
 
 
@@ -203,9 +209,9 @@ namespace srr
 
 				//...
 				//光栅化
-				for (float y = bottom; y < top; ++y) //不包含右、上边界上的像素
+				for (uint32 y = bottom; y < top; ++y) //不包含右、上边界上的像素
 				{
-					for (float x = left; x < right; ++x)
+					for (uint32 x = left; x < right; ++x)
 					{
 						Processed_Vertex interp = { };
 						
@@ -238,8 +244,7 @@ namespace srr
 								if (color.a<0.99999)
 								{
 									ColorF4 color0 = context.fragment_buffer_view.Get(x, y);
-									color = color * color.a + (1.0f - color.a) * color0;
-									color.a = 1.0f;
+									color = Impl::blend_color(color0, color);
 								}
 
 								//写入fragment_buffer
