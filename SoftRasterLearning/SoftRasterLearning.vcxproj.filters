@@ -23,7 +23,7 @@
     <ClInclude Include="raw_wnd.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="dc_wnd.h">
+    <ClInclude Include="dc_wnd.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="software_renderer.hpp">
