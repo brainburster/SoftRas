@@ -1,8 +1,8 @@
 //#include "Wnd.hpp"
+#include <iostream>
 #include "buffer_view.hpp"
 #include "dc_wnd.hpp"
 #include "software_renderer.hpp"
-#include <iostream>
 
 struct Material_Model
 {
@@ -45,18 +45,24 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 	};
 
 	float pi = 3.14159265358979f;
-
-	m.mat = sr::Mat::Translate(0.3f, 0, 0) * sr::Mat::Rotate(0, 0, 60.f / 180 * pi) * sr::Mat::Scale(0.4f, 1.2f, 1) * m.mat;
+	
+	m.mat = sr::Mat::Translate(0.3f, 0, 0) * sr::Mat::Rotate(0, 0, -40.f / 180.f * pi) * sr::Mat::Scale(1.0f, 1.0f, 1) * m.mat;
 	
 	renderer.DrawTriangles(rect,6);
 
 	ctx.CopyToScreen(wnd.getFrameBufferView());
 	wnd.drawBuffer();
 
-
+	float time = 0;
 	while (!wnd.app_should_close())
 	{
 		wnd.PeekMsg();
+		ctx.Clear({ 0.4f, 0.6f, 0.2f, 1.f });
+		m.mat = sr::Mat::Translate(sin(time)-0.4f, 0, 100) * sr::Mat::Rotate(0, 0, time+=0.1f / 180 * pi) * sr::Mat::Scale(1.f, 1.f, 1);// *m.mat;
+		renderer.DrawTriangles(rect, 6);
+		ctx.CopyToScreen(wnd.getFrameBufferView());
+		wnd.drawBuffer();
+
 		//...
 	}
 

@@ -129,47 +129,33 @@ namespace sr
 			{
 				for (uint32 x = 0; x < screen_buffer_view.w; ++x)
 				{
-					Color fcolor = fragment_buffer_view.Get(x, y);
-					screen_buffer_view.Set(x, y, Impl::trans_float4color_to_uint32color(fcolor).bgra);
+					screen_buffer_view.Set(x, y, Impl::trans_float4color_to_uint32color(fragment_buffer_view.Get(x, y)).bgra);
 				}
 			}
 		}
 		void Viewport(uint32 w, uint32 h, Color color = { 0,0,0,1 })
 		{
-			depth_buffer.resize(w * h, 0);
+			depth_buffer.resize(w * h, 1e8f);
 			fragment_buffer.resize(w * h, color);
 
 			fragment_buffer_view = { &fragment_buffer[0],w , h };
 			depth_buffer_view = { &depth_buffer[0],w , h };
 		}
+		void Clear(Color color = { 0,0,0,1 })
+		{
+			for (auto& pixel : fragment_buffer)
+			{
+				pixel = color;
+			}
+			for (auto& depth : depth_buffer)
+			{
+				depth = 1e8f;
+			}
+		}
 		Context() : fragment_buffer{}, depth_buffer{}, fragment_buffer_view{ nullptr }, depth_buffer_view{ nullptr }{};
 	protected:
 		std::vector<Color> fragment_buffer;
 		std::vector<float> depth_buffer;
-	};
-
-	//基本的顶点着色器，不做处理
-	struct VertexShader_Default
-	{
-	public:
-		using in_type = Vertex;
-		using out_type = Vertex;
-		out_type operator()(in_type v)
-		{
-			return v;
-		}
-	};
-
-	//基本的像素着色器，不做处理
-	struct FragShader_Default
-	{
-	public:
-		using in_type = Vertex;
-		using out_type = Color;
-		out_type operator()(in_type v)
-		{
-			return v.color;
-		}
 	};
 
 	//基本
@@ -225,7 +211,7 @@ namespace sr
 				}
 
 				//生成AABB包围盒
-				uint32 left = UINT_MAX, right = 0, top = 0, bottom = UINT_MAX;
+				int left = INT_MAX, right = -INT_MAX, top = -INT_MAX, bottom = INT_MAX;
 
 				for (int i = 0; i < 3; ++i)
 				{
@@ -233,7 +219,7 @@ namespace sr
 					{
 						left = (uint32)triangle[i].position.x;
 					}
-					else if (right < triangle[i].position.x)
+					if (right < triangle[i].position.x)
 					{
 						right = (uint32)triangle[i].position.x;
 					}
@@ -249,24 +235,24 @@ namespace sr
 
 				//...
 				//光栅化
-				for (uint32 y = bottom; y < top; ++y) //不包含右、上边界上的像素
+				for (int y = bottom; y < top; ++y) //不包含右、上边界上的像素
 				{
-					for (uint32 x = left; x < right; ++x)
+					for (int x = left; x < right; ++x)
 					{
 						//MSAA4x
 						float msaa_count = 0;
-						float Mn = 1;
+						float Mn = 2;
 						Vec3 aa_rate = {};
 
-						for (float i = -Mn / 2; i < Mn / 2; ++i)
+						for (float i = 0; i < Mn ; ++i)
 						{
-							for (float j = -Mn / 2; j < Mn / 2; ++j)
+							for (float j = 0; j < Mn ; ++j)
 							{
 								Vec3 rate = Impl::get_interpolation_rate(
-									x + i / (Mn + 1) + 0.5f,
-									y + j / (Mn + 1) + 0.5f,
+									x + (i + 0.5f) / (Mn + 1),
+									y + (j + 0.5f) / (Mn + 1),
 									triangle);
-								if ((double)rate.x * rate.y * rate.z > -1e-8)
+								if ((double)rate.x * rate.y * rate.z > 0)
 								{
 									aa_rate += rate;
 									++msaa_count;
@@ -293,7 +279,7 @@ namespace sr
 							float depth0 = context.depth_buffer_view.Get(x, y);
 
 							//深度测试
-							if (depth >= depth0) {
+							if (depth <= depth0) {
 								//颜色混合
 								if (color.a < 0.99999)
 								{
