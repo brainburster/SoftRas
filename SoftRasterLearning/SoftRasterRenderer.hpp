@@ -51,13 +51,13 @@ namespace srr
 		template<typename T>
 		static bool is_backface(T* triangle)
 		{
-			Vec2 a = { triangle[1].position.x - triangle[0].position.x ,triangle[1].position.y - triangle[0].position.y };
-			Vec2 b = { triangle[2].position.x - triangle[1].position.x ,triangle[2].position.y - triangle[1].position.y };
-			Vec2 c = { triangle[0].position.x - triangle[2].position.x ,triangle[0].position.y - triangle[2].position.y };
+			Vec2<> a = { triangle[1].position.x - triangle[0].position.x ,triangle[1].position.y - triangle[0].position.y };
+			Vec2<> b = { triangle[2].position.x - triangle[1].position.x ,triangle[2].position.y - triangle[1].position.y };
+			Vec2<> c = { triangle[0].position.x - triangle[2].position.x ,triangle[0].position.y - triangle[2].position.y };
 			return a.cross(b) > 0 && b.cross(c) > 0 && c.cross(a) > 0;
 		}
 
-		static Color32 trans_float4color_to_uint32color(Vec4 color)
+		static Color32 trans_float4color_to_uint32color(const Vec4 & color)
 		{
 			//交换r通道和b通道
 			return Color32{ 
@@ -71,9 +71,10 @@ namespace srr
 		template<typename T>
 		static bool is_pixel_in_triangle(uint32 x, uint32 y, T* triangle)
 		{
-			Vec2 pa = { triangle[0].position.x - x ,triangle[0].position.y - y };
-			Vec2 pb = { triangle[1].position.x - x ,triangle[1].position.y - y};
-			Vec2 pc = { triangle[2].position.x - x ,triangle[2].position.y - y };
+			Vec2<> p = { (float)x,(float)y };
+			Vec2<> pa = (Vec2<>)triangle[0].position - p;
+			Vec2<> pb = (Vec2<>)triangle[1].position - p;
+			Vec2<> pc = (Vec2<>)triangle[2].position - p;;
 			
 			return (pa.cross(pb) > 0 && pb.cross(pc) > 0 && pc.cross(pa) > 0) || (pa.cross(pb) < 0 && pb.cross(pc) < 0 && pc.cross(pa) < 0);
 		}
