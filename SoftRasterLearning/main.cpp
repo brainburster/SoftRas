@@ -11,14 +11,14 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 	DC_WND wnd = DC_WND{ hInstance }.WndClassName(L"dc_wnd_cls").WndName(L"dc_wnd_wnd").Size(800, 600).AddWndStyle(~WS_MAXIMIZEBOX).Init().Move();
 
 	srr::Context ctx;
-	ctx.Viewport(800, 600, { 233, 233, 128, 255 });
+	ctx.Viewport(800, 600, { 0.3, 0.6, 0, 1 });
 	
 	srr::Renderer<> renderer = {ctx};
 
 	srr::Vertex triangle[3] = {
 		{
 			{300,400,1,1},
-			{1,0,0,1}
+			{1,0,0,0}
 		},
 		{
 			{400,500,1,1},

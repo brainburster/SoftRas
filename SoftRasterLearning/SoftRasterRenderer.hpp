@@ -7,42 +7,7 @@
 
 namespace srr
 {
-	class Context
-	{
-	public:
-		Buffer2DView<uint32> fragment_buffer_view;
-		Buffer2DView<float> depth_buffer_view;
-
-		void CopyToScreen(Buffer2DView<uint32>& screen_buffer_view)
-		{
-			if (screen_buffer_view.w == fragment_buffer_view.w && screen_buffer_view.h == fragment_buffer_view.h)
-			{
-				memcpy(&screen_buffer_view.buffer[0], &fragment_buffer_view.buffer[0], screen_buffer_view.w * screen_buffer_view.h * 4);
-			}
-			else
-			{
-				for (uint32 y = 0; y < screen_buffer_view.h; ++y)
-				{
-					for (uint32 x = 0; x < screen_buffer_view.w; ++x)
-					{
-						screen_buffer_view.Set(x, y, fragment_buffer_view.Get(x, y));
-					}
-				}
-			}
-		}
-		void Viewport(uint32 w, uint32 h, Color32 color = {0,0,0,0})
-		{
-			depth_buffer.resize(w * h, 0);
-			fragment_buffer.resize(w * h, color.bgra);
-
-			fragment_buffer_view = { &fragment_buffer[0],w , h };
-			depth_buffer_view = { &depth_buffer[0],w , h };
-		}
-
-	protected:
-		std::vector<uint32> fragment_buffer;
-		std::vector<float> depth_buffer;
-	};
+	using ColorF4 = Vec4<float>;
 
 	struct Impl
 	{
@@ -55,10 +20,10 @@ namespace srr
 			return a.cross(b) > 0 && b.cross(c) > 0 && c.cross(a) > 0;
 		}
 
-		static Color32 trans_float4color_to_uint32color(const Vec4HC & color)
+		static Color32 trans_float4color_to_uint32color(const ColorF4& color)
 		{
 			//交换r通道和b通道
-			return Color32{ 
+			return Color32{
 				(unsigned char)(color.z * 255),
 				(unsigned char)(color.y * 255),
 				(unsigned char)(color.x * 255),
@@ -73,14 +38,15 @@ namespace srr
 			Vec2<> pa = (Vec2<>)triangle[0].position - p;
 			Vec2<> pb = (Vec2<>)triangle[1].position - p;
 			Vec2<> pc = (Vec2<>)triangle[2].position - p;;
-			
+
 			return (pa.cross(pb) > 0 && pb.cross(pc) > 0 && pc.cross(pa) > 0) || (pa.cross(pb) < 0 && pb.cross(pc) < 0 && pc.cross(pa) < 0);
 		}
 
 		//获取插值
 		template<typename T>
-		static T get_interpolation(float x, float y, T* triangle)
+		static Vec3<float> get_interpolation_rate(float x, float y, T* triangle)
 		{
+			//w*p0+u*p1+v*p2=p, w=1-u-v;
 			float a1 = triangle[1].position.x - triangle[0].position.x;
 			float b1 = triangle[2].position.x - triangle[0].position.x;
 			float c1 = x - triangle[0].position.x;
@@ -90,12 +56,43 @@ namespace srr
 			float u = (a1 * c2 - a2 * c1) / (b2 * a1 - a2 * b1);
 			float v = (b2 * c1 - b1 * c2) / (b2 * a1 - a2 * b1);
 			float w = 1 - u - v;
-			if (u*v*w<0) 
-			{
-				return T{};
-			}
-			return (triangle[0] * w) + (triangle[1] * v) + (triangle[2] * u);
+			return { u,v,w };
 		}
+
+		//颜色混合
+
+	};
+
+
+	class Context
+	{
+	public:
+		Buffer2DView<ColorF4> fragment_buffer_view;
+		Buffer2DView<float> depth_buffer_view;
+
+		void CopyToScreen(Buffer2DView<uint32>& screen_buffer_view)
+		{
+			for (uint32 y = 0; y < screen_buffer_view.h; ++y)
+			{
+				for (uint32 x = 0; x < screen_buffer_view.w; ++x)
+				{
+					ColorF4 fcolor = fragment_buffer_view.Get(x, y);
+					screen_buffer_view.Set(x, y, Impl::trans_float4color_to_uint32color(fcolor).bgra);
+				}
+			}
+		}
+		void Viewport(uint32 w, uint32 h,ColorF4 color = {0,0,0,1})
+		{
+			depth_buffer.resize(w * h, 0);
+			fragment_buffer.resize(w * h, color);
+
+			fragment_buffer_view = { &fragment_buffer[0],w , h };
+			depth_buffer_view = { &depth_buffer[0],w , h };
+		}
+		Context() = default;
+	protected:
+		std::vector<ColorF4> fragment_buffer;
+		std::vector<float> depth_buffer;
 	};
 
 	//
@@ -120,6 +117,13 @@ namespace srr
 		{
 			return { lhs.position / rhs,lhs.color / rhs };
 		}
+
+		Vertex& operator+=(const Vertex& rhs)
+		{
+			position += rhs.position;
+			color += rhs.color;
+			return *this;
+		}
 	};
 
 	//基本的顶点着色器，不做处理
@@ -130,7 +134,6 @@ namespace srr
 		using out_type = Vertex;
 		out_type operator()(in_type v)
 		{
-			v.position = v.position.normalize();
 			return v;
 		}
 	};
@@ -140,7 +143,7 @@ namespace srr
 	{
 	public:
 		using in_type = Vertex;
-		using out_type = Vec4<>;
+		using out_type = ColorF4;
 		out_type operator()(in_type v)
 		{
 			return v.color;
@@ -152,7 +155,7 @@ namespace srr
 	{
 	public:
 		using VertexShaderDelegate = std::function<Processed_Vertex(IN_Vertex)>;
-		using FragmentShaderDelegate = std::function<Vec4HC(Processed_Vertex)>;
+		using FragmentShaderDelegate = std::function<ColorF4(Processed_Vertex)>;
 
 		void DrawTriangles(IN_Vertex* data, size_t n)
 		{
@@ -164,7 +167,10 @@ namespace srr
 					{vertexShader(data[i + 1])},
 					{vertexShader(data[i + 2])}
 				};
-				
+				for (auto& vertex : triangle)
+				{
+					vertex.position = vertex.position.normalize();
+				}
 				//...	
 				//culling
 				if (Impl::is_backface(triangle))
@@ -179,45 +185,68 @@ namespace srr
 				{
 					if (left > triangle[i].position.x)
 					{
-						left = (uint32)triangle[i].position.x-1;
+						left = (uint32)triangle[i].position.x;
 					}
 					else if (right < triangle[i].position.x)
 					{
-						right = (uint32)triangle[i].position.x+1;
+						right = (uint32)triangle[i].position.x;
 					}
 					if (top < triangle[i].position.y) 
 					{
-						top = (uint32)triangle[i].position.y+1;
+						top = (uint32)triangle[i].position.y;
 					}
 					if (bottom > triangle[i].position.y)
 					{
-						bottom = (uint32)triangle[i].position.y-1;
+						bottom = (uint32)triangle[i].position.y;
 					}
 				}
 
 				//...
 				//光栅化
-				for (float y = bottom; y < top; ++y)
+				for (float y = bottom; y < top; ++y) //不包含右、上边界上的像素
 				{
 					for (float x = left; x < right; ++x)
 					{
 						Processed_Vertex interp = { };
 						
-						//MSAA16
-						for (float i = -2; i < 2; ++i)
+						//MSAA4
+						int msaa_count = 0;
+						int Mn = 2;
+						for (float i = 0; i <= Mn; ++i)
 						{
-							for (float j = -2; j < 2; ++j)
+							for (float j =0; j <= Mn; ++j)
 							{
-									//获得深度与插值
-								interp = interp + Impl::get_interpolation(x + i/4, y + j/4, triangle);
+								Vec3<float>w = Impl::get_interpolation_rate(x + i / (Mn + 1) + 0.5/(Mn+1), y + j / (Mn + 1) + 0.5 / (Mn + 1), triangle);
+								if (w.x * w.y * w.z > 1e-10)
+								{
+									interp += triangle[0] * w.x + triangle[1] * w.y + triangle[2] * w.z;
+									++msaa_count;
+								}
 							}
 						}
-						if (interp.color.w)
+						if (msaa_count)
 						{
-							interp = interp / 16;
-							Vec4HC fcolor = fragShader(interp);
-							Color32 color = Impl::trans_float4color_to_uint32color(fcolor);
-							context.fragment_buffer_view.Set(x, y, color.bgra);
+							interp = interp  / msaa_count;
+							ColorF4 color = fragShader(interp);
+							color.a = color.a * msaa_count / (Mn * Mn);
+
+							float depth = interp.position.z / interp.position.w;
+							float depth0 = context.depth_buffer_view.Get(x, y);
+							//深度测试
+							if (depth>depth0) {
+								//颜色混合
+								if (color.a<0.99999)
+								{
+									ColorF4 color0 = context.fragment_buffer_view.Get(x, y);
+									color = color * color.a + (1.0f - color.a) * color0;
+									color.a = 1.0f;
+								}
+
+								//写入fragment_buffer
+								context.fragment_buffer_view.Set(x, y, color);
+								//写入depth_buffer
+								context.depth_buffer_view.Set(x, y, interp.position.z);
+							}
 						}
 					}
 				}

@@ -43,12 +43,45 @@ struct Vec4
 	}
 
 	Vec4(const Vec4& vec4_hc) = default;
-	Vec4(const Vec4_hc<T>& vec4_hc) : x{ vec4_hc.x }, y{ vec4_hc.y }, z{ vec4_hc.z }, w{ vec4_hc.w } {};
+	explicit Vec4(const Vec4_hc<T>& vec4_hc) : x{ vec4_hc.x }, y{ vec4_hc.y }, z{ vec4_hc.z }, w{ vec4_hc.w } {};
 
 
 	Vec4 operator+(const Vec4& rhs) const
 	{
 		return { x + rhs.x,y + rhs.y,z + rhs.z, w + rhs.w };
+	}
+
+	Vec4& operator+=(const Vec4& rhs)
+	{
+		x += rhs.x;
+		y += rhs.y;
+		z += rhs.z;
+		w += rhs.w;
+		return *this;
+	}
+	Vec4& operator-=(const Vec4& rhs)
+	{
+		x -= rhs.x;
+		y -= rhs.y;
+		z -= rhs.z;
+		w -= rhs.w;
+		return *this;
+	}
+	Vec4& operator*=(const Vec4& rhs)
+	{
+		x *= rhs.x;
+		y *= rhs.y;
+		z *= rhs.z;
+		w *= rhs.w;
+		return *this;
+	}
+	Vec4& operator/=(const Vec4& rhs)
+	{
+		x /= rhs.x;
+		y /= rhs.y;
+		z /= rhs.z;
+		w /= rhs.w;
+		return *this;
 	}
 
 	Vec4 operator-(const Vec4& rhs) const
@@ -109,7 +142,7 @@ struct Vec4_hc
 
 	Vec4_hc(const Vec4_hc& vec4_hc) = default;
 
-	Vec4_hc(const Vec4<T>& vec4) : x{ vec4.x }, y{ vec4.y }, z{ vec4.z }, w{ vec4.w }{};
+	explicit Vec4_hc(const Vec4<T>& vec4) : x{ vec4.x }, y{ vec4.y }, z{ vec4.z }, w{ vec4.w }{};
 
 
 	Vec4_hc operator+(const Vec4_hc& rhs) const
@@ -150,6 +183,40 @@ struct Vec4_hc
 	friend Vec4_hc operator/(const Vec4_hc& lhs, T rhs)
 	{
 		return { lhs.x / rhs,lhs.y / rhs,lhs.z / rhs, 1 };
+	}
+
+
+	Vec4_hc& operator+=(const Vec4_hc& rhs)
+	{
+		x += rhs.x;
+		y += rhs.y;
+		z += rhs.z;
+		w = 1;
+		return *this;
+	}
+	Vec4_hc& operator-=(const Vec4_hc& rhs)
+	{
+		x -= rhs.x;
+		y -= rhs.y;
+		z -= rhs.z;
+		w = 1;
+		return *this;
+	}
+	Vec4_hc& operator*=(const Vec4_hc& rhs)
+	{
+		x *= rhs.x;
+		y *= rhs.y;
+		z *= rhs.z;
+		w = 1;
+		return *this;
+	}
+	Vec4_hc& operator/=(const Vec4_hc& rhs)
+	{
+		x /= rhs.x;
+		y /= rhs.y;
+		z /= rhs.z;
+		w = 1;
+		return *this;
 	}
 };
 
@@ -219,6 +286,35 @@ struct Vec3
 	{
 		return { lhs.x / rhs,lhs.y / rhs,lhs.z / rhs };
 	}
+
+	Vec3& operator+=(const Vec3& rhs)
+	{
+		x += rhs.x;
+		y += rhs.y;
+		z += rhs.z;
+		return *this;
+	}
+	Vec3& operator-=(const Vec3& rhs)
+	{
+		x -= rhs.x;
+		y -= rhs.y;
+		z -= rhs.z;
+		return *this;
+	}
+	Vec3& operator*=(const Vec3& rhs)
+	{
+		x *= rhs.x;
+		y *= rhs.y;
+		z *= rhs.z;
+		return *this;
+	}
+	Vec3& operator/=(const Vec3& rhs)
+	{
+		x /= rhs.x;
+		y /= rhs.y;
+		z /= rhs.z;
+		return *this;
+	}
 };
 
 template<typename T>
@@ -266,6 +362,31 @@ struct Vec2
 	friend Vec2 operator/(const Vec2& lhs, T rhs)
 	{
 		return { lhs.x / rhs, lhs.y / rhs };
+	}
+
+	Vec2& operator+=(const Vec2& rhs)
+	{
+		x += rhs.x;
+		y += rhs.y;
+		return *this;
+	}
+	Vec2& operator-=(const Vec2& rhs)
+	{
+		x -= rhs.x;
+		y -= rhs.y;
+		return *this;
+	}
+	Vec2& operator*=(const Vec2& rhs)
+	{
+		x *= rhs.x;
+		y *= rhs.y;
+		return *this;
+	}
+	Vec2& operator/=(const Vec2& rhs)
+	{
+		x /= rhs.x;
+		y /= rhs.y;
+		return *this;
 	}
 };
 
