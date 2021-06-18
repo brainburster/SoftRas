@@ -4,6 +4,24 @@
 #include "software_renderer.hpp"
 #include <iostream>
 
+struct Material_Model
+{
+	using VS_IN = sr::Vertex;
+	using VS_OUT = sr::Vertex;
+
+	sr::Mat mat = sr::Mat::Unit();
+
+	VS_OUT VS(const VS_IN& v) const 
+	{
+		return { mat * v.position,v.color };
+	}
+
+	sr::Color FS(const VS_OUT& v) const
+	{
+		return v.color;
+	}
+};
+
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
 	//Wnd<> wnd = Wnd<>{ hInstance }.WndClassName(L"test_cls").WndName(L"test_wnd").Size(800, 600).Init().Move();
@@ -13,7 +31,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 	sr::Context ctx;
 	ctx.Viewport(800, 600, { 0.4f, 0.6f, 0.2f, 1.f });
 
-	sr::Renderer<> renderer = { ctx };
+	Material_Model m;
+
+	sr::Renderer<Material_Model> renderer = { ctx,m };
 
 	sr::Vertex rect[6] = {
 		{{-0.5,0.5,0,1},{1,0,0,1}},
@@ -24,10 +44,15 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 		{{-0.5,-0.5,0,1},{1,0,0,1}}
 	};
 
+	float pi = 3.14159265358979f;
+
+	m.mat = sr::Mat::Translate(0.3f, 0, 0) * sr::Mat::Rotate(0, 0, 60.f / 180 * pi) * sr::Mat::Scale(0.4f, 1.2f, 1) * m.mat;
+	
 	renderer.DrawTriangles(rect,6);
 
 	ctx.CopyToScreen(wnd.getFrameBufferView());
 	wnd.drawBuffer();
+
 
 	while (!wnd.app_should_close())
 	{

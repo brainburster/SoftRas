@@ -317,13 +317,8 @@ namespace sr
 		{
 		}
 
-		Renderer(Context& ctx) :
-			context{ ctx },
-			material{ }
-		{
-		}
 	protected:
 		Context& context;
-		Material material;
+		const Material& material;
 	};
 }
