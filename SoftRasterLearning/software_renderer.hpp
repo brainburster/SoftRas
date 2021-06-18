@@ -5,7 +5,7 @@
 #include "buffer_view.hpp"
 #include "game_math.hpp"
 
-namespace srr
+namespace sr
 {
 	using namespace bview;
 	using Position = gmath::Vec4_hc<float>;
@@ -13,6 +13,7 @@ namespace srr
 	using Vec4 = gmath::Vec4<float>;
 	using Vec3 = gmath::Vec3<float>;
 	using Vec2 = gmath::Vec2<float>;
+	using Mat = gmath::Mat4x4<float>;
 
 	//默认的顶点类,只有位置和颜色
 	struct Vertex
@@ -44,7 +45,6 @@ namespace srr
 			return *this;
 		}
 	};
-
 
 	struct Impl
 	{
@@ -172,22 +172,40 @@ namespace srr
 		}
 	};
 
-	template<typename IN_Vertex = Vertex, typename Processed_Vertex = Vertex>
+	//基本
+	class Material_Default
+	{
+	public:
+		using VS_IN = Vertex;
+		using VS_OUT = Vertex;
+		VS_OUT VS(const VS_IN& v)
+		{
+			return v;
+		}
+
+		Color FS(const VS_OUT& v)
+		{
+			return v.color;
+		}
+	};
+
+	template<typename Material = Material_Default>
 	class Renderer
 	{
 	public:
-		using VertexShaderDelegate = std::function<Processed_Vertex(IN_Vertex)>;
-		using FragmentShaderDelegate = std::function<Color(Processed_Vertex)>;
+		using VS_IN = typename Material::VS_IN;
+		using VS_OUT = typename Material::VS_OUT;
 
-		void DrawTriangles(IN_Vertex* data, size_t n)
+
+		void DrawTriangles(VS_IN* data, size_t n)
 		{
 			for (size_t i = 0; i < n; i += 3)
 			{
 
-				Processed_Vertex triangle[3] = {
-					{vertexShader(data[i])},
-					{vertexShader(data[i + 1])},
-					{vertexShader(data[i + 2])}
+				VS_IN triangle[3] = {
+					{material.VS(data[i])},
+					{material.VS(data[i + 1])},
+					{material.VS(data[i + 2])}
 				};
 				for (auto& vertex : triangle)
 				{
@@ -201,10 +219,10 @@ namespace srr
 				}
 				//...	
 				//culling
-				//if (Impl::is_backface(triangle))
-				//{
-				//	continue;
-				//}
+				if (Impl::is_backface(triangle))
+				{
+					continue;
+				}
 
 				//生成AABB包围盒
 				uint32 left = UINT_MAX, right = 0, top = 0, bottom = UINT_MAX;
@@ -235,8 +253,6 @@ namespace srr
 				{
 					for (uint32 x = left; x < right; ++x)
 					{
-						Processed_Vertex interp = { };
-
 						//MSAA4x
 						float msaa_count = 0;
 						float Mn = 1;
@@ -261,9 +277,9 @@ namespace srr
 						if (msaa_count)
 						{
 							aa_rate /= msaa_count;
-							Processed_Vertex interp = triangle[0] * aa_rate.x + triangle[1] * aa_rate.y + triangle[2] * aa_rate.z;
+							VS_OUT interp = triangle[0] * aa_rate.x + triangle[1] * aa_rate.y + triangle[2] * aa_rate.z;
 
-							Color color = fragShader(interp);
+							Color color = material.FS(interp);
 							Color color0 = context.fragment_buffer_view.Get(x, y);
 							//
 							if (msaa_count < Mn * Mn) {
@@ -275,6 +291,7 @@ namespace srr
 							//
 							float depth = interp.position.z / interp.position.w;
 							float depth0 = context.depth_buffer_view.Get(x, y);
+
 							//深度测试
 							if (depth >= depth0) {
 								//颜色混合
@@ -294,16 +311,19 @@ namespace srr
 			}
 		}
 
-		Renderer(Context& ctx, const VertexShaderDelegate& vs = VertexShader_Default{}, const FragmentShaderDelegate& fs = FragShader_Default{}) :
+		Renderer(Context& ctx, const Material& m) :
 			context{ ctx },
-			vertexShader{ vs },
-			fragShader{ fs }
+			material{ m }
+		{
+		}
+
+		Renderer(Context& ctx) :
+			context{ ctx },
+			material{ }
 		{
 		}
 	protected:
 		Context& context;
-		VertexShaderDelegate vertexShader;
-		FragmentShaderDelegate fragShader;
+		Material material;
 	};
 }
-

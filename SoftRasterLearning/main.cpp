@@ -10,12 +10,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 
 	wnd::DC_WND wnd = wnd::DC_WND{ hInstance }.WndClassName(L"dc_wnd_cls").WndName(L"dc_wnd_wnd").Size(800, 600).AddWndStyle(~WS_MAXIMIZEBOX).Init().Move();
 
-	srr::Context ctx;
+	sr::Context ctx;
 	ctx.Viewport(800, 600, { 0.4f, 0.6f, 0.2f, 1.f });
-	
-	srr::Renderer<> renderer = {ctx};
 
-	srr::Vertex rect[6] = {
+	sr::Renderer<> renderer = { ctx };
+
+	sr::Vertex rect[6] = {
 		{{-0.5,0.5,0,1},{1,0,0,1}},
 		{{ 0.5,0.5,0,1},{0,1,0,1}},
 		{{ 0.5,-0.5,0,1},{0,0,1,1}},
