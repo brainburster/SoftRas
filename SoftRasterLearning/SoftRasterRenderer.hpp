@@ -186,13 +186,19 @@ namespace srr
 				for (auto& vertex : triangle)
 				{
 					vertex.position = vertex.position.normalize();
+					vertex.position.x /= 2.f;
+					vertex.position.y /= 2.f;
+					vertex.position.x += 0.5f;
+					vertex.position.y += 0.5f;
+					vertex.position.x *= context.fragment_buffer_view.w;
+					vertex.position.y *= context.fragment_buffer_view.h;
 				}
 				//...	
 				//culling
-				if (Impl::is_backface(triangle))
-				{
-					continue;
-				}
+				//if (Impl::is_backface(triangle))
+				//{
+				//	continue;
+				//}
 
 				//生成AABB包围盒
 				uint32 left = UINT_MAX, right = 0, top = 0, bottom = UINT_MAX;
@@ -227,16 +233,16 @@ namespace srr
 						
 						//MSAA4x
 						float msaa_count = 0;
-						float Mn = 2;
+						float Mn = 1;
 						Vec3<float> aa_rate = {};
 
-						for (float i = 0; i < Mn; ++i)
+						for (float i = -Mn/2; i < Mn/2; ++i)
 						{
-							for (float j =0; j < Mn; ++j)
+							for (float j = -Mn / 2; j < Mn/2; ++j)
 							{
 								Vec3<float>rate = Impl::get_interpolation_rate(
-									x + i / (Mn + 1) + 0.5f / (Mn + 1),
-									y + j / (Mn + 1) + 0.5f / (Mn + 1),
+									x + i / (Mn + 1) + 0.5f,
+									y + j / (Mn + 1) + 0.5f,
 									triangle);
 								if ((double)rate.x * rate.y * rate.z > -1e-8)
 								{
@@ -250,6 +256,7 @@ namespace srr
 						{
 							aa_rate /= msaa_count;
 							Processed_Vertex interp = triangle[0] * aa_rate.x + triangle[1] * aa_rate.y + triangle[2] * aa_rate.z;
+
 							ColorF4 color = fragShader(interp);
 							ColorF4 color0 = context.fragment_buffer_view.Get(x, y);
 							//
@@ -263,7 +270,7 @@ namespace srr
 							float depth = interp.position.z / interp.position.w;
 							float depth0 = context.depth_buffer_view.Get(x, y);
 							//深度测试
-							if (depth>depth0) {
+							if (depth>=depth0) {
 								//颜色混合
 								if (color.a<0.99999)
 								{
