@@ -53,10 +53,10 @@ namespace srr
 			float a2 = triangle[1].position.y - triangle[0].position.y;
 			float b2 = triangle[2].position.y - triangle[0].position.y;
 			float c2 = y - triangle[0].position.y;
-			float u = (a1 * c2 - a2 * c1) / (b2 * a1 - a2 * b1);
-			float v = (b2 * c1 - b1 * c2) / (b2 * a1 - a2 * b1);
+			float v = (a1 * c2 - a2 * c1) / (b2 * a1 - a2 * b1);
+			float u = (b2 * c1 - b1 * c2) / (b2 * a1 - a2 * b1);
 			float w = 1 - u - v;
-			return { u,v,w };
+			return { w,u,v };
 		}
 
 		//颜色混合
@@ -67,6 +67,12 @@ namespace srr
 			color.a = a;
 			return color;
 		}
+
+		static ColorF4 lerp_color(ColorF4 color1, ColorF4 color2, float n)
+		{
+			return color1 * n + color2 * (1.0f - n);
+		}
+
 	};
 
 
@@ -222,14 +228,19 @@ namespace srr
 						//MSAA4x
 						float msaa_count = 0;
 						float Mn = 2;
-						for (float i = 0; i <= Mn; ++i)
+						Vec3<float> aa_rate = {};
+
+						for (float i = 0; i < Mn; ++i)
 						{
-							for (float j =0; j <= Mn; ++j)
+							for (float j =0; j < Mn; ++j)
 							{
-								Vec3<float>w = Impl::get_interpolation_rate(x + i / (Mn + 1) + 0.5f/(Mn+1), y + j / (Mn + 1) + 0.5f / (Mn + 1), triangle);
-								if ((double)w.x * w.y * w.z > 1e-8)
+								Vec3<float>rate = Impl::get_interpolation_rate(
+									x + i / (Mn + 1) + 0.5f / (Mn + 1),
+									y + j / (Mn + 1) + 0.5f / (Mn + 1),
+									triangle);
+								if ((double)rate.x * rate.y * rate.z > -1e-8)
 								{
-									interp += triangle[0] * w.x + triangle[1] * w.y + triangle[2] * w.z;
+									aa_rate += rate;
 									++msaa_count;
 								}
 							}
@@ -237,10 +248,18 @@ namespace srr
 
 						if (msaa_count)
 						{
-							interp = interp  / msaa_count;
+							aa_rate /= msaa_count;
+							Processed_Vertex interp = triangle[0] * aa_rate.x + triangle[1] * aa_rate.y + triangle[2] * aa_rate.z;
 							ColorF4 color = fragShader(interp);
-							color.a = color.a * msaa_count / (Mn * Mn);
-
+							ColorF4 color0 = context.fragment_buffer_view.Get(x, y);
+							//
+							if (msaa_count < Mn * Mn) {
+								float a = color.a;
+								color = Impl::lerp_color(color, color0, msaa_count / (Mn * Mn));
+								color.a = a;
+							}
+							
+							//
 							float depth = interp.position.z / interp.position.w;
 							float depth0 = context.depth_buffer_view.Get(x, y);
 							//深度测试
@@ -248,7 +267,6 @@ namespace srr
 								//颜色混合
 								if (color.a<0.99999)
 								{
-									ColorF4 color0 = context.fragment_buffer_view.Get(x, y);
 									color = Impl::blend_color(color0, color);
 								}
 

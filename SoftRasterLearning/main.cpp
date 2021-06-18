@@ -15,14 +15,26 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 	
 	srr::Renderer<> renderer = {ctx};
 
-	srr::Vertex triangle[3] = {
+	srr::Vertex triangles[6] = {
 		{
-			{300.f,400.f,1.f,1.f},
+			{200.f,400.f,1.f,1.f},
 			{1.f,0.f,0.f,0.f}
 		},
 		{
 			{400.f,500.f,1.f,1.f},
 			{0.f,1.f,0.f,1.f}
+		},
+		{
+			{500.f,300.f,1.f,1.f},
+			{0.f,0.f,1.f,1.f}
+		},
+		{
+			{300.f,100.f,1.f,1.f},
+			{0.f,0.f,1.f,0.5f}
+		},
+		{
+			{200.f,400.f,1.f,1.f},
+			{1.f,0.f,0.f,0.f}
 		},
 		{
 			{500.f,300.f,1.f,1.f},
@@ -35,7 +47,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 	{
 		wnd.PeekMsg();
 		//...
-		renderer.DrawTriangles(triangle, 3);
+		renderer.DrawTriangles(triangles, 6);
 
 		ctx.CopyToScreen(wnd.getFrameBufferView());
 		wnd.drawBuffer();
