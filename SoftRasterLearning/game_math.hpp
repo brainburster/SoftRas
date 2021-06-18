@@ -392,9 +392,110 @@ namespace gmath
 		}
 	};
 
-
+	template<typename T = float>
 	struct Mat4x4
 	{
+		T data[16];
+
+		//矩阵乘法
+		Mat4x4 operator*(const Mat4x4& rhs)
+		{
+			return Mat4x4{
+				//第一行
+				data[0] * rhs.data[0] + data[1] * rhs.data[4] + data[2] * rhs.data[8] + data[3] * rhs.data[12],
+				data[0] * rhs.data[1] + data[1] * rhs.data[5] + data[2] * rhs.data[9] + data[3] * rhs.data[13],
+				data[0] * rhs.data[2] + data[1] * rhs.data[6] + data[2] * rhs.data[10] + data[3] * rhs.data[14],
+				data[0] * rhs.data[3] + data[1] * rhs.data[7] + data[2] * rhs.data[11] + data[3] * rhs.data[15],
+				//第二行
+				data[4] * rhs.data[0] + data[5] * rhs.data[4] + data[6] * rhs.data[8] + data[7] * rhs.data[12],
+				data[4] * rhs.data[1] + data[5] * rhs.data[5] + data[6] * rhs.data[9] + data[7] * rhs.data[13],
+				data[4] * rhs.data[2] + data[5] * rhs.data[6] + data[6] * rhs.data[10] + data[7] * rhs.data[14],
+				data[4] * rhs.data[3] + data[5] * rhs.data[7] + data[6] * rhs.data[11] + data[7] * rhs.data[15],
+				//第三行
+				data[8] * rhs.data[0] + data[9] * rhs.data[4] + data[10] * rhs.data[8] + data[11] * rhs.data[12],
+				data[8] * rhs.data[1] + data[9] * rhs.data[5] + data[10] * rhs.data[9] + data[11] * rhs.data[13],
+				data[8] * rhs.data[2] + data[9] * rhs.data[6] + data[10] * rhs.data[10] + data[11] * rhs.data[14],
+				data[8] * rhs.data[3] + data[9] * rhs.data[7] + data[10] * rhs.data[11] + data[11] * rhs.data[15],
+				//第四行
+				data[12] * rhs.data[0] + data[13] * rhs.data[4] + data[14] * rhs.data[8] + data[15] * rhs.data[12],
+				data[12] * rhs.data[1] + data[13] * rhs.data[5] + data[14] * rhs.data[9] + data[15] * rhs.data[13],
+				data[12] * rhs.data[2] + data[13] * rhs.data[6] + data[14] * rhs.data[10] + data[15] * rhs.data[14],
+				data[12] * rhs.data[3] + data[13] * rhs.data[7] + data[14] * rhs.data[11] + data[15] * rhs.data[15]
+			};
+		}
+
+		//乘向量
+		Mat4x4 operator*(const Vec4_hc<T>& rhs)
+		{
+			return Mat4x4{
+				data[0] * rhs.x + data[1] * rhs.y + data[2] * rhs.z + data[3] * rhs.w,
+				data[4] * rhs.x + data[5] * rhs.y + data[6] * rhs.z + data[7] * rhs.w,
+				data[8] * rhs.x + data[9] * rhs.y + data[10] * rhs.z + data[11] * rhs.w,
+				data[12] * rhs.x + data[13] * rhs.y + data[14] * rhs.z + data[15] * rhs.w,
+			};
+		}
+
+		//unit
+		static Mat4x4 Uint()
+		{
+			return Mat4x4{
+				1.f,0,0,0,
+				0,1.f,0,0,
+				0,0,1.f,0,
+				0,0,0,1.f
+			};
+		}
+
+		//平移
+		static Mat4x4 Translate(T x, T y, T z)
+		{
+			return Mat4x4{
+				1.f,0,0,x,
+				0,1.f,0,y,
+				0,0,1.f,z,
+				0,0,0,1.f
+			};
+		}
+
+		//旋转
+		static Mat4x4 Rotate(T x, T y, T z)
+		{
+			return Mat4x4{
+			   1.f,0,0,0,
+			   0, cos(x), -sin(x), 0,
+			   0, sin(x), cos(x),  0,
+			   0, 0,   0, 1.f
+			} * Mat4x4{
+			   cos(y),0,sin(y),0,
+			   0,1.f,0,0,
+			   -sin(y),0,cos(y),0,
+			   0,0,0,1.f
+			} * Mat4x4{
+			   cos(z),-sin(z),0,0,
+			   sin(z),cos(z),0,0,
+			   0,0,1.f,0,
+			   0,0,0,1.f
+			};
+		}
+
+		//缩放
+		static Mat4x4 Scale(T x, T y, T z)
+		{
+			return Mat4x4{
+				x, 0, 0, 0,
+				0, y, 0, 0,
+				0, 0, z, 0,
+				0, 0, 0,1.f
+			};
+		}
+
+
+		//lookat
+
+		//正交
+
+		//透视
+
 
 	};
 
