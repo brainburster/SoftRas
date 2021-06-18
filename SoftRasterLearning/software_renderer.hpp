@@ -1,9 +1,9 @@
 #pragma once
 #include <vector>
 #include <map>
-#include "DC_WND.hpp"
+#include "dc_wnd.hpp"
 #include "buffer_view.hpp"
-#include "mat_math.hpp"
+#include "game_math.hpp"
 
 namespace srr
 {

@@ -148,15 +148,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DC_WND.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="buffer_view.hpp" />
-    <ClInclude Include="DC_WND.hpp" />
-    <ClInclude Include="mat_math.hpp" />
-    <ClInclude Include="SoftRasterRenderer.hpp" />
-    <ClInclude Include="Wnd.hpp" />
+    <ClInclude Include="dc_wnd.h" />
+    <ClInclude Include="game_math.hpp" />
+    <ClInclude Include="software_renderer.hpp" />
+    <ClInclude Include="raw_wnd.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,7 +1,7 @@
 //#include "Wnd.hpp"
 #include "buffer_view.hpp"
-#include "DC_WND.hpp"
-#include "SoftRasterRenderer.hpp"
+#include "dc_wnd.hpp"
+#include "software_renderer.hpp"
 #include <iostream>
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)

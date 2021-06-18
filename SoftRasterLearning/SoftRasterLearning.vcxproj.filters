@@ -18,24 +18,21 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="DC_WND.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Wnd.hpp">
+    <ClInclude Include="raw_wnd.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="DC_WND.hpp">
+    <ClInclude Include="dc_wnd.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="SoftRasterRenderer.hpp">
+    <ClInclude Include="software_renderer.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="buffer_view.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="mat_math.hpp">
+    <ClInclude Include="game_math.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
