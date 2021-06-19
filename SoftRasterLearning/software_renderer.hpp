@@ -8,12 +8,12 @@
 namespace sr
 {
 	using namespace bview;
-	using Position = gmath::Vec4_hc<float>;
-	using Color = gmath::Vec4<float>;
-	using Vec4 = gmath::Vec4<float>;
-	using Vec3 = gmath::Vec3<float>;
-	using Vec2 = gmath::Vec2<float>;
-	using Mat = gmath::Mat4x4<float>;
+	using Position = gmath::Vec4_hc<double>;
+	using Color = gmath::Vec4<double>;
+	using Vec4 = gmath::Vec4<double>;
+	using Vec3 = gmath::Vec3<double>;
+	using Vec2 = gmath::Vec2<double>;
+	using Mat = gmath::Mat4x4<double>;
 
 	//默认的顶点类,只有位置和颜色
 	struct Vertex
@@ -25,15 +25,15 @@ namespace sr
 		{
 			return { position + rhs.position,color + rhs.color };
 		}
-		friend Vertex operator*(const Vertex& lhs, float rhs)
+		friend Vertex operator*(const Vertex& lhs, double rhs)
 		{
 			return { lhs.position * rhs,lhs.color * rhs };
 		}
-		friend Vertex operator*(float lhs, const Vertex& rhs)
+		friend Vertex operator*(double lhs, const Vertex& rhs)
 		{
 			return { rhs.position / lhs,rhs.color / lhs };
 		}
-		friend Vertex operator/(const Vertex& lhs, float rhs)
+		friend Vertex operator/(const Vertex& lhs, double rhs)
 		{
 			return { lhs.position / rhs,lhs.color / rhs };
 		}
@@ -70,7 +70,7 @@ namespace sr
 		}
 
 		template<typename T>
-		static bool is_pixel_in_triangle(float x, float y, T* triangle)
+		static bool is_pixel_in_triangle(double x, double y, T* triangle)
 		{
 			Vec2 p = { x,y };
 			Vec2 pa = (Vec2)triangle[0].position - p;
@@ -82,31 +82,31 @@ namespace sr
 
 		//获取插值
 		template<typename T>
-		static Vec3 get_interpolation_rate(float x, float y, T* triangle)
+		static Vec3 get_interpolation_rate(double x, double y, T* triangle)
 		{
 			//w*p0+u*p1+v*p2=p, w=1-u-v;
-			float a1 = triangle[1].position.x - triangle[0].position.x;
-			float b1 = triangle[2].position.x - triangle[0].position.x;
-			float c1 = x - triangle[0].position.x;
-			float a2 = triangle[1].position.y - triangle[0].position.y;
-			float b2 = triangle[2].position.y - triangle[0].position.y;
-			float c2 = y - triangle[0].position.y;
-			float v = (a1 * c2 - a2 * c1) / (b2 * a1 - a2 * b1);
-			float u = (b2 * c1 - b1 * c2) / (b2 * a1 - a2 * b1);
-			float w = 1 - u - v;
+			double a1 = triangle[1].position.x - triangle[0].position.x;
+			double b1 = triangle[2].position.x - triangle[0].position.x;
+			double c1 = x - triangle[0].position.x;
+			double a2 = triangle[1].position.y - triangle[0].position.y;
+			double b2 = triangle[2].position.y - triangle[0].position.y;
+			double c2 = y - triangle[0].position.y;
+			double v = (a1 * c2 - a2 * c1) / (b2 * a1 - a2 * b1);
+			double u = (b2 * c1 - b1 * c2) / (b2 * a1 - a2 * b1);
+			double w = 1 - u - v;
 			return { w,u,v };
 		}
 
 		//颜色混合
 		static Color blend_color(Color color0, Color color1)
 		{
-			float a = 1.0f - (1.0f - color1.a) * (1.0f - color0.a);
+			double a = 1.0f - (1.0f - color1.a) * (1.0f - color0.a);
 			Color color = 1.0f / a * (color1 * color1.a + (1.0f - color1.a) * color0.a * color0);
 			color.a = a;
 			return color;
 		}
 
-		static Color lerp_color(Color color1, Color color2, float n)
+		static Color lerp_color(Color color1, Color color2, double n)
 		{
 			return color1 * n + color2 * (1.0f - n);
 		}
@@ -118,7 +118,7 @@ namespace sr
 	{
 	public:
 		Buffer2DView<Color> fragment_buffer_view;
-		Buffer2DView<float> depth_buffer_view;
+		Buffer2DView<double> depth_buffer_view;
 
 		void CopyToScreen(Buffer2DView<uint32>& screen_buffer_view)
 		{
@@ -136,7 +136,7 @@ namespace sr
 		}
 		void Viewport(uint32 w, uint32 h, Color color = { 0,0,0,1 })
 		{
-			depth_buffer.resize(w * h, 1e8f);
+			depth_buffer.resize(w * h, 1e8);
 			fragment_buffer.resize(w * h, color);
 
 			fragment_buffer_view = { &fragment_buffer[0],w , h };
@@ -156,7 +156,7 @@ namespace sr
 		Context() : fragment_buffer{}, depth_buffer{}, fragment_buffer_view{ nullptr }, depth_buffer_view{ nullptr }{};
 	protected:
 		std::vector<Color> fragment_buffer;
-		std::vector<float> depth_buffer;
+		std::vector<double> depth_buffer;
 	};
 
 	//默认材质
@@ -213,10 +213,10 @@ namespace sr
 			{
 				auto& vertex = triangle[i];
 				vertex.position = vertex.position.normalize();
-				vertex.position.x /= 2.f;
-				vertex.position.y /= 2.f;
-				vertex.position.x += 0.5f;
-				vertex.position.y += 0.5f;
+				vertex.position.x /= 2.;
+				vertex.position.y /= 2.;
+				vertex.position.x += 0.5;
+				vertex.position.y += 0.5;
 				vertex.position.x *= context.fragment_buffer_view.w;
 				vertex.position.y *= context.fragment_buffer_view.h;
 			}
@@ -261,34 +261,27 @@ namespace sr
 		void Rasterize_Scanning(VS_IN  triangle[3])
 		{
 			//是否隔行扫描
-			//float bInterlacing = false;
+			//double bInterlacing = false;
 			//生成AABB包围盒
+				
 			
-			////光栅化
-			//for (int y = bottom; y < top; ++y)
-			//{
-			//	for (int x = left; x < right; ++x)
-			//	{
-			//		PixelOperate(x, y, triangle);
-			//	}
-			//}
 		}
 
 
 		void PixelOperate(int x, int y,VS_IN  triangle[3])
 		{
 			//MSAA4x
-			float msaa_count = 0;
-			float Mn = 2;
+			double msaa_count = 0;
+			double Mn = 2;
 			Vec3 aa_rate = {};
 
-			for (float i = 0; i < Mn; ++i)
+			for (double i = 0; i < Mn; ++i)
 			{
-				for (float j = 0; j < Mn; ++j)
+				for (double j = 0; j < Mn; ++j)
 				{
 					Vec3 rate = Impl::get_interpolation_rate(
-						x + (i + 0.5f) / (Mn + 1),
-						y + (j + 0.5f) / (Mn + 1),
+						x + (i + 0.5) / (Mn + 1),
+						y + (j + 0.5) / (Mn + 1),
 						triangle);
 					if ((double)rate.x * rate.y * rate.z > 1e-6)
 					{
@@ -307,14 +300,14 @@ namespace sr
 				Color color0 = context.fragment_buffer_view.Get(x, y);
 				//
 				if (msaa_count < Mn * Mn) {
-					float a = color.a;
+					double a = color.a;
 					color = Impl::lerp_color(color, color0, msaa_count / (Mn * Mn));
 					color.a = a;
 				}
 
 				//
-				float depth = interp.position.z / interp.position.w;
-				float depth0 = context.depth_buffer_view.Get(x, y);
+				double depth = interp.position.z / interp.position.w;
+				double depth0 = context.depth_buffer_view.Get(x, y);
 
 				//深度测试
 				if (depth <= depth0) {
