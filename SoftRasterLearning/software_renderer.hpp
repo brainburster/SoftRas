@@ -8,7 +8,7 @@
 namespace sr
 {
 	using namespace bview;
-	using Position = gmath::Vec4_hc<double>;
+	using Position = gmath::Vec4<double>;
 	using Color = gmath::Vec4<double>;
 	using Vec4 = gmath::Vec4<double>;
 	using Vec3 = gmath::Vec3<double>;
@@ -204,7 +204,7 @@ namespace sr
 				//归一化
 				for (auto& v : triangle)
 				{
-					v.position = v.position.normalize();
+					v.position /= v.position.w;
 				}
 
 				//当三个点都不在裁剪空间内时, culling
@@ -379,7 +379,7 @@ namespace sr
 			{
 				aa_rate /= msaa_count;
 				VS_OUT interp = triangle[0] * aa_rate.x + triangle[1] * aa_rate.y + triangle[2] * aa_rate.z;
-				double depth = interp.position.z / interp.position.w;
+				double depth = interp.position.z;
 				double depth0 = context.depth_buffer_view.Get(x, y);
 
 				//深度测试
