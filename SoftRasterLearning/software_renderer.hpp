@@ -45,6 +45,7 @@ namespace sr
 			return *this;
 		}
 	};
+	
 
 	struct Impl
 	{
@@ -158,7 +159,7 @@ namespace sr
 		std::vector<float> depth_buffer;
 	};
 
-	//基本
+	//默认材质
 	class Material_Default
 	{
 	public:
@@ -193,16 +194,8 @@ namespace sr
 					{material.VS(data[i + 1])},
 					{material.VS(data[i + 2])}
 				};
-				for (auto& vertex : triangle)
-				{
-					vertex.position = vertex.position.normalize();
-					vertex.position.x /= 2.f;
-					vertex.position.y /= 2.f;
-					vertex.position.x += 0.5f;
-					vertex.position.y += 0.5f;
-					vertex.position.x *= context.fragment_buffer_view.w;
-					vertex.position.y *= context.fragment_buffer_view.h;
-				}
+				
+				TransToScreenSpace(triangle);
 				//...	
 				//culling
 				if (Impl::is_backface(triangle))
@@ -210,89 +203,113 @@ namespace sr
 					continue;
 				}
 
-				//生成AABB包围盒
-				int left = INT_MAX, right = -INT_MAX, top = -INT_MAX, bottom = INT_MAX;
+				Rasterize(triangle);
+			}
+		}
 
-				for (int i = 0; i < 3; ++i)
+		void TransToScreenSpace(Material::VS_IN  triangle[3])
+		{
+			for (auto& vertex : triangle)
+			{
+				vertex.position = vertex.position.normalize();
+				vertex.position.x /= 2.f;
+				vertex.position.y /= 2.f;
+				vertex.position.x += 0.5f;
+				vertex.position.y += 0.5f;
+				vertex.position.x *= context.fragment_buffer_view.w;
+				vertex.position.y *= context.fragment_buffer_view.h;
+			}
+		}
+
+		void Rasterize(Material::VS_IN  triangle[3])
+		{
+			//生成AABB包围盒
+			int left = INT_MAX, right = -INT_MAX, top = -INT_MAX, bottom = INT_MAX;
+
+			for (int i = 0; i < 3; ++i)
+			{
+				if (left > triangle[i].position.x)
 				{
-					if (left > triangle[i].position.x)
+					left = (uint32)triangle[i].position.x;
+				}
+				if (right < triangle[i].position.x)
+				{
+					right = (uint32)triangle[i].position.x + 1;
+				}
+				if (top < triangle[i].position.y)
+				{
+					top = (uint32)triangle[i].position.y + 1;
+				}
+				if (bottom > triangle[i].position.y)
+				{
+					bottom = (uint32)triangle[i].position.y;
+				}
+			}
+
+			//...
+			//光栅化
+			for (int y = bottom; y < top; ++y)
+			{
+				for (int x = left; x < right; ++x)
+				{
+					PixelOperate(x, y, triangle);
+				}
+			}
+		}
+
+		void PixelOperate(int x, int y, Material::VS_IN  triangle[3])
+		{
+			//MSAA4x
+			float msaa_count = 0;
+			float Mn = 2;
+			Vec3 aa_rate = {};
+
+			for (float i = 0; i < Mn; ++i)
+			{
+				for (float j = 0; j < Mn; ++j)
+				{
+					Vec3 rate = Impl::get_interpolation_rate(
+						x + (i + 0.5f) / (Mn + 1),
+						y + (j + 0.5f) / (Mn + 1),
+						triangle);
+					if ((double)rate.x * rate.y * rate.z > 1e-6)
 					{
-						left = (uint32)triangle[i].position.x;
-					}
-					if (right < triangle[i].position.x)
-					{
-						right = (uint32)triangle[i].position.x + 1;
-					}
-					if (top < triangle[i].position.y)
-					{
-						top = (uint32)triangle[i].position.y + 1;
-					}
-					if (bottom > triangle[i].position.y)
-					{
-						bottom = (uint32)triangle[i].position.y;
+						aa_rate += rate;
+						++msaa_count;
 					}
 				}
+			}
+			
+			if (msaa_count)
+			{
+				aa_rate /= msaa_count;
+				VS_OUT interp = triangle[0] * aa_rate.x + triangle[1] * aa_rate.y + triangle[2] * aa_rate.z;
 
-				//...
-				//光栅化
-				for (int y = bottom; y < top; ++y)
-				{
-					for (int x = left; x < right; ++x)
+				Color color = material.FS(interp);
+				Color color0 = context.fragment_buffer_view.Get(x, y);
+				//
+				if (msaa_count < Mn * Mn) {
+					float a = color.a;
+					color = Impl::lerp_color(color, color0, msaa_count / (Mn * Mn));
+					color.a = a;
+				}
+
+				//
+				float depth = interp.position.z / interp.position.w;
+				float depth0 = context.depth_buffer_view.Get(x, y);
+
+				//深度测试
+				if (depth <= depth0) {
+					//颜色混合
+					if (color.a < 0.99999)
 					{
-						//MSAA4x
-						float msaa_count = 0;
-						float Mn = 2;
-						Vec3 aa_rate = {};
-
-						for (float i = 0; i < Mn; ++i)
-						{
-							for (float j = 0; j < Mn; ++j)
-							{
-								Vec3 rate = Impl::get_interpolation_rate(
-									x + (i + 0.5f) / (Mn + 1),
-									y + (j + 0.5f) / (Mn + 1),
-									triangle);
-								if ((double)rate.x * rate.y * rate.z > 1e-6)
-								{
-									aa_rate += rate;
-									++msaa_count;
-								}
-							}
-						}
-
-						if (msaa_count)
-						{
-							aa_rate /= msaa_count;
-							VS_OUT interp = triangle[0] * aa_rate.x + triangle[1] * aa_rate.y + triangle[2] * aa_rate.z;
-
-							Color color = material.FS(interp);
-							Color color0 = context.fragment_buffer_view.Get(x, y);
-							//
-							if (msaa_count < Mn * Mn) {
-								float a = color.a;
-								color = Impl::lerp_color(color, color0, msaa_count / (Mn * Mn));
-								color.a = a;
-							}
-
-							//
-							float depth = interp.position.z / interp.position.w;
-							float depth0 = context.depth_buffer_view.Get(x, y);
-
-							//深度测试
-							if (depth <= depth0) {
-								//颜色混合
-								if (color.a < 0.99999)
-								{
-									color = Impl::blend_color(color0, color);
-								}
-
-								//写入fragment_buffer
-								context.fragment_buffer_view.Set(x, y, color);
-								//写入depth_buffer
-								context.depth_buffer_view.Set(x, y, interp.position.z);
-							}
-						}
+						color = Impl::blend_color(color0, color);
 					}
+
+					//写入fragment_buffer
+					context.fragment_buffer_view.Set(x, y, color);
+					//写入depth_buffer
+					context.depth_buffer_view.Set(x, y, interp.position.z);
 				}
 			}
 		}
