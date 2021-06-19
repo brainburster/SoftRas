@@ -150,7 +150,7 @@ namespace sr
 			}
 			for (auto& depth : depth_buffer)
 			{
-				depth = 1e8f;
+				depth = 1e8;
 			}
 		}
 		Context() : fragment_buffer{}, depth_buffer{}, fragment_buffer_view{ nullptr }, depth_buffer_view{ nullptr }{};
@@ -283,7 +283,7 @@ namespace sr
 						x + (i + 0.5) / (Mn + 1),
 						y + (j + 0.5) / (Mn + 1),
 						triangle);
-					if ((double)rate.x * rate.y * rate.z > 1e-6)
+					if (rate.x * rate.y * rate.z > 1e-8)
 					{
 						aa_rate += rate;
 						++msaa_count;
@@ -295,22 +295,21 @@ namespace sr
 			{
 				aa_rate /= msaa_count;
 				VS_OUT interp = triangle[0] * aa_rate.x + triangle[1] * aa_rate.y + triangle[2] * aa_rate.z;
-
-				Color color = material.FS(interp);
-				Color color0 = context.fragment_buffer_view.Get(x, y);
-				//
-				if (msaa_count < Mn * Mn) {
-					double a = color.a;
-					color = Impl::lerp_color(color, color0, msaa_count / (Mn * Mn));
-					color.a = a;
-				}
-
-				//
 				double depth = interp.position.z / interp.position.w;
 				double depth0 = context.depth_buffer_view.Get(x, y);
 
 				//深度测试
-				if (depth <= depth0) {
+				if (depth < depth0+1e-8) {
+					Color color = material.FS(interp);
+					Color color0 = context.fragment_buffer_view.Get(x, y);
+
+					//
+					if (depth < depth0 - 1e-8&&msaa_count < Mn * Mn) {
+						double a = color.a;
+						color = Impl::lerp_color(color, color0, msaa_count / (Mn * Mn));
+						color.a = a;
+					}
+
 					//颜色混合
 					if (color.a < 0.99999)
 					{
@@ -320,7 +319,7 @@ namespace sr
 					//写入fragment_buffer
 					context.fragment_buffer_view.Set(x, y, color);
 					//写入depth_buffer
-					context.depth_buffer_view.Set(x, y, interp.position.z);
+					context.depth_buffer_view.Set(x, y, depth);
 				}
 			}
 		}
