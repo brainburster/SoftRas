@@ -490,7 +490,21 @@ namespace gmath
 		}
 
 
-		//lookat
+		static Mat4x4 Camera(const Vec3<T>& position, const Vec3<T>& front, const Vec3<T>& up)
+		{
+			Vec3<T> right = front.cross(up);
+			return Mat4x4{
+				right.x,right.y,right.z,0,
+				up.x,up.y,up.z,0,
+				front.x,front.y,front.z,0,
+				0,0,0,1
+			} *Mat4x4{
+				1,0,0,-position.x,
+				0,1,0,-position.y,
+				0,0,1,-position.z,
+				0,0,0,1
+			};
+		}
 
 		//Õý½»
 
