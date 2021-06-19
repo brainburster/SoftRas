@@ -45,7 +45,7 @@ namespace sr
 			return *this;
 		}
 	};
-	
+
 
 	struct Impl
 	{
@@ -183,6 +183,12 @@ namespace sr
 		using VS_IN = typename Material::VS_IN;
 		using VS_OUT = typename Material::VS_OUT;
 
+		bool should_clip_culling(VS_IN triangle[3])
+		{
+			return !(triangle[0].position.x >= -1 && triangle[0].position.x <= 1 && triangle[0].position.y >= -1 && triangle[0].position.y <= 1 && triangle[0].position.z >= -1 && triangle[0].position.z <= 1) &&
+				!(triangle[1].position.x >= -1 && triangle[1].position.x <= 1 && triangle[1].position.y >= -1 && triangle[1].position.y <= 1 && triangle[1].position.z >= -1 && triangle[1].position.z <= 1) &&
+				!(triangle[2].position.x >= -1 && triangle[2].position.x <= 1 && triangle[2].position.y >= -1 && triangle[2].position.y <= 1 && triangle[2].position.z >= -1 && triangle[2].position.z <= 1);
+		}
 
 		void DrawTriangles(VS_IN* data, size_t n)
 		{
@@ -194,25 +200,38 @@ namespace sr
 					{material.VS(data[i + 1])},
 					{material.VS(data[i + 2])}
 				};
-				
+
+				//归一化
+				for (auto& v : triangle)
+				{
+					v.position = v.position.normalize();
+				}
+
+				//当三个点都不在裁剪空间内时, culling
+				if (should_clip_culling(triangle))
+				{
+					continue;
+				}
+
 				TransToScreenSpace(triangle);
 				//...	
-				//culling
+
+				//back_face_culling
 				if (Impl::is_backface(triangle))
 				{
 					continue;
 				}
 
 				Rasterize_AABB(triangle);
+				//Rasterize_LineScanning(triangle);
 			}
 		}
 
 		void TransToScreenSpace(VS_IN triangle[3])
 		{
-			for (int i=0;i<3;++i)
+			for (int i = 0; i < 3; ++i)
 			{
 				auto& vertex = triangle[i];
-				vertex.position = vertex.position.normalize();
 				vertex.position.x /= 2.;
 				vertex.position.y /= 2.;
 				vertex.position.x += 0.5;
@@ -222,6 +241,7 @@ namespace sr
 			}
 		}
 
+		//使用AABB包围盒进行光栅化
 		void Rasterize_AABB(VS_IN  triangle[3])
 		{
 			//生成AABB包围盒
@@ -249,26 +269,80 @@ namespace sr
 
 			//...
 			//光栅化
-			for (int y = bottom; y < top; ++y)
+			for (int y = bottom; y <= top; ++y)
 			{
-				for (int x = left; x < right; ++x)
+				for (int x = left; x <= right; ++x)
 				{
 					PixelOperate(x, y, triangle);
 				}
 			}
 		}
 
-		void Rasterize_Scanning(VS_IN  triangle[3])
+		//使用扫描的方法
+		void Rasterize_LineScanning(VS_IN  triangle[3])
 		{
 			//是否隔行扫描
 			//double bInterlacing = false;
-			//生成AABB包围盒
-				
-			
+
+			//获得三角形三个顶点
+			Vec2 p[3] = {
+				triangle[0].position,
+				triangle[1].position,
+				triangle[2].position,
+			};
+
+			//对三个顶点按y坐标从高到底进行排序
+
+			for (int i = 0; i < 2; ++i)
+			{
+				for (int j = i; j < 3; ++j)
+				{
+					if (p[i].y < p[j].y)
+					{
+						Vec2 temp = p[j];
+						p[j] = p[i];
+						p[i] = temp;
+					}
+				}
+			}
+
+			//从上到下扫描
+			for (float y = p[0].y + 1; y >= p[2].y - 1; --y)
+			{
+				//计算出直线 y = y 与 三角形相交2点的x坐标
+
+				//double k = (p[2].y - p[0].y) / (p[2].x - p[0].x);
+				//double b = p[0].y - k * p[0].x;
+				//double x1 = ((double)y - b) / k;
+				double x1 = (y - p[0].y) * (p[2].x - p[0].x) / (p[2].y - p[0].y) + p[0].x;
+				double x2 = 0;
+
+				if (y > p[1].y - 0.5)
+				{
+					x2 = (y - p[0].y) * (p[1].x - p[0].x) / (p[1].y - p[0].y) + p[0].x;
+				}
+				else
+				{
+					x2 = (y - p[1].y) * (p[2].x - p[1].x) / (p[2].y - p[1].y) + p[1].x;
+				}
+
+				if (x1 > x2)
+				{
+					double temp = x1;
+					x1 = x2;
+					x2 = temp;
+				}
+
+				for (int x = (int)x1 - 1; x <= (int)x2 + 1; ++x)
+				{
+					PixelOperate(x, y, triangle);
+				}
+			}
+
 		}
 
 
-		void PixelOperate(int x, int y,VS_IN  triangle[3])
+		void PixelOperate(int x, int y, VS_IN  triangle[3])
 		{
 			//MSAA4x
 			double msaa_count = 0;
@@ -279,10 +353,20 @@ namespace sr
 			{
 				for (double j = 0; j < Mn; ++j)
 				{
+					if (!Impl::is_pixel_in_triangle(x + (i + 0.5) / (Mn + 1),
+						y + (j + 0.5) / (Mn + 1),
+						triangle))
+					{
+						continue;
+					}
+
+					//对插值系数进行多次采样，而不是多次插值
 					Vec3 rate = Impl::get_interpolation_rate(
 						x + (i + 0.5) / (Mn + 1),
 						y + (j + 0.5) / (Mn + 1),
 						triangle);
+
+					//三个系数也刚好可以判断点是不是在三角形内
 					if (rate.x * rate.y * rate.z > 1e-8)
 					{
 						aa_rate += rate;
@@ -290,7 +374,7 @@ namespace sr
 					}
 				}
 			}
-			
+
 			if (msaa_count)
 			{
 				aa_rate /= msaa_count;
@@ -299,12 +383,12 @@ namespace sr
 				double depth0 = context.depth_buffer_view.Get(x, y);
 
 				//深度测试
-				if (depth < depth0+1e-8) {
+				if (depth < depth0 + 1e-8) {
 					Color color = material.FS(interp);
 					Color color0 = context.fragment_buffer_view.Get(x, y);
 
 					//
-					if (depth < depth0 - 1e-8&&msaa_count < Mn * Mn) {
+					if (depth < depth0 - 1e-8 && msaa_count < Mn * Mn) {
 						double a = color.a;
 						color = Impl::lerp_color(color, color0, msaa_count / (Mn * Mn));
 						color.a = a;

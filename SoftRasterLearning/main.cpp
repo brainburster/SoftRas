@@ -58,7 +58,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 	{
 		wnd.PeekMsg();
 		ctx.Clear({ 0.4, 0.6, 0.2, 1. });
-		m.mat = sr::Mat::Translate(sin(time)-0.4, 0, 100) * sr::Mat::Rotate(0, 0, time+=0.1 / 180 * pi) * sr::Mat::Scale(1., 1., 1);// *m.mat;
+		m.mat = sr::Mat::Translate(sin(time)-0.4, 0, 0) * sr::Mat::Rotate(0, 0, time+=0.1 / 180 * pi) * sr::Mat::Scale(1., 1., 1);// *m.mat;
 		renderer.DrawTriangles(rect, 6);
 		ctx.CopyToScreen(wnd.getFrameBufferView());
 		wnd.drawBuffer();
