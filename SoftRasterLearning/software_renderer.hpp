@@ -203,14 +203,15 @@ namespace sr
 					continue;
 				}
 
-				Rasterize(triangle);
+				Rasterize_AABB(triangle);
 			}
 		}
 
-		void TransToScreenSpace(Material::VS_IN  triangle[3])
+		void TransToScreenSpace(VS_IN triangle[3])
 		{
-			for (auto& vertex : triangle)
+			for (int i=0;i<3;++i)
 			{
+				auto& vertex = triangle[i];
 				vertex.position = vertex.position.normalize();
 				vertex.position.x /= 2.f;
 				vertex.position.y /= 2.f;
@@ -221,7 +222,7 @@ namespace sr
 			}
 		}
 
-		void Rasterize(Material::VS_IN  triangle[3])
+		void Rasterize_AABB(VS_IN  triangle[3])
 		{
 			//生成AABB包围盒
 			int left = INT_MAX, right = -INT_MAX, top = -INT_MAX, bottom = INT_MAX;
@@ -257,7 +258,24 @@ namespace sr
 			}
 		}
 
-		void PixelOperate(int x, int y, Material::VS_IN  triangle[3])
+		void Rasterize_Scanning(VS_IN  triangle[3])
+		{
+			//是否隔行扫描
+			//float bInterlacing = false;
+			//生成AABB包围盒
+			
+			////光栅化
+			//for (int y = bottom; y < top; ++y)
+			//{
+			//	for (int x = left; x < right; ++x)
+			//	{
+			//		PixelOperate(x, y, triangle);
+			//	}
+			//}
+		}
+
+
+		void PixelOperate(int x, int y,VS_IN  triangle[3])
 		{
 			//MSAA4x
 			float msaa_count = 0;

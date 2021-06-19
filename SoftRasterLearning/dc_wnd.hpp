@@ -39,14 +39,14 @@ namespace wnd
 	}
 
 #pragma warning(disable:26495)
-	DC_WND::DC_WND(DC_WND&& other) noexcept
+	inline DC_WND::DC_WND(DC_WND&& other) noexcept
 	{
 		memcpy(this, &other, sizeof(DC_WND));
 		memset(&other, 0, sizeof(DC_WND));
 	}
 #pragma warning(default:26495)
 
-	DC_WND& DC_WND::operator=(DC_WND&& other) noexcept
+	inline DC_WND& DC_WND::operator=(DC_WND&& other) noexcept
 	{
 		if (this == &other)
 		{
@@ -58,7 +58,7 @@ namespace wnd
 		return *this;
 	}
 
-	void DC_WND::FillBuffer(uint32 color)
+	inline void DC_WND::FillBuffer(uint32 color)
 	{
 		for (UINT y = 0; y < m_buffer_view.h; ++y)
 		{
@@ -73,22 +73,22 @@ namespace wnd
 		}
 	}
 
-	void DC_WND::drawBuffer()
+	inline void DC_WND::drawBuffer()
 	{
 		::BitBlt(m_hdc, 0, 0, m_width, m_height, m_hcdc, 0, 0, SRCCOPY);
 	}
 
-	void DC_WND::setPixel(uint32 x, uint32 y, uint32 color)
+	inline void DC_WND::setPixel(uint32 x, uint32 y, uint32 color)
 	{
 		m_buffer_view.Set(x, y, color);
 	}
 
-	Buffer2DView<uint32>& DC_WND::getFrameBufferView()
+	inline Buffer2DView<uint32>& DC_WND::getFrameBufferView()
 	{
 		return m_buffer_view;
 	}
 
-	DC_WND::~DC_WND()
+	inline DC_WND::~DC_WND()
 	{
 		if (m_hdc)
 		{
@@ -107,7 +107,7 @@ namespace wnd
 		}
 	}
 
-	DC_WND& DC_WND::Init()
+	inline DC_WND& DC_WND::Init()
 	{
 		Wnd::Init();
 		m_hdc = ::GetDC(m_hwnd);
