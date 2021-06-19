@@ -136,7 +136,7 @@ namespace sr
 		}
 		void Viewport(uint32 w, uint32 h, Color color = { 0,0,0,1 })
 		{
-			depth_buffer.resize(w * h, 1e8);
+			depth_buffer.resize(w * h, -1e8);
 			fragment_buffer.resize(w * h, color);
 
 			fragment_buffer_view = { &fragment_buffer[0],w , h };
@@ -150,7 +150,7 @@ namespace sr
 			}
 			for (auto& depth : depth_buffer)
 			{
-				depth = 1e8;
+				depth = -1e8;
 			}
 		}
 		Context() : fragment_buffer{}, depth_buffer{}, fragment_buffer_view{ nullptr }, depth_buffer_view{ nullptr }{};
@@ -307,7 +307,7 @@ namespace sr
 			}
 
 			//从上到下扫描
-			for (float y = p[0].y + 1; y >= p[2].y - 1; --y)
+			for (int y = p[0].y + 1; y >= p[2].y - 1; --y)
 			{
 				//计算出直线 y = y 与 三角形相交2点的x坐标
 
@@ -367,7 +367,7 @@ namespace sr
 						triangle);
 
 					//三个系数也刚好可以判断点是不是在三角形内
-					if (rate.x * rate.y * rate.z > 1e-8)
+					if (rate.x * rate.y * rate.z > -1e-8) //rate.x * rate.y * rate.z > -1e-8 && rate.x * rate.y * rate.z<0.002 线框模式
 					{
 						aa_rate += rate;
 						++msaa_count;
@@ -379,16 +379,16 @@ namespace sr
 			{
 				aa_rate /= msaa_count;
 				VS_OUT interp = triangle[0] * aa_rate.x + triangle[1] * aa_rate.y + triangle[2] * aa_rate.z;
-				double depth = interp.position.z;
+				double depth = -1 / interp.position.z* interp.position.z;
 				double depth0 = context.depth_buffer_view.Get(x, y);
 
 				//深度测试
-				if (depth < depth0 + 1e-8) {
+				if (depth > depth0 - 1e-4) {
 					Color color = material.FS(interp);
 					Color color0 = context.fragment_buffer_view.Get(x, y);
 
 					//
-					if (depth < depth0 - 1e-8 && msaa_count < Mn * Mn) {
+					if (abs(depth - depth0) > 1e-4 && msaa_count < Mn * Mn) {
 						double a = color.a;
 						color = Impl::lerp_color(color, color0, msaa_count / (Mn * Mn));
 						color.a = a;

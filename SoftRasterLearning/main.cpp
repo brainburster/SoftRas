@@ -58,8 +58,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 	{
 		wnd.PeekMsg();
 		ctx.Clear({ 0.4, 0.6, 0.2, 1. });
-		m.mat = sr::Mat::Ortho(-4,4,-3,3,0.1,-100)*sr::Mat::Camera(sr::Vec3{ 0,0,0 }, sr::Vec3{ 0,0,-1 }, sr::Vec3{ 0,1,0 }) * sr::Mat::Translate(sin(time) - 0.4, 0, 0) * sr::Mat::Rotate(0, 0, time += 0.1 / 180 * pi) * sr::Mat::Scale(1., 1., 1);// *m.mat;
+		m.mat = sr::Mat::Ortho(-4,4,-3,3,0.1,-100)*sr::Mat::Camera(sr::Vec3{ 0,0,0 }, sr::Vec3{ 0,0,-1 }, sr::Vec3{ 0,1,0 }) * sr::Mat::Translate(sin(time) - 0.4, 0, 0) * sr::Mat::Rotate(0, 1, time += 0.1 / 180 * pi) * sr::Mat::Scale(1., 1., 1);// *m.mat;
 		renderer.DrawTriangles(rect, 6);
+
+		m.mat = sr::Mat::Ortho(-4, 4, -3, 3, 0.1, -100) * sr::Mat::Camera(sr::Vec3{ 0,0,0 }, sr::Vec3{ 0,0,-1 }, sr::Vec3{ 0,1,0 }) * sr::Mat::Translate(cos(time) - 0.5, -0.1, -1) * sr::Mat::Rotate(0, 1, time+0.1 / 180 * pi) * sr::Mat::Scale(1., 2., 1);// *m.mat;
+
+		renderer.DrawTriangles(rect, 6);
+
 		ctx.CopyToScreen(wnd.getFrameBufferView());
 		wnd.drawBuffer();
 
