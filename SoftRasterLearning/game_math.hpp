@@ -203,6 +203,16 @@ namespace gmath
 			z /= rhs.z;
 			return *this;
 		}
+
+		Vec3 normalize() const
+		{
+			T len = pow(x*x+y*y+z*z,0.5);
+			return {
+				x / len,
+				y / len,
+				z / len
+			};
+		}
 	};
 
 	template<typename T>
@@ -274,6 +284,16 @@ namespace gmath
 			x /= rhs.x;
 			y /= rhs.y;
 			return *this;
+		}
+
+
+		Vec2 normalize() const
+		{
+			T len = pow(x * x + y * y, 0.5);
+			return {
+				x / len,
+				y / len
+			};
 		}
 	};
 
@@ -374,14 +394,17 @@ namespace gmath
 			};
 		}
 
-
+		//相机矩阵
 		static Mat4x4 Camera(const Vec3<T>& position, const Vec3<T>& front, const Vec3<T>& up)
 		{
-			Vec3<T> right = front.cross(up);
+			Vec3<T> f = front.normalize();
+			Vec3<T> u = up.normalize();
+			Vec3<T> right = f.cross(u);
+
 			return Mat4x4{
 				right.x,right.y,right.z,0,
-				up.x,up.y,up.z,0,
-				-front.x,-front.y,-front.z,0,
+				u.x,u.y,u.z,0,
+				-f.x,-f.y,-f.z,0,
 				0,0,0,1
 			} *Mat4x4{
 				1,0,0,-position.x,
@@ -392,6 +415,20 @@ namespace gmath
 		}
 
 		//正交
+		static Mat4x4 Ortho(T left,T right, T bottom, T top, T _near, T _far)
+		{
+			return Mat4x4{
+				2 / (right - left),0,0,0,
+				0,2 / (top - bottom),0,0,
+				0,0,2 / (_near - _far),0,
+				0,0,0,1
+			}*Mat4x4{
+				1.,0,0,-(right + left) / 2,
+				0,1.,0,-(top + bottom) / 2,
+				0,0,1,-(_near + _far) / 2,
+				0,0,0,1
+			};
+		}
 
 		//透视
 
