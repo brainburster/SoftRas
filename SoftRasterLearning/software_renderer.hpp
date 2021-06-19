@@ -221,11 +221,11 @@ namespace sr
 					}
 					if (right < triangle[i].position.x)
 					{
-						right = (uint32)triangle[i].position.x;
+						right = (uint32)triangle[i].position.x + 1;
 					}
 					if (top < triangle[i].position.y)
 					{
-						top = (uint32)triangle[i].position.y;
+						top = (uint32)triangle[i].position.y + 1;
 					}
 					if (bottom > triangle[i].position.y)
 					{
@@ -235,7 +235,7 @@ namespace sr
 
 				//...
 				//光栅化
-				for (int y = bottom; y < top; ++y) //不包含右、上边界上的像素
+				for (int y = bottom; y < top; ++y)
 				{
 					for (int x = left; x < right; ++x)
 					{
@@ -244,15 +244,15 @@ namespace sr
 						float Mn = 2;
 						Vec3 aa_rate = {};
 
-						for (float i = 0; i < Mn ; ++i)
+						for (float i = 0; i < Mn; ++i)
 						{
-							for (float j = 0; j < Mn ; ++j)
+							for (float j = 0; j < Mn; ++j)
 							{
 								Vec3 rate = Impl::get_interpolation_rate(
 									x + (i + 0.5f) / (Mn + 1),
 									y + (j + 0.5f) / (Mn + 1),
 									triangle);
-								if ((double)rate.x * rate.y * rate.z > 0)
+								if ((double)rate.x * rate.y * rate.z > 1e-6)
 								{
 									aa_rate += rate;
 									++msaa_count;

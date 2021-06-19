@@ -15,14 +15,14 @@ namespace bview
 
 		void Set(uint32 x, uint32 y, T v)
 		{
+			if (x < 0 || x >= w || y < 0 || y >= h) return;
 			size_t index = (size_t)y * w + x;
-			if (index<0 || index>w * h - 1) return;
 			buffer[index] = v;
 		}
 		T Get(uint32 x, uint32 y)
 		{
+			if (x < 0 || x >= w || y < 0 || y >= h) return { 0 };
 			size_t index = (size_t)y * w + x;
-			if (index<0 || index>w * h - 1) return { 0 };
 			return buffer[index];
 		}
 
