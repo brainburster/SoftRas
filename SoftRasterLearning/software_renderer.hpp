@@ -207,11 +207,11 @@ namespace sr
 					v.position /= v.position.w;
 				}
 
-				//当三个点都不在裁剪空间内时, culling
-				if (should_clip_culling(triangle))
-				{
-					continue;
-				}
+				////当三个点都不在裁剪空间内时, culling
+				//if (should_clip_culling(triangle))
+				//{
+				//	continue;
+				//}
 
 				TransToScreenSpace(triangle);
 				//...	
@@ -245,7 +245,7 @@ namespace sr
 		void Rasterize_AABB(VS_IN  triangle[3])
 		{
 			//生成AABB包围盒
-			int left = INT_MAX, right = -INT_MAX, top = -INT_MAX, bottom = INT_MAX;
+			int left = -1, right = context.fragment_buffer_view.w+1, top =-1 , bottom = context.fragment_buffer_view.h+1;
 
 			for (int i = 0; i < 3; ++i)
 			{
@@ -346,7 +346,7 @@ namespace sr
 		{
 			//MSAA4x
 			double msaa_count = 0;
-			double Mn = 2;
+			double Mn =2;
 			Vec3 aa_rate = {};
 
 			for (double i = 0; i < Mn; ++i)

@@ -415,24 +415,43 @@ namespace gmath
 		}
 
 		//Õý½»
-		static Mat4x4 Ortho(T left,T right, T bottom, T top, T _near, T _far)
+		static Mat4x4 Ortho(T left, T right, T bottom, T top, T _near, T _far)
 		{
 			return Mat4x4{
-				2 / (right - left),0,0,0,
-				0,2 / (top - bottom),0,0,
-				0,0,2 / (_near - _far),0,
-				0,0,0,1
-			}*Mat4x4{
-				1.,0,0,-(right + left) / 2,
-				0,1.,0,-(top + bottom) / 2,
-				0,0,1,-(_near + _far) / 2,
+				2 / (right - left),0,0,-(right + left) / (right - left),
+				0,2 / (top - bottom),0,-(top + bottom) / (top-bottom),
+				0,0,2 / (_near - _far),-(_near + _far) / (_far-_near),
 				0,0,0,1
 			};
 		}
 
 		//Í¸ÊÓ
+		//static Mat4x4 Projection(T left, T right, T bottom, T top, T _near, T _far)
+		//{
+		//	return Mat4x4{
+		//		2 * _near / (right - left),0,(right + left) / (right - left),0,
+		//		0,2 * _near / (top - bottom),(top + bottom) / (top - bottom),0,
+		//		0,0,-(_far + _near) / (_far - _near),-2 * _far * _near / (_far - _near),
+		//		0,0,-1,0
+		//	} *Mat4x4{
+		//		2 / (right - left),0,0,-(right + left) / (right - left),
+		//		0,2 / (top - bottom),0,-(top + bottom) / (top - bottom),
+		//		0,0,2 / (_near - _far),-(_near + _far) / (_far - _near),
+		//		0,0,0,1
+		//	};
 
+		//}
 
+		static Mat4x4 Projection(T left, T right, T bottom, T top, T _near, T _far)
+		{
+			return Mat4x4{
+				2 * _near / (right - left),0,(right + left) / (right - left),0,
+				0,2 * _near / (top - bottom),(top + bottom) / (top - bottom),0,
+				0,0,-(_far + _near) / (_far - _near),-2 * _far * _near / (_far - _near),
+				0,0,-1,0
+			};
+
+		}
 	};
 
 };
