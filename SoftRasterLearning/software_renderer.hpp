@@ -183,13 +183,6 @@ namespace sr
 		using VS_IN = typename Material::VS_IN;
 		using VS_OUT = typename Material::VS_OUT;
 
-		bool should_clip_culling(VS_IN triangle[3])
-		{
-			return !(triangle[0].position.x >= -1 && triangle[0].position.x <= 1 && triangle[0].position.y >= -1 && triangle[0].position.y <= 1 && triangle[0].position.z >= -1 && triangle[0].position.z <= 1) &&
-				!(triangle[1].position.x >= -1 && triangle[1].position.x <= 1 && triangle[1].position.y >= -1 && triangle[1].position.y <= 1 && triangle[1].position.z >= -1 && triangle[1].position.z <= 1) &&
-				!(triangle[2].position.x >= -1 && triangle[2].position.x <= 1 && triangle[2].position.y >= -1 && triangle[2].position.y <= 1 && triangle[2].position.z >= -1 && triangle[2].position.z <= 1);
-		}
-
 		void DrawTriangles(VS_IN* data, size_t n)
 		{
 			for (size_t i = 0; i < n; i += 3)
@@ -201,17 +194,11 @@ namespace sr
 					{material.VS(data[i + 2])}
 				};
 
-				//归一化
+
 				for (auto& v : triangle)
 				{
 					v.position /= v.position.w;
 				}
-
-				////当三个点都不在裁剪空间内时, culling
-				//if (should_clip_culling(triangle))
-				//{
-				//	continue;
-				//}
 
 				TransToScreenSpace(triangle);
 				//...	
@@ -222,8 +209,8 @@ namespace sr
 					continue;
 				}
 
-				Rasterize_AABB(triangle);
-				//Rasterize_LineScanning(triangle);
+				//Rasterize_AABB(triangle);
+				Rasterize_LineScanning(triangle);
 			}
 		}
 
@@ -306,6 +293,28 @@ namespace sr
 				}
 			}
 
+			int left = -1, right = context.fragment_buffer_view.w + 1, top = -1, bottom = context.fragment_buffer_view.h + 1;
+
+			for (int i = 0; i < 3; ++i)
+			{
+				if (left > triangle[i].position.x)
+				{
+					left = (uint32)triangle[i].position.x;
+				}
+				if (right < triangle[i].position.x)
+				{
+					right = (uint32)triangle[i].position.x;
+				}
+				if (top < triangle[i].position.y)
+				{
+					top = (uint32)triangle[i].position.y;
+				}
+				if (bottom > triangle[i].position.y)
+				{
+					bottom = (uint32)triangle[i].position.y;
+				}
+			}
+
 			//从上到下扫描
 			for (int y = p[0].y + 1; y >= p[2].y - 1; --y)
 			{
@@ -314,16 +323,17 @@ namespace sr
 				//double k = (p[2].y - p[0].y) / (p[2].x - p[0].x);
 				//double b = p[0].y - k * p[0].x;
 				//double x1 = ((double)y - b) / k;
-				double x1 = (y - p[0].y) * (p[2].x - p[0].x) / (p[2].y - p[0].y) + p[0].x;
+				double x1 = (y+0.5 - p[0].y) * (p[2].x - p[0].x) / (p[2].y - p[0].y) + p[0].x;
 				double x2 = 0;
 
-				if (y > p[1].y - 0.5)
+				if (y >= p[1].y)
 				{
-					x2 = (y - p[0].y) * (p[1].x - p[0].x) / (p[1].y - p[0].y) + p[0].x;
+					//y减0.5是为了矫正斜率
+					x2 = (y - 0.5 - p[0].y) * (p[1].x - p[0].x) / (p[1].y - p[0].y) + p[0].x; 
 				}
 				else
 				{
-					x2 = (y - p[1].y) * (p[2].x - p[1].x) / (p[2].y - p[1].y) + p[1].x;
+					x2 = (y + 0.5 - p[1].y) * (p[2].x - p[1].x) / (p[2].y - p[1].y) + p[1].x;
 				}
 
 				if (x1 > x2)
@@ -332,6 +342,7 @@ namespace sr
 					x1 = x2;
 					x2 = temp;
 				}
+					
 
 				for (int x = (int)x1 - 1; x <= (int)x2 + 1; ++x)
 				{
