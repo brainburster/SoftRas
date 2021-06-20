@@ -390,7 +390,7 @@ namespace gmath
 				x, 0, 0, 0,
 				0, y, 0, 0,
 				0, 0, z, 0,
-				0, 0, 0,1.f
+				0, 0, 0, 1
 			};
 		}
 
@@ -417,40 +417,57 @@ namespace gmath
 		//正交
 		static Mat4x4 Ortho(T left, T right, T bottom, T top, T _near, T _far)
 		{
+			T dx = right - left;
+			T dy = top - bottom;
+			T dz = _far - _near;
+			T a = 2 / dx;
+			T b = -(right + left) / dx;
+			T c = 2 / dy;
+			T d = -(top + bottom) / dy;
+			T e = 2 / dz;
+			T f = -(_near + _far) / dy;
 			return Mat4x4{
-				2 / (right - left),0,0,-(right + left) / (right - left),
-				0,2 / (top - bottom),0,-(top + bottom) / (top-bottom),
-				0,0,2 / (_near - _far),-(_near + _far) / (_far-_near),
+				a,0,0,b,
+				0,c,0,d,
+				0,0,e,f,
 				0,0,0,1
 			};
 		}
 
-		//透视
-		//static Mat4x4 Projection(T left, T right, T bottom, T top, T _near, T _far)
-		//{
-		//	return Mat4x4{
-		//		2 * _near / (right - left),0,(right + left) / (right - left),0,
-		//		0,2 * _near / (top - bottom),(top + bottom) / (top - bottom),0,
-		//		0,0,-(_far + _near) / (_far - _near),-2 * _far * _near / (_far - _near),
-		//		0,0,-1,0
-		//	} *Mat4x4{
-		//		2 / (right - left),0,0,-(right + left) / (right - left),
-		//		0,2 / (top - bottom),0,-(top + bottom) / (top - bottom),
-		//		0,0,2 / (_near - _far),-(_near + _far) / (_far - _near),
-		//		0,0,0,1
-		//	};
-
-		//}
-
-		static Mat4x4 Projection(T left, T right, T bottom, T top, T _near, T _far)
+		//透视矩阵-定义平截头体
+		static Mat4x4 Frustum(T left, T right, T bottom, T top, T _near, T _far)
 		{
+			T dx = right - left;
+			T dy = top - bottom;
+			T dz = _far - _near;
+			T a = 2 * _near / dx;
+			T b = (right + left) / dx;
+			T c = 2 * _near / dy;
+			T d = (top + bottom) /dy;
+			T e = -(_far + _near) / dz;
+			T f = -2 * _far * _near / dz;
 			return Mat4x4{
-				2 * _near / (right - left),0,(right + left) / (right - left),0,
-				0,2 * _near / (top - bottom),(top + bottom) / (top - bottom),0,
-				0,0,-(_far + _near) / (_far - _near),-2 * _far * _near / (_far - _near),
+				a,0,b,0,
+				0,c,d,0,
+				0,0,e,f,
 				0,0,-1,0
 			};
+		}
 
+		//透视矩阵
+		static Mat4x4 Projection(T fovy, T aspect, T _near, T _far)
+		{
+			T dz = _far - _near;
+			T b = 1 / tan(fovy / 2);
+			T a = b / aspect;
+			T c = -(_near + _far) / dz;
+			T d = -2 * _near * _far / dz;
+			return Mat4x4{
+				a,0,0,0,
+				0,b,0,0,
+				0,0,c,d,
+				0,0,-1,0
+			};
 		}
 	};
 

@@ -301,8 +301,11 @@ namespace sr
 				}
 			}
 
+			float y1 = Impl::clamp(p[2].y, 0, context.fragment_buffer_view.h);
+			float y2 = Impl::clamp(p[0].y, 0, context.fragment_buffer_view.h);
+			
 			//从上到下扫描
-			for (float y = p[0].y + 0.5f; y >= p[2].y - 0.5f; --y)
+			for (float y = y2 + 0.5f; y >= y1 - 0.5f; --y)
 			{
 				//计算出直线 y = y 与 三角形相交2点的x坐标
 
@@ -330,6 +333,8 @@ namespace sr
 					x2 = temp;
 				}
 
+				x1 = Impl::clamp(x1, 0, context.fragment_buffer_view.w);
+				x2 = Impl::clamp(x2, 0, context.fragment_buffer_view.w);
 
 				for (int x = (int)x1 - 1; x <= (int)x2 + 1; ++x)
 				{
@@ -365,7 +370,7 @@ namespace sr
 						triangle);
 
 					//三个系数也刚好可以判断点是不是在三角形内
-					if (rate.x * rate.y * rate.z > 1e-6) //rate.x * rate.y * rate.z > -1e-8 && rate.x * rate.y * rate.z<0.002f 线框模式
+					if (rate.x * rate.y * rate.z > 0)
 					{
 						aa_rate += rate;
 						++msaa_count;
@@ -377,11 +382,11 @@ namespace sr
 			{
 				aa_rate /= msaa_count;
 				VS_OUT interp = triangle[0] * aa_rate.x + triangle[1] * aa_rate.y + triangle[2] * aa_rate.z;
-				float depth = 1 / interp.position.z;
+				float depth = -1 / (interp.position.z * interp.position.z);
 				float depth0 = context.depth_buffer_view.Get(x, y);
 
 				//深度测试
-				if (depth > depth0 - 1e-4) {
+				if (depth > depth0 - 1e-4 && depth > -1 && depth < 1) {
 					Color color = material.FS(interp);
 					Color color0 = context.fragment_buffer_view.Get(x, y);
 
