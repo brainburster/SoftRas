@@ -58,14 +58,19 @@ namespace sr
 			return a.cross(b) > 0 && b.cross(c) > 0 && c.cross(a) > 0;
 		}
 
+		static constexpr double clamp(double v, double a = 0., double b = 1.0)
+		{
+			return ((v < a ? a : v) < b ? (v < a ? a : v) : b);
+		}
+
 		static Color32 trans_float4color_to_uint32color(const Color& color)
 		{
 			//交换r通道和b通道
 			return Color32{
-				(unsigned char)(color.z * 255),
-				(unsigned char)(color.y * 255),
-				(unsigned char)(color.x * 255),
-				(unsigned char)(color.w * 255)
+				(unsigned char)(clamp(color.z) * 255),
+				(unsigned char)(clamp(color.y) * 255),
+				(unsigned char)(clamp(color.x) * 255),
+				(unsigned char)(clamp(color.w) * 255)
 			};
 		}
 
@@ -232,7 +237,7 @@ namespace sr
 		void Rasterize_AABB(VS_IN  triangle[3])
 		{
 			//生成AABB包围盒
-			int left = -1, right = context.fragment_buffer_view.w+1, top =-1 , bottom = context.fragment_buffer_view.h+1;
+			int left = -1, right = context.fragment_buffer_view.w + 1, top = -1, bottom = context.fragment_buffer_view.h + 1;
 
 			for (int i = 0; i < 3; ++i)
 			{
@@ -293,43 +298,22 @@ namespace sr
 				}
 			}
 
-			int left = -1, right = context.fragment_buffer_view.w + 1, top = -1, bottom = context.fragment_buffer_view.h + 1;
-
-			for (int i = 0; i < 3; ++i)
-			{
-				if (left > triangle[i].position.x)
-				{
-					left = (uint32)triangle[i].position.x;
-				}
-				if (right < triangle[i].position.x)
-				{
-					right = (uint32)triangle[i].position.x;
-				}
-				if (top < triangle[i].position.y)
-				{
-					top = (uint32)triangle[i].position.y;
-				}
-				if (bottom > triangle[i].position.y)
-				{
-					bottom = (uint32)triangle[i].position.y;
-				}
-			}
-
 			//从上到下扫描
-			for (int y = p[0].y + 1; y >= p[2].y - 1; --y)
+			for (double y = p[0].y + 1; y >= p[2].y - 1; --y)
 			{
 				//计算出直线 y = y 与 三角形相交2点的x坐标
 
 				//double k = (p[2].y - p[0].y) / (p[2].x - p[0].x);
 				//double b = p[0].y - k * p[0].x;
 				//double x1 = ((double)y - b) / k;
-				double x1 = (y+0.5 - p[0].y) * (p[2].x - p[0].x) / (p[2].y - p[0].y) + p[0].x;
+
+				double x1 = (y + 0.5 - p[0].y) * (p[2].x - p[0].x) / (p[2].y - p[0].y) + p[0].x;
 				double x2 = 0;
 
 				if (y >= p[1].y)
 				{
 					//y减0.5是为了矫正斜率
-					x2 = (y - 0.5 - p[0].y) * (p[1].x - p[0].x) / (p[1].y - p[0].y) + p[0].x; 
+					x2 = (y - 0.5 - p[0].y) * (p[1].x - p[0].x) / (p[1].y - p[0].y) + p[0].x;
 				}
 				else
 				{
@@ -342,11 +326,11 @@ namespace sr
 					x1 = x2;
 					x2 = temp;
 				}
-					
+
 
 				for (int x = (int)x1 - 1; x <= (int)x2 + 1; ++x)
 				{
-					PixelOperate(x, y, triangle);
+					PixelOperate(x, (int)y, triangle);
 				}
 			}
 
@@ -357,7 +341,7 @@ namespace sr
 		{
 			//MSAA4x
 			double msaa_count = 0;
-			double Mn =2;
+			double Mn = 2;
 			Vec3 aa_rate = {};
 
 			for (double i = 0; i < Mn; ++i)
@@ -390,7 +374,7 @@ namespace sr
 			{
 				aa_rate /= msaa_count;
 				VS_OUT interp = triangle[0] * aa_rate.x + triangle[1] * aa_rate.y + triangle[2] * aa_rate.z;
-				double depth = -1 / interp.position.z* interp.position.z;
+				double depth = -1 / interp.position.z * interp.position.z;
 				double depth0 = context.depth_buffer_view.Get(x, y);
 
 				//深度测试
