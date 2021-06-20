@@ -4,11 +4,11 @@
 namespace gmath
 {
 
-	template<typename T = double> struct Vec2;
-	template<typename T = double> struct Vec3;
+	template<typename T = float> struct Vec2;
+	template<typename T = float> struct Vec3;
 
 
-	template<typename T = double>
+	template<typename T = float>
 	struct Vec4
 	{
 		union {
@@ -206,7 +206,7 @@ namespace gmath
 
 		Vec3 normalize() const
 		{
-			T len = pow(x*x+y*y+z*z,0.5);
+			T len = pow(x*x+y*y+z*z,0.5f);
 			return {
 				x / len,
 				y / len,
@@ -289,7 +289,7 @@ namespace gmath
 
 		Vec2 normalize() const
 		{
-			T len = pow(x * x + y * y, 0.5);
+			T len = pow(x * x + y * y, 0.5f);
 			return {
 				x / len,
 				y / len
@@ -297,7 +297,7 @@ namespace gmath
 		}
 	};
 
-	template<typename T = double>
+	template<typename T = float>
 	struct Mat4x4
 	{
 		T data[16];
@@ -344,10 +344,10 @@ namespace gmath
 		static Mat4x4 Unit()
 		{
 			return Mat4x4{
-				1.,0,0,0,
-				0,1.,0,0,
-				0,0,1.,0,
-				0,0,0,1.
+				1.f,0,0,0,
+				0,1.f,0,0,
+				0,0,1.f,0,
+				0,0,0,1.f
 			};
 		}
 
@@ -355,10 +355,10 @@ namespace gmath
 		static Mat4x4 Translate(T x, T y, T z)
 		{
 			return Mat4x4{
-				1.,0,0,x,
-				0,1.,0,y,
-				0,0,1.,z,
-				0,0,0,1.
+				1.f,0,0,x,
+				0,1.f,0,y,
+				0,0,1.f,z,
+				0,0,0,1.f
 			};
 		}
 
@@ -366,20 +366,20 @@ namespace gmath
 		static Mat4x4 Rotate(T x, T y, T z)
 		{
 			return Mat4x4{
-			   1.,0,0,0,
+			   1.f,0,0,0,
 			   0, cos(x), -sin(x), 0,
 			   0, sin(x), cos(x),  0,
-			   0, 0,   0, 1.
+			   0, 0,   0, 1.f
 			} * Mat4x4{
 			   cos(y),0,sin(y),0,
-			   0,1.,0,0,
+			   0,1.f,0,0,
 			   -sin(y),0,cos(y),0,
-			   0,0,0,1.
+			   0,0,0,1.f
 			} * Mat4x4{
 			   cos(z),-sin(z),0,0,
 			   sin(z),cos(z),0,0,
-			   0,0,1.,0,
-			   0,0,0,1.
+			   0,0,1.f,0,
+			   0,0,0,1.f
 			};
 		}
 
@@ -390,7 +390,7 @@ namespace gmath
 				x, 0, 0, 0,
 				0, y, 0, 0,
 				0, 0, z, 0,
-				0, 0, 0,1.
+				0, 0, 0,1.f
 			};
 		}
 

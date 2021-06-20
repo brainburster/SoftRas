@@ -8,12 +8,12 @@
 namespace sr
 {
 	using namespace bview;
-	using Position = gmath::Vec4<double>;
-	using Color = gmath::Vec4<double>;
-	using Vec4 = gmath::Vec4<double>;
-	using Vec3 = gmath::Vec3<double>;
-	using Vec2 = gmath::Vec2<double>;
-	using Mat = gmath::Mat4x4<double>;
+	using Position = gmath::Vec4<float>;
+	using Color = gmath::Vec4<float>;
+	using Vec4 = gmath::Vec4<float>;
+	using Vec3 = gmath::Vec3<float>;
+	using Vec2 = gmath::Vec2<float>;
+	using Mat = gmath::Mat4x4<float>;
 
 	//默认的顶点类,只有位置和颜色
 	struct Vertex
@@ -25,15 +25,15 @@ namespace sr
 		{
 			return { position + rhs.position,color + rhs.color };
 		}
-		friend Vertex operator*(const Vertex& lhs, double rhs)
+		friend Vertex operator*(const Vertex& lhs, float rhs)
 		{
 			return { lhs.position * rhs,lhs.color * rhs };
 		}
-		friend Vertex operator*(double lhs, const Vertex& rhs)
+		friend Vertex operator*(float lhs, const Vertex& rhs)
 		{
 			return { rhs.position / lhs,rhs.color / lhs };
 		}
-		friend Vertex operator/(const Vertex& lhs, double rhs)
+		friend Vertex operator/(const Vertex& lhs, float rhs)
 		{
 			return { lhs.position / rhs,lhs.color / rhs };
 		}
@@ -58,7 +58,7 @@ namespace sr
 			return a.cross(b) > 0 && b.cross(c) > 0 && c.cross(a) > 0;
 		}
 
-		static double clamp(double v, double a = 0., double b = 1.0)
+		static float clamp(float v, float a = 0.f, float b = 1.0f)
 		{
 			return ((v < a ? a : v) < b ? (v < a ? a : v) : b);
 		}
@@ -75,7 +75,7 @@ namespace sr
 		}
 
 		template<typename T>
-		static bool is_pixel_in_triangle(double x, double y, T* triangle)
+		static bool is_pixel_in_triangle(float x, float y, T* triangle)
 		{
 			Vec2 p = { x,y };
 			Vec2 pa = (Vec2)triangle[0].position - p;
@@ -87,31 +87,31 @@ namespace sr
 
 		//获取插值
 		template<typename T>
-		static Vec3 get_interpolation_rate(double x, double y, T* triangle)
+		static Vec3 get_interpolation_rate(float x, float y, T* triangle)
 		{
 			//w*p0+u*p1+v*p2=p, w=1-u-v;
-			double a1 = triangle[1].position.x - triangle[0].position.x;
-			double b1 = triangle[2].position.x - triangle[0].position.x;
-			double c1 = x - triangle[0].position.x;
-			double a2 = triangle[1].position.y - triangle[0].position.y;
-			double b2 = triangle[2].position.y - triangle[0].position.y;
-			double c2 = y - triangle[0].position.y;
-			double v = (a1 * c2 - a2 * c1) / (b2 * a1 - a2 * b1);
-			double u = (b2 * c1 - b1 * c2) / (b2 * a1 - a2 * b1);
-			double w = 1 - u - v;
+			float a1 = triangle[1].position.x - triangle[0].position.x;
+			float b1 = triangle[2].position.x - triangle[0].position.x;
+			float c1 = x - triangle[0].position.x;
+			float a2 = triangle[1].position.y - triangle[0].position.y;
+			float b2 = triangle[2].position.y - triangle[0].position.y;
+			float c2 = y - triangle[0].position.y;
+			float v = (a1 * c2 - a2 * c1) / (b2 * a1 - a2 * b1);
+			float u = (b2 * c1 - b1 * c2) / (b2 * a1 - a2 * b1);
+			float w = 1 - u - v;
 			return { w,u,v };
 		}
 
 		//颜色混合
 		static Color blend_color(Color color0, Color color1)
 		{
-			double a = 1.0f - (1.0f - color1.a) * (1.0f - color0.a);
+			float a = 1.0f - (1.0f - color1.a) * (1.0f - color0.a);
 			Color color = 1.0f / a * (color1 * color1.a + (1.0f - color1.a) * color0.a * color0);
 			color.a = a;
 			return color;
 		}
 
-		static Color lerp_color(Color color1, Color color2, double n)
+		static Color lerp_color(Color color1, Color color2, float n)
 		{
 			return color1 * n + color2 * (1.0f - n);
 		}
@@ -123,7 +123,7 @@ namespace sr
 	{
 	public:
 		Buffer2DView<Color> fragment_buffer_view;
-		Buffer2DView<double> depth_buffer_view;
+		Buffer2DView<float> depth_buffer_view;
 
 		void CopyToScreen(Buffer2DView<uint32>& screen_buffer_view)
 		{
@@ -164,7 +164,7 @@ namespace sr
 		Context() : fragment_buffer{}, depth_buffer{}, fragment_buffer_view{ nullptr }, depth_buffer_view{ nullptr }{};
 	protected:
 		std::vector<Color> fragment_buffer;
-		std::vector<double> depth_buffer;
+		std::vector<float> depth_buffer;
 	};
 
 	//默认材质
@@ -227,10 +227,10 @@ namespace sr
 			for (int i = 0; i < 3; ++i)
 			{
 				auto& vertex = triangle[i];
-				vertex.position.x /= 2.;
-				vertex.position.y /= 2.;
-				vertex.position.x += 0.5;
-				vertex.position.y += 0.5;
+				vertex.position.x /= 2.f;
+				vertex.position.y /= 2.f;
+				vertex.position.x += 0.5f;
+				vertex.position.y += 0.5f;
 				vertex.position.x *= context.fragment_buffer_view.w;
 				vertex.position.y *= context.fragment_buffer_view.h;
 			}
@@ -277,7 +277,7 @@ namespace sr
 		void Rasterize_LineScanning(VS_IN  triangle[3])
 		{
 			//是否隔行扫描
-			//double bInterlacing = false;
+			//float bInterlacing = false;
 
 			//获得三角形三个顶点
 			Vec2 p[3] = {
@@ -302,30 +302,30 @@ namespace sr
 			}
 
 			//从上到下扫描
-			for (double y = p[0].y + 0.5; y >= p[2].y - 0.5; --y)
+			for (float y = p[0].y + 0.5f; y >= p[2].y - 0.5f; --y)
 			{
 				//计算出直线 y = y 与 三角形相交2点的x坐标
 
-				//double k = (p[2].y - p[0].y) / (p[2].x - p[0].x);
-				//double b = p[0].y - k * p[0].x;
-				//double x1 = ((double)y - b) / k;
+				//float k = (p[2].y - p[0].y) / (p[2].x - p[0].x);
+				//float b = p[0].y - k * p[0].x;
+				//float x1 = ((float)y - b) / k;
 
-				double x1 = (y + 0.5 - p[0].y) * (p[2].x - p[0].x) / (p[2].y - p[0].y) + p[0].x;
-				double x2 = 0;
+				float x1 = (y + 0.5f - p[0].y) * (p[2].x - p[0].x) / (p[2].y - p[0].y) + p[0].x;
+				float x2 = 0;
 
 				if (y >= p[1].y)
 				{
-					//y减0.5是为了矫正斜率
-					x2 = (y - 0.5 - p[0].y) * (p[1].x - p[0].x) / (p[1].y - p[0].y) + p[0].x;
+					//y减0.5f是为了矫正斜率
+					x2 = (y - 0.5f - p[0].y) * (p[1].x - p[0].x) / (p[1].y - p[0].y) + p[0].x;
 				}
 				else
 				{
-					x2 = (y + 0.5 - p[1].y) * (p[2].x - p[1].x) / (p[2].y - p[1].y) + p[1].x;
+					x2 = (y + 0.5f - p[1].y) * (p[2].x - p[1].x) / (p[2].y - p[1].y) + p[1].x;
 				}
 
 				if (x1 > x2)
 				{
-					double temp = x1;
+					float temp = x1;
 					x1 = x2;
 					x2 = temp;
 				}
@@ -343,16 +343,16 @@ namespace sr
 		void PixelOperate(int x, int y, VS_IN  triangle[3])
 		{
 			//MSAA4x
-			double msaa_count = 0;
-			double Mn = 2;
+			float msaa_count = 0;
+			float Mn = 2;
 			Vec3 aa_rate = {};
 
-			for (double i = 0; i < Mn; ++i)
+			for (float i = 0; i < Mn; ++i)
 			{
-				for (double j = 0; j < Mn; ++j)
+				for (float j = 0; j < Mn; ++j)
 				{
-					if (!Impl::is_pixel_in_triangle(x + (i + 0.5) / (Mn + 1),
-						y + (j + 0.5) / (Mn + 1),
+					if (!Impl::is_pixel_in_triangle(x + (i + 0.5f) / (Mn + 1),
+						y + (j + 0.5f) / (Mn + 1),
 						triangle))
 					{
 						continue;
@@ -360,12 +360,12 @@ namespace sr
 
 					//对插值系数进行多次采样，而不是多次插值
 					Vec3 rate = Impl::get_interpolation_rate(
-						x + (i + 0.5) / (Mn + 1),
-						y + (j + 0.5) / (Mn + 1),
+						x + (i + 0.5f) / (Mn + 1),
+						y + (j + 0.5f) / (Mn + 1),
 						triangle);
 
 					//三个系数也刚好可以判断点是不是在三角形内
-					if (rate.x * rate.y * rate.z > 1e-6) //rate.x * rate.y * rate.z > -1e-8 && rate.x * rate.y * rate.z<0.002 线框模式
+					if (rate.x * rate.y * rate.z > 1e-6) //rate.x * rate.y * rate.z > -1e-8 && rate.x * rate.y * rate.z<0.002f 线框模式
 					{
 						aa_rate += rate;
 						++msaa_count;
@@ -377,8 +377,8 @@ namespace sr
 			{
 				aa_rate /= msaa_count;
 				VS_OUT interp = triangle[0] * aa_rate.x + triangle[1] * aa_rate.y + triangle[2] * aa_rate.z;
-				double depth = 1 / interp.position.z;
-				double depth0 = context.depth_buffer_view.Get(x, y);
+				float depth = 1 / interp.position.z;
+				float depth0 = context.depth_buffer_view.Get(x, y);
 
 				//深度测试
 				if (depth > depth0 - 1e-4) {
@@ -387,13 +387,13 @@ namespace sr
 
 					//
 					if (abs(depth - depth0) > 1e-4 && msaa_count < Mn * Mn) {
-						double a = color.a;
+						float a = color.a;
 						color = Impl::lerp_color(color, color0, msaa_count / (Mn * Mn));
 						color.a = a;
 					}
 
 					//颜色混合
-					if (color.a < 0.99999)
+					if (color.a < 0.99999f)
 					{
 						color = Impl::blend_color(color0, color);
 					}
