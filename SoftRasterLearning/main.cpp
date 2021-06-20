@@ -59,9 +59,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 		wnd.PeekMsg();
 		ctx.Clear({ 0.4, 0.6, 0.2, 1. });
 
-		m.mat = sr::Mat::Projection(-0.4, 0.4, -0.3, 0.3, 0.2, 1000) * sr::Mat::Camera(sr::Vec3{ 0,0,0 }, sr::Vec3{ 0,0,-1 }, sr::Vec3{ 0,1,0 }) * sr::Mat::Translate(0, 0,0.3+sin(time)*0.1) * sr::Mat::Rotate(0, 0,cos(time)*pi) * sr::Mat::Scale(1, 1, 1);// *m.mat;
+		m.mat = sr::Mat::Projection(-0.4, 0.4, -0.3, 0.3, 0.2, 1000) * sr::Mat::Camera(sr::Vec3{ 0,0,0 }, sr::Vec3{ 0,0,-1 }, sr::Vec3{ 0,1,0 }) * sr::Mat::Translate(0, 0,0.3+sin(time)*0.1) * sr::Mat::Rotate(0, 0,cos(time)*pi) * sr::Mat::Scale(0.3, 0.3, 1);// *m.mat;
 
-		renderer.DrawTriangles(rect, 6);
+		renderer.DrawTriangles(rect, 6); 
 
 		ctx.CopyToScreen(wnd.getFrameBufferView());
 		wnd.drawBuffer();

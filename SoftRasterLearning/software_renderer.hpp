@@ -58,7 +58,7 @@ namespace sr
 			return a.cross(b) > 0 && b.cross(c) > 0 && c.cross(a) > 0;
 		}
 
-		static constexpr double clamp(double v, double a = 0., double b = 1.0)
+		static double clamp(double v, double a = 0., double b = 1.0)
 		{
 			return ((v < a ? a : v) < b ? (v < a ? a : v) : b);
 		}
@@ -131,9 +131,12 @@ namespace sr
 			{
 				return;
 			}
-			for (uint32 y = 0; y < screen_buffer_view.h; ++y)
+			auto w = screen_buffer_view.w;
+			auto h = screen_buffer_view.h;
+
+			for (uint32 y = 0; y < h; ++y)
 			{
-				for (uint32 x = 0; x < screen_buffer_view.w; ++x)
+				for (uint32 x = 0; x < w; ++x)
 				{
 					screen_buffer_view.Set(x, y, Impl::trans_float4color_to_uint32color(fragment_buffer_view.Get(x, y)).bgra);
 				}
@@ -299,7 +302,7 @@ namespace sr
 			}
 
 			//从上到下扫描
-			for (double y = p[0].y + 1; y >= p[2].y - 1; --y)
+			for (double y = p[0].y + 0.5; y >= p[2].y - 0.5; --y)
 			{
 				//计算出直线 y = y 与 三角形相交2点的x坐标
 
@@ -362,7 +365,7 @@ namespace sr
 						triangle);
 
 					//三个系数也刚好可以判断点是不是在三角形内
-					if (rate.x * rate.y * rate.z > -1e-8) //rate.x * rate.y * rate.z > -1e-8 && rate.x * rate.y * rate.z<0.002 线框模式
+					if (rate.x * rate.y * rate.z > 1e-6) //rate.x * rate.y * rate.z > -1e-8 && rate.x * rate.y * rate.z<0.002 线框模式
 					{
 						aa_rate += rate;
 						++msaa_count;
@@ -374,7 +377,7 @@ namespace sr
 			{
 				aa_rate /= msaa_count;
 				VS_OUT interp = triangle[0] * aa_rate.x + triangle[1] * aa_rate.y + triangle[2] * aa_rate.z;
-				double depth = -1 / interp.position.z * interp.position.z;
+				double depth = 1 / interp.position.z;
 				double depth0 = context.depth_buffer_view.Get(x, y);
 
 				//深度测试
