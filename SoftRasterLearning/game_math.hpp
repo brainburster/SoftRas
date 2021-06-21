@@ -89,10 +89,12 @@ namespace gmath
 			return { x - rhs.x,y - rhs.y,z - rhs.z, w - rhs.w };
 		}
 
-		T operator*(const Vec4& rhs) const
+		T  Dot(const Vec4& rhs) const
 		{
 			return x * rhs.x + y * rhs.y + z * rhs.z + w * rhs.w;
 		}
+
+
 
 		Vec4 normalize()
 		{
@@ -112,6 +114,11 @@ namespace gmath
 		friend Vec4 operator/(const Vec4& lhs, T rhs)
 		{
 			return { lhs.x / rhs,lhs.y / rhs,lhs.z / rhs, lhs.w / rhs };
+		}
+
+		friend Vec4 operator*(const Vec4& lhs,const Vec4& rhs)
+		{
+			return { lhs.x * rhs.x,lhs.y * rhs.y,lhs.z * rhs.z, lhs.w * rhs.w };
 		}
 	};
 
@@ -152,7 +159,7 @@ namespace gmath
 			return { x - rhs.x,y - rhs.y,z - rhs.z };
 		}
 
-		T operator*(const Vec3& rhs) const
+		T Dot(const Vec3& rhs) const
 		{
 			return x * rhs.x + y * rhs.y + z * rhs.z;
 		}
@@ -238,7 +245,7 @@ namespace gmath
 			return { x - rhs.x,y - rhs.y };
 		}
 
-		T operator*(const Vec2& rhs) const
+		T Dot(const Vec2& rhs) const
 		{
 			return x * rhs.x + y * rhs.y;
 		}
@@ -469,6 +476,37 @@ namespace gmath
 				0,0,-1,0
 			};
 		}
+
+		};
+
+		namespace Utility
+		{
+			template<typename T, typename U, typename V>
+			inline T Clamp(T v, U a, V b)
+			{
+				return ((v < a ? a : v) < b ? (v < a ? a : v) : b);
+			}
+
+			template<typename T>
+			inline T Clamp(T v)
+			{
+				return ((v < 0? 0 : v) < 1 ? (v < 0 ? 0 : v) : 1);
+			}
+
+			template<typename T, typename U>
+			inline T Lerp(T a, T b, U n)
+			{
+				return a * n + b * (1.0 - n);
+			}
+
+			template<typename T>
+			inline T BlendColor(T color0, T color1)
+			{
+				float a = 1.0f - (1.0f - color1.a) * (1.0f - color0.a);
+				T color = 1.0f / a * (color1 * color1.a + (1.0f - color1.a) * color0.a * color0);
+				color.a = a;
+				return color;
+			}
 	};
 
 };

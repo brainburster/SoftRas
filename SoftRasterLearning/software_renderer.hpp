@@ -29,21 +29,6 @@ namespace sr
 		{
 			return { lhs.position * rhs,lhs.color * rhs };
 		}
-		friend Vertex operator*(float lhs, const Vertex& rhs)
-		{
-			return { rhs.position / lhs,rhs.color / lhs };
-		}
-		friend Vertex operator/(const Vertex& lhs, float rhs)
-		{
-			return { lhs.position / rhs,lhs.color / rhs };
-		}
-
-		Vertex& operator+=(const Vertex& rhs)
-		{
-			position += rhs.position;
-			color += rhs.color;
-			return *this;
-		}
 	};
 
 
@@ -58,19 +43,14 @@ namespace sr
 			return a.cross(b) > 0 && b.cross(c) > 0 && c.cross(a) > 0;
 		}
 
-		static float clamp(float v, float a = 0.f, float b = 1.0f)
-		{
-			return ((v < a ? a : v) < b ? (v < a ? a : v) : b);
-		}
-
 		static Color32 trans_float4color_to_uint32color(const Color& color)
 		{
 			//交换r通道和b通道
 			return Color32{
-				(unsigned char)(clamp(color.z) * 255),
-				(unsigned char)(clamp(color.y) * 255),
-				(unsigned char)(clamp(color.x) * 255),
-				(unsigned char)(clamp(color.w) * 255)
+				(unsigned char)(gmath::Utility::Clamp(color.z) * 255),
+				(unsigned char)(gmath::Utility::Clamp(color.y) * 255),
+				(unsigned char)(gmath::Utility::Clamp(color.x) * 255),
+				(unsigned char)(gmath::Utility::Clamp(color.w) * 255)
 			};
 		}
 
@@ -100,20 +80,6 @@ namespace sr
 			float u = (b2 * c1 - b1 * c2) / (b2 * a1 - a2 * b1);
 			float w = 1 - u - v;
 			return { w,u,v };
-		}
-
-		//颜色混合
-		static Color blend_color(Color color0, Color color1)
-		{
-			float a = 1.0f - (1.0f - color1.a) * (1.0f - color0.a);
-			Color color = 1.0f / a * (color1 * color1.a + (1.0f - color1.a) * color0.a * color0);
-			color.a = a;
-			return color;
-		}
-
-		static Color lerp_color(Color color1, Color color2, float n)
-		{
-			return color1 * n + color2 * (1.0f - n);
 		}
 
 	};
@@ -323,8 +289,8 @@ namespace sr
 				}
 			}
 
-			float y1 = Impl::clamp(p[2].y, 0, (float)context.fragment_buffer_view.h);
-			float y2 = Impl::clamp(p[0].y, 0, (float)context.fragment_buffer_view.h);
+			float y1 = gmath::Utility::Clamp(p[2].y, 0, context.fragment_buffer_view.h);
+			float y2 = gmath::Utility::Clamp(p[0].y, 0, context.fragment_buffer_view.h);
 			
 			//从上到下扫描
 			for (float y = y2 + 0.5f; y >= y1 - 0.5f; --y)
@@ -355,8 +321,8 @@ namespace sr
 					x2 = temp;
 				}
 
-				x1 = Impl::clamp(x1, 0, (float)context.fragment_buffer_view.w);
-				x2 = Impl::clamp(x2, 0, (float)context.fragment_buffer_view.w);
+				x1 = gmath::Utility::Clamp(x1, 0, (float)context.fragment_buffer_view.w);
+				x2 = gmath::Utility::Clamp(x2, 0, (float)context.fragment_buffer_view.w);
 
 				for (int x = (int)x1 - 1; x <= (int)x2 + 1; ++x)
 				{
@@ -415,14 +381,14 @@ namespace sr
 					//
 					if (abs(depth - depth0) > 1e-4 && msaa_count < Mn * Mn) {
 						float a = color.a;
-						color = Impl::lerp_color(color, color0, msaa_count / (Mn * Mn));
+						color = gmath::Utility::Lerp(color, color0, msaa_count / (Mn * Mn));
 						color.a = a;
 					}
 
 					//颜色混合
 					if (color.a < 0.99999f)
 					{
-						color = Impl::blend_color(color0, color);
+						color = gmath::Utility::BlendColor(color0, color);
 					}
 
 					//写入fragment_buffer
