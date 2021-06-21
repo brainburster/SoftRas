@@ -131,6 +131,7 @@ namespace sr
 			{
 				return;
 			}
+
 			auto w = screen_buffer_view.w;
 			auto h = screen_buffer_view.h;
 
@@ -191,35 +192,56 @@ namespace sr
 		using VS_IN = typename Material::VS_IN;
 		using VS_OUT = typename Material::VS_OUT;
 
+		void DrawIndex(VS_IN* data, size_t* index, size_t n)
+		{
+			for (size_t i = 0; i < n; i += 3)
+			{
+				if (DrawTriangle(data + index[i], data + index[i + 1], data + index[i + 2]))
+				{
+					continue;
+				}
+				//...
+			}
+		}
+
 		void DrawTriangles(VS_IN* data, size_t n)
 		{
 			for (size_t i = 0; i < n; i += 3)
 			{
-
-				VS_IN triangle[3] = {
-					{material.VS(data[i])},
-					{material.VS(data[i + 1])},
-					{material.VS(data[i + 2])}
-				};
-
-
-				for (auto& v : triangle)
+				if (DrawTriangle(data + i, data + i + 1, data + i + 2))
 				{
-					v.position /= v.position.w;
+					continue;				
 				}
-
-				TransToScreenSpace(triangle);
-				//...	
-
-				//back_face_culling
-				if (Impl::is_backface(triangle))
-				{
-					continue;
-				}
-
-				//Rasterize_AABB(triangle);
-				Rasterize_LineScanning(triangle);
+				//...
 			}
+		}
+
+		bool DrawTriangle(VS_IN* p1, VS_IN* p2, VS_IN* p3)
+		{
+			VS_IN triangle[3] = {
+				{ material.VS(*p1) },
+				{ material.VS(*p2) },
+				{ material.VS(*p3) }
+			};
+
+
+			for (auto& v : triangle)
+			{
+				v.position /= v.position.w;
+			}
+
+			TransToScreenSpace(triangle);
+			//...	
+
+			//back_face_culling
+			//if (Impl::is_backface(triangle))
+			//{
+			//	return false;
+			//}
+
+			//Rasterize_AABB(triangle);
+			Rasterize_LineScanning(triangle);
+			return true;
 		}
 
 		void TransToScreenSpace(VS_IN triangle[3])
@@ -301,8 +323,8 @@ namespace sr
 				}
 			}
 
-			float y1 = Impl::clamp(p[2].y, 0, context.fragment_buffer_view.h);
-			float y2 = Impl::clamp(p[0].y, 0, context.fragment_buffer_view.h);
+			float y1 = Impl::clamp(p[2].y, 0, (float)context.fragment_buffer_view.h);
+			float y2 = Impl::clamp(p[0].y, 0, (float)context.fragment_buffer_view.h);
 			
 			//从上到下扫描
 			for (float y = y2 + 0.5f; y >= y1 - 0.5f; --y)
@@ -333,8 +355,8 @@ namespace sr
 					x2 = temp;
 				}
 
-				x1 = Impl::clamp(x1, 0, context.fragment_buffer_view.w);
-				x2 = Impl::clamp(x2, 0, context.fragment_buffer_view.w);
+				x1 = Impl::clamp(x1, 0, (float)context.fragment_buffer_view.w);
+				x2 = Impl::clamp(x2, 0, (float)context.fragment_buffer_view.w);
 
 				for (int x = (int)x1 - 1; x <= (int)x2 + 1; ++x)
 				{

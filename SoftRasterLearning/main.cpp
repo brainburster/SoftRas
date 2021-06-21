@@ -35,13 +35,15 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 
 	sr::Renderer<Material_Model> renderer = { ctx,m };
 
-	sr::Vertex rect[6] = {
+	sr::Vertex rect[4] = {
 		{{-0.5f,0.5f,0,1},{1,0,0,1}},
 		{{ 0.5f,0.5f,0,1},{0,1,0,1}},
 		{{ 0.5f,-0.5f,0,1},{0,0,1,1}},
-		{{-0.5f,0.5f,0,1},{1,0,0,1}},
-		{{ 0.5f,-0.5f,0,1},{0,0,1,1}},
 		{{-0.5f,-0.5f,0,1},{1,0,0,1}}
+	};
+	size_t index[6] = {
+		0,1,2,
+		0,2,3
 	};
 
 	float pi = 3.14159265358979f;
@@ -53,13 +55,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 		wnd.PeekMsg();
 		ctx.Clear({ 0.4f, 0.6f, 0.2f, 1.f });
 
-		m.mat = sr::Mat::Projection( pi*0.5,4/3, -0.1f, -1000) * sr::Mat::Camera(sr::Vec3{ 0,0,0 }, sr::Vec3{ 0,0,-1 }, sr::Vec3{ 0,1,0 }) * sr::Mat::Translate(0, 0,-time) * sr::Mat::Rotate(0, 0,cos(time)*pi) * sr::Mat::Scale(0.3f, 0.3f, 1);// *m.mat;
+		m.mat = sr::Mat::Projection( pi*0.5f,4/3, -0.1f, -1000) * sr::Mat::Camera(sr::Vec3{ 0,0,0 }, sr::Vec3{ 0,0,-1 }, sr::Vec3{ 0,1,0 }) * sr::Mat::Translate(0, 0,-time) * sr::Mat::Rotate(0, 0,cos(time)*pi) * sr::Mat::Scale(0.3f, 0.3f, 1);// *m.mat;
 
-		renderer.DrawTriangles(rect, 6); 
+		renderer.DrawIndex(rect, index, 6);
 
-		m.mat = sr::Mat::Projection(pi * 0.5, 4 / 3, -.1f, -1000) * sr::Mat::Camera(sr::Vec3{ 0,0,0 }, sr::Vec3{ 0,0,-1 }, sr::Vec3{ 0,1,0 }) * sr::Mat::Translate(5, 0, -10) * sr::Mat::Rotate(0, 0, 1) * sr::Mat::Scale(0.3f, 0.3f, 1);// *m.mat;
+		m.mat = sr::Mat::Projection(pi * 0.5f, 4 / 3, -.1f, -1000) * sr::Mat::Camera(sr::Vec3{ 0,0,0 }, sr::Vec3{ 0,0,-1 }, sr::Vec3{ 0,1,0 }) * sr::Mat::Translate(5, 0, -10) * sr::Mat::Rotate(0, 0, 1) * sr::Mat::Scale(0.3f, 0.3f, 1);// *m.mat;
 
-		renderer.DrawTriangles(rect, 6);
+		renderer.DrawIndex(rect, index, 6);
 
 		ctx.CopyToScreen(wnd.getFrameBufferView());
 		wnd.drawBuffer();
