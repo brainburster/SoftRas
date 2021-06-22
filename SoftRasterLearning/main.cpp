@@ -33,13 +33,10 @@ struct Vertex
 
 struct Material_Model
 {
-	using VS_IN = ::Vertex;
-	using VS_OUT = ::Vertex;
-
 	sr::Mat mat = sr::Mat::Unit();
 	loader::Texture* tex0;
 
-	VS_OUT VS(const VS_IN& v) const 
+	Vertex VS(const Vertex& v) const
 	{
 		return { 
 			mat * v.position,
@@ -48,7 +45,7 @@ struct Material_Model
 		};
 	}
 
-	sr::Color FS(const VS_OUT& v) const
+	gmath::Vec4<float> FS(const Vertex& v) const
 	{
 		return tex0->Sampler(v.uv);
 	}
@@ -91,7 +88,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 
 		m.mat = sr::Mat::Projection( pi*0.5f,4/3, -0.1f, -1000) * sr::Mat::Camera(sr::Vec3{ 0,0,0 }, sr::Vec3{ 0,0,-1 }, sr::Vec3{ 0,1,0 }) * sr::Mat::Translate(0, 0,-1.5-cos(time)) * sr::Mat::Rotate(0, 0,sin(time)*pi/2) * sr::Mat::Scale(0.3f, 0.3f, 1);// *m.mat;
 
-		renderer.DrawIndex(rect, index, 6);
+		//renderer.DrawIndex(rect, index, 6);
+		renderer.DrawFace(rect, 6);
+
 
 		ctx.CopyToScreen(wnd.getFrameBufferView());
 		wnd.drawBuffer();

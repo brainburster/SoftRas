@@ -37,20 +37,21 @@ namespace sr
 		template<typename T>
 		static bool is_backface(T* triangle)
 		{
-			Vec2 a = { triangle[1].position.x - triangle[0].position.x ,triangle[1].position.y - triangle[0].position.y };
-			Vec2 b = { triangle[2].position.x - triangle[1].position.x ,triangle[2].position.y - triangle[1].position.y };
-			Vec2 c = { triangle[0].position.x - triangle[2].position.x ,triangle[0].position.y - triangle[2].position.y };
+			Vec2 a = triangle[1] - triangle[0];
+			Vec2 b = triangle[2] - triangle[1];
+			Vec2 c = triangle[0] - triangle[2];
 			return a.cross(b) > 0 && b.cross(c) > 0 && c.cross(a) > 0;
 		}
 
 		static Color32 trans_float4color_to_uint32color(const Color& color)
 		{
+			using gmath::Utility::Clamp;
 			//交换r通道和b通道
 			return Color32{
-				(unsigned char)(gmath::Utility::Clamp(color.z) * 255),
-				(unsigned char)(gmath::Utility::Clamp(color.y) * 255),
-				(unsigned char)(gmath::Utility::Clamp(color.x) * 255),
-				(unsigned char)(gmath::Utility::Clamp(color.w) * 255)
+				(unsigned char)(Clamp(color.z) * 255),
+				(unsigned char)(Clamp(color.y) * 255),
+				(unsigned char)(Clamp(color.x) * 255),
+				(unsigned char)(Clamp(color.w) * 255)
 			};
 		}
 
@@ -154,19 +155,26 @@ namespace sr
 	template<typename Material = Material_Default>
 	class Renderer
 	{
+	private:
+		//用来萃取顶点着色器的输入类型和输出类型（即像素着色器的输入类型）, 仅用于decltype中, 不需要是实现
+		template <typename T, typename R, typename In>
+		static In get_in_type(R(T::* f)(In) const volatile);
+		template <typename T, typename R, typename In>
+		static In get_in_type(R(T::* f)(In) volatile);
+		template <typename T, typename R, typename In>
+		static In get_in_type(R(T::* f)(In) const);
+		template <typename T, typename R, typename In>
+		static In get_in_type(R(T::* f)(In));
+
 	public:
-		using VS_IN = typename Material::VS_IN;
-		using VS_OUT = typename Material::VS_OUT;
+		using VS_IN = typename std::decay<decltype(get_in_type<Material>(std::declval<decltype(&Material::VS)>()))>::type;
+		using VS_OUT =typename std::decay<decltype(get_in_type<Material>(std::declval<decltype(&Material::FS)>()))>::type;
 
 		void DrawIndex(VS_IN* data, size_t* index, size_t n)
 		{
 			for (size_t i = 0; i < n; i += 3)
 			{
-				if (DrawTriangle(data + index[i], data + index[i + 1], data + index[i + 2]))
-				{
-					continue;
-				}
-				//...
+				DrawTriangle(data + index[i], data + index[i + 1], data + index[i + 2]);
 			}
 		}
 
@@ -174,15 +182,35 @@ namespace sr
 		{
 			for (size_t i = 0; i < n; i += 3)
 			{
-				if (DrawTriangle(data + i, data + i + 1, data + i + 2))
-				{
-					continue;				
-				}
-				//...
+				DrawTriangle(data + i, data + i + 1, data + i + 2);
 			}
 		}
 
-		bool DrawTriangle(VS_IN* p1, VS_IN* p2, VS_IN* p3)
+		void DrawFace(VS_IN* data, size_t n)
+		{
+			for (size_t i = 0; i < n; i += 4)
+			{
+				DrawTriangle(data + i, data + i + 1, data + i + 2);
+				DrawTriangle(data + i, data + i + 2, data + i + 3);
+			}
+		}
+
+		void DrawSTRIP(VS_IN* data, size_t n)
+		{
+			for (size_t i = 2; i < n; ++i)
+			{
+				if (i&1)
+				{
+					DrawTriangle(data + i - 3, data + i - 1, data + i);
+				}
+				else
+				{
+					DrawTriangle(data + i - 2, data + i - 1, data + i);
+				}
+			}
+		}
+
+		void DrawTriangle(VS_IN* p1, VS_IN* p2, VS_IN* p3)
 		{
 			VS_IN triangle[3] = {
 				{ material.VS(*p1) },
@@ -190,13 +218,16 @@ namespace sr
 				{ material.VS(*p3) }
 			};
 
+			//cvv
 
+			//归一化
 			for (auto& v : triangle)
 			{
 				v.position /= v.position.w;
 			}
 
 			TransToScreenSpace(triangle);
+
 			//...	
 
 			//back_face_culling
@@ -207,7 +238,6 @@ namespace sr
 
 			//Rasterize_AABB(triangle);
 			Rasterize_LineScanning(triangle);
-			return true;
 		}
 
 		void TransToScreenSpace(VS_IN triangle[3])
@@ -335,6 +365,9 @@ namespace sr
 
 		void PixelOperate(int x, int y, VS_IN  triangle[3])
 		{
+			using gmath::Utility::Lerp;
+			using gmath::Utility::BlendColor;
+
 			//MSAA4x
 			float msaa_count = 0;
 			float Mn = 2;
@@ -370,25 +403,25 @@ namespace sr
 			{
 				aa_rate /= msaa_count;
 				VS_OUT interp = triangle[0] * aa_rate.x + triangle[1] * aa_rate.y + triangle[2] * aa_rate.z;
-				float depth = -1 / (interp.position.z * interp.position.z);
+				float depth = -1 / interp.position.z;
 				float depth0 = context.depth_buffer_view.Get(x, y);
 
 				//深度测试
-				if (depth > depth0 - 1e-4 && depth > -1 && depth < 1) {
+				if (depth > depth0 - 1e-8 && depth > -1 && depth < 1) {
 					Color color = material.FS(interp);
 					Color color0 = context.fragment_buffer_view.Get(x, y);
 
-					//
-					if (abs(depth - depth0) > 1e-4 && msaa_count < Mn * Mn) {
+					//AA上色
+					if (abs(depth - depth0) > 1e-8 && msaa_count < Mn * Mn) {
 						float a = color.a;
-						color = gmath::Utility::Lerp(color, color0, msaa_count / (Mn * Mn));
+						color = Lerp(color, color0, msaa_count / (Mn * Mn));
 						color.a = a;
 					}
 
 					//颜色混合
 					if (color.a < 0.99999f)
 					{
-						color = gmath::Utility::BlendColor(color0, color);
+						color = BlendColor(color0, color);
 					}
 
 					//写入fragment_buffer
