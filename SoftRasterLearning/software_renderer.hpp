@@ -186,7 +186,7 @@ namespace sr
 			}
 		}
 
-		void DrawFace(VS_IN* data, size_t n)
+		void DrawQuadrangles(VS_IN* data, size_t n)
 		{
 			for (size_t i = 0; i < n; i += 4)
 			{
