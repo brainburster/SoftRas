@@ -37,9 +37,9 @@ namespace sr
 		template<typename T>
 		static bool is_backface(T* triangle)
 		{
-			Vec2 a = triangle[1] - triangle[0];
-			Vec2 b = triangle[2] - triangle[1];
-			Vec2 c = triangle[0] - triangle[2];
+			Vec2 a = triangle[1].position - triangle[0].position;
+			Vec2 b = triangle[2].position - triangle[1].position;
+			Vec2 c = triangle[0].position - triangle[2].position;
 			return a.cross(b) > 0 && b.cross(c) > 0 && c.cross(a) > 0;
 		}
 
@@ -231,10 +231,10 @@ namespace sr
 			//...	
 
 			//back_face_culling
-			//if (Impl::is_backface(triangle))
-			//{
-			//	return false;
-			//}
+			if (Impl::is_backface(triangle))
+			{
+				return;
+			}
 
 			//Rasterize_AABB(triangle);
 			Rasterize_LineScanning(triangle);
@@ -294,6 +294,7 @@ namespace sr
 		//使用扫描的方法
 		void Rasterize_LineScanning(VS_IN  triangle[3])
 		{
+			using gmath::Utility::Clamp;
 			//是否隔行扫描
 			//float bInterlacing = false;
 
@@ -319,8 +320,8 @@ namespace sr
 				}
 			}
 
-			float y1 = gmath::Utility::Clamp(p[2].y, 0, context.fragment_buffer_view.h);
-			float y2 = gmath::Utility::Clamp(p[0].y, 0, context.fragment_buffer_view.h);
+			float y1 = Clamp(p[2].y, 0, context.fragment_buffer_view.h);
+			float y2 = Clamp(p[0].y, 0, context.fragment_buffer_view.h);
 			
 			//从上到下扫描
 			for (float y = y2 + 0.5f; y >= y1 - 0.5f; --y)
@@ -351,8 +352,8 @@ namespace sr
 					x2 = temp;
 				}
 
-				x1 = gmath::Utility::Clamp(x1, 0, (float)context.fragment_buffer_view.w);
-				x2 = gmath::Utility::Clamp(x2, 0, (float)context.fragment_buffer_view.w);
+				x1 = Clamp(x1, 0, (float)context.fragment_buffer_view.w);
+				x2 = Clamp(x2, 0, (float)context.fragment_buffer_view.w);
 
 				for (int x = (int)x1 - 1; x <= (int)x2 + 1; ++x)
 				{
@@ -369,7 +370,7 @@ namespace sr
 			using gmath::Utility::BlendColor;
 
 			//MSAA4x
-			float msaa_count = 0;
+			float cover_count = 0;
 			float Mn = 2;
 			Vec3 aa_rate = {};
 
@@ -394,42 +395,49 @@ namespace sr
 					if (rate.x * rate.y * rate.z > 0)
 					{
 						aa_rate += rate;
-						++msaa_count;
+						++cover_count;
 					}
 				}
 			}
 
-			if (msaa_count)
+			//覆盖测试
+			if (!cover_count)
 			{
-				aa_rate /= msaa_count;
-				VS_OUT interp = triangle[0] * aa_rate.x + triangle[1] * aa_rate.y + triangle[2] * aa_rate.z;
-				float depth = -1 / interp.position.z;
-				float depth0 = context.depth_buffer_view.Get(x, y);
-
-				//深度测试
-				if (depth > depth0 - 1e-8 && depth > -1 && depth < 1) {
-					Color color = material.FS(interp);
-					Color color0 = context.fragment_buffer_view.Get(x, y);
-
-					//AA上色
-					if (abs(depth - depth0) > 1e-8 && msaa_count < Mn * Mn) {
-						float a = color.a;
-						color = Lerp(color, color0, msaa_count / (Mn * Mn));
-						color.a = a;
-					}
-
-					//颜色混合
-					if (color.a < 0.99999f)
-					{
-						color = BlendColor(color0, color);
-					}
-
-					//写入fragment_buffer
-					context.fragment_buffer_view.Set(x, y, color);
-					//写入depth_buffer
-					context.depth_buffer_view.Set(x, y, depth);
-				}
+				return;
 			}
+
+			aa_rate /= cover_count;
+			VS_OUT interp = triangle[0] * aa_rate.x + triangle[1] * aa_rate.y + triangle[2] * aa_rate.z;
+			float depth = -1 / interp.position.z;
+			float depth0 = context.depth_buffer_view.Get(x, y);
+
+			//深度测试
+			if (!(depth > depth0 - 1e-10 && depth > -1 && depth < 1))
+			{
+				return;
+			}
+
+			Color color = material.FS(interp);
+			Color color0 = context.fragment_buffer_view.Get(x, y);
+
+			//AA上色
+			if (depth - depth0 > 1e-8 && cover_count < Mn * Mn) {
+				float a = color.a;
+				color = Lerp(color, color0, cover_count / (Mn * Mn));
+				color.a = a;
+			}
+
+			//颜色混合
+			if (color.a < 0.99999f)
+			{
+				color = BlendColor(color0, color);
+			}
+
+			//写入fragment_buffer
+			context.fragment_buffer_view.Set(x, y, color);
+			//写入depth_buffer
+			context.depth_buffer_view.Set(x, y, depth);
+
 		}
 
 		Renderer(Context& ctx, const Material& m) :
