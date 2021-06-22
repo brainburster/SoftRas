@@ -73,25 +73,25 @@ namespace loader
 			float y = (1-uv.y) * h;
 			auto _x = (int)x;
 			auto _y = (int)y;
-			float wx = _x - x;
-			float wy = _y - y;
-			
-			if (loop)
-			{
-				_x = (_x + w) % w;
-				_y = (_y + h) % h;
-			}
+			//float wx = _x - x;
+			//float wy = _y - y;
+			//
+			//if (loop)
+			//{
+			//	_x = (_x + w) % w;
+			//	_y = (_y + h) % h;
+			//}
 
-			auto color_1 = Get(_x, _y);
-			auto color_2 = Get(_x+ 1, _y);
-			auto color_3 = Get(_x, _y + 1);
-			auto color_4 = Get(_x + 1, _y + 1);
+			//auto color_1 = Get(_x, _y);
+			//auto color_2 = Get(_x+ 1, _y);
+			//auto color_3 = Get(_x, _y + 1);
+			//auto color_4 = Get(_x + 1, _y + 1);
 
-			auto color_5 = color_1 * wx + color_2 * (1 - wx);
-			auto color_6 = color_3 * wx + color_4 * (1 - wx);
-			auto color_7 = color_5 * wy + color_6 * (1 - wy);
+			//auto color_5 = color_1 * wx + color_2 * (1 - wx);
+			//auto color_6 = color_3 * wx + color_4 * (1 - wx);
+			//auto color_7 = color_5 * wy + color_6 * (1 - wy);
 
-			//auto color_7 = Get(_x, _y);
+			auto color_7 = Get(_x, _y);
 			
 			return gmath::Vec4<float> {
 					color_7.b / 255.f,

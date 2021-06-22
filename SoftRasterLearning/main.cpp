@@ -4,6 +4,7 @@
 #include "dc_wnd.hpp"
 #include "software_renderer.hpp"
 #include "bmp_loader.hpp"
+#include "obj_loader.hpp"
 
 struct Vertex
 {
