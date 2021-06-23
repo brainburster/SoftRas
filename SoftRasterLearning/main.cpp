@@ -36,32 +36,22 @@ struct Material_Model
 	sr::Mat mat = sr::Mat::Unit();
 	bmp_loader::Texture* tex0;
 
-	Vertex VS(const Vertex& v) const
+	Vertex VS(const obj_loader::Model_Vertex& v) const
 	{
 		return { 
-			mat * v.position,
-			v.color,
+			mat* sr::Vec4{v.position,1.0},
+			sr::Vec4(v.normal,1),
 			v.uv
 		};
 	}
 
 	gmath::Vec4<float> FS(const Vertex& v) const
 	{
-		return tex0->Sampler(v.uv);
+		//return tex0->Sampler(v.uv);
+		return v.color;
 	}
 };
 
-::Vertex rect[4] = {
-	{{-0.5f,0.5f,0,1},{1,0,0,1},{0,0}},
-	{{ 0.5f,0.5f,0,1},{0,1,0,1},{1,0}},
-	{{ 0.5f,-0.5f,0,1},{0,0,1,1},{1,1}},
-	{{-0.5f,-0.5f,0,1},{1,0,0,1},{0,1}}
-};
-
-size_t index[6] = {
-	0,1,2,
-	0,2,3
-};
 
 const float pi = 3.14159265358979f;
 
@@ -78,6 +68,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 	sr::Renderer<Material_Model> renderer = { ctx,m };
 	
 	bmp_loader::Texture tex = bmp_loader::BmpLoader::LoadBmp(L"..\\resource\\pictures\\test.bmp");
+	auto ret = obj_loader::obj::LoadFromFile(L"..\\resource\\models\\box.obj");
+	if (ret.has_value()) 
+	{
+		//...
+	}
+
 	m.tex0 = &tex;
 
 	float time = 0;
@@ -86,15 +82,14 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 		wnd.PeekMsg();
 		ctx.Clear({ 0.4f, 0.6f, 0.2f, 1.f });
 
-		m.mat = sr::Mat::Projection( pi*0.5f,4/3, -0.1f, -1000) * sr::Mat::Camera(sr::Vec3{ 0,0,0 }, sr::Vec3{ 0,0,-1 }, sr::Vec3{ 0,1,0 }) * sr::Mat::Translate(0.0, 0.0,-1.5-cos(time)) * sr::Mat::Rotate(0, 0,sin(time)*pi/2) * sr::Mat::Scale(0.3f, 0.3f, 1);// *m.mat;
+		m.mat = sr::Mat::Projection( pi*0.5f,4/3, -0.1f, -1000) * sr::Mat::Camera(sr::Vec3{ 0,0,0 }, sr::Vec3{ 0,0,-1 }, sr::Vec3{ 0,1,0 }) * sr::Mat::Translate(0.0, -1,-5) * sr::Mat::Rotate(time/2, time/3,time/4) * sr::Mat::Scale(1.f, 1.f, 1);// *m.mat;
 
-		//renderer.DrawIndex(rect, index, 6);
-		renderer.DrawQuadrangles(rect, 6);
+		renderer.DrawTriangles(&ret->mesh[0],ret->mesh.size());
 
 
 		ctx.CopyToScreen(wnd.getFrameBufferView());
 		wnd.drawBuffer();
- 		time += 0.01f;
+ 		time += 0.05f;
 		//...
 	}
 

@@ -39,8 +39,8 @@ namespace sr
 		{
 			Vec2 a = triangle[1].position - triangle[0].position;
 			Vec2 b = triangle[2].position - triangle[1].position;
-			Vec2 c = triangle[0].position - triangle[2].position;
-			return a.cross(b) > 0 && b.cross(c) > 0 && c.cross(a) > 0;
+			//Vec2 c = triangle[0].position - triangle[2].position;
+			return a.cross(b) < 0;//&& b.cross(c) < 0 && c.cross(a) < 0;
 		}
 
 		static Color32 trans_float4color_to_uint32color(const Color& color)
@@ -212,7 +212,7 @@ namespace sr
 
 		void DrawTriangle(VS_IN* p1, VS_IN* p2, VS_IN* p3)
 		{
-			VS_IN triangle[3] = {
+			VS_OUT triangle[3] = {
 				{ material.VS(*p1) },
 				{ material.VS(*p2) },
 				{ material.VS(*p3) }
@@ -240,7 +240,7 @@ namespace sr
 			Rasterize_LineScanning(triangle);
 		}
 
-		void TransToScreenSpace(VS_IN triangle[3])
+		void TransToScreenSpace(VS_OUT triangle[3])
 		{
 			for (int i = 0; i < 3; ++i)
 			{
@@ -255,7 +255,7 @@ namespace sr
 		}
 
 		//使用AABB包围盒进行光栅化
-		void Rasterize_AABB(VS_IN  triangle[3])
+		void Rasterize_AABB(VS_OUT  triangle[3])
 		{
 			//生成AABB包围盒
 			int left = -1, right = context.fragment_buffer_view.w + 1, top = -1, bottom = context.fragment_buffer_view.h + 1;
@@ -292,7 +292,7 @@ namespace sr
 		}
 
 		//使用扫描的方法
-		void Rasterize_LineScanning(VS_IN  triangle[3])
+		void Rasterize_LineScanning(VS_OUT  triangle[3])
 		{
 			using gmath::Utility::Clamp;
 			//是否隔行扫描
@@ -364,7 +364,7 @@ namespace sr
 		}
 
 
-		void PixelOperate(int x, int y, VS_IN  triangle[3])
+		void PixelOperate(int x, int y, VS_OUT triangle[3])
 		{
 			using gmath::Utility::Lerp;
 			using gmath::Utility::BlendColor;
@@ -412,7 +412,7 @@ namespace sr
 			float depth0 = context.depth_buffer_view.Get(x, y);
 
 			//深度测试
-			if (!(depth > depth0 - 1e-10 && depth > -1 && depth < 1))
+			if (!(depth > depth0 - 1e-8 ))
 			{
 				return;
 			}
@@ -421,7 +421,7 @@ namespace sr
 			Color color0 = context.fragment_buffer_view.Get(x, y);
 
 			//AA上色
-			if (depth - depth0 > 1e-8 && cover_count < Mn * Mn) {
+			if ((cover_count < Mn * Mn) && (depth - depth0 > 1e-10)) {
 				float a = color.a;
 				color = Lerp(color, color0, cover_count / (Mn * Mn));
 				color.a = a;
