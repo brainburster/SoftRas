@@ -156,19 +156,19 @@ namespace sr
 	class Renderer
 	{
 	private:
-		//用来萃取顶点着色器的输入类型和输出类型（即像素着色器的输入类型）, 仅用于decltype中, 不需要是实现
+		//用来萃取顶点着色器的输入类型和输出类型（即像素着色器的输入类型）
 		template <typename T, typename R, typename In>
-		static In get_in_type(R(T::* f)(In) const volatile);
+		static In get_in_type(R(T::* f)(In) const volatile) {}
 		template <typename T, typename R, typename In>
-		static In get_in_type(R(T::* f)(In) volatile);
+		static In get_in_type(R(T::* f)(In) volatile) {}
 		template <typename T, typename R, typename In>
-		static In get_in_type(R(T::* f)(In) const);
+		static In get_in_type(R(T::* f)(In) const) {}
 		template <typename T, typename R, typename In>
-		static In get_in_type(R(T::* f)(In));
+		static In get_in_type(R(T::* f)(In)) {}
 
 	public:
-		using VS_IN = typename std::decay<decltype(get_in_type<Material>(std::declval<decltype(&Material::VS)>()))>::type;
-		using VS_OUT =typename std::decay<decltype(get_in_type<Material>(std::declval<decltype(&Material::FS)>()))>::type;
+		using VS_IN = std::decay_t<decltype(get_in_type<Material>(std::declval<decltype(&Material::VS)>()))>;
+		using VS_OUT = std::decay_t<decltype(get_in_type<Material>(std::declval<decltype(&Material::FS)>()))>;
 
 		void DrawIndex(VS_IN* data, size_t* index, size_t n)
 		{

@@ -4,7 +4,7 @@
 #include <vector>
 #include "game_math.hpp"
 
-namespace loader
+namespace bmp_loader
 {
 	using uint8 = unsigned char;
 	using uint16 = unsigned short;

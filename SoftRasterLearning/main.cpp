@@ -34,7 +34,7 @@ struct Vertex
 struct Material_Model
 {
 	sr::Mat mat = sr::Mat::Unit();
-	loader::Texture* tex0;
+	bmp_loader::Texture* tex0;
 
 	Vertex VS(const Vertex& v) const
 	{
@@ -77,7 +77,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 
 	sr::Renderer<Material_Model> renderer = { ctx,m };
 	
-	loader::Texture tex = loader::BmpLoader::LoadBmp(L"..\\resource\\pictures\\test.bmp");
+	bmp_loader::Texture tex = bmp_loader::BmpLoader::LoadBmp(L"..\\resource\\pictures\\test.bmp");
 	m.tex0 = &tex;
 
 	float time = 0;
@@ -86,7 +86,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 		wnd.PeekMsg();
 		ctx.Clear({ 0.4f, 0.6f, 0.2f, 1.f });
 
-		m.mat = sr::Mat::Projection( pi*0.5f,4/3, -0.1f, -1000) * sr::Mat::Camera(sr::Vec3{ 0,0,0 }, sr::Vec3{ 0,0,-1 }, sr::Vec3{ 0,1,0 }) * sr::Mat::Translate(0, 0,-1.5-cos(time)) * sr::Mat::Rotate(0, 0,sin(time)*pi/2) * sr::Mat::Scale(0.3f, 0.3f, 1);// *m.mat;
+		m.mat = sr::Mat::Projection( pi*0.5f,4/3, -0.1f, -1000) * sr::Mat::Camera(sr::Vec3{ 0,0,0 }, sr::Vec3{ 0,0,-1 }, sr::Vec3{ 0,1,0 }) * sr::Mat::Translate(0.0, 0.0,-1.5-cos(time)) * sr::Mat::Rotate(0, 0,sin(time)*pi/2) * sr::Mat::Scale(0.3f, 0.3f, 1);// *m.mat;
 
 		//renderer.DrawIndex(rect, index, 6);
 		renderer.DrawQuadrangles(rect, 6);
