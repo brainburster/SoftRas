@@ -5,6 +5,8 @@
 #include "software_renderer.hpp"
 #include "bmp_loader.hpp"
 #include "obj_loader.hpp"
+#include "camera.hpp"
+#include <thread>
 
 struct Vertex
 {
@@ -47,8 +49,7 @@ struct Material_Model
 
 	gmath::Vec4<float> FS(const Vertex& v) const
 	{
-		//return tex0->Sampler(v.uv);
-		return v.color;
+		return v.color+tex0->Sampler(v.uv);
 	}
 };
 
@@ -69,29 +70,99 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 	
 	bmp_loader::Texture tex = bmp_loader::BmpLoader::LoadBmp(L"..\\resource\\pictures\\test.bmp");
 	auto ret = obj_loader::obj::LoadFromFile(L"..\\resource\\models\\box.obj");
-	if (ret.has_value()) 
-	{
-		//...
-	}
+
 
 	m.tex0 = &tex;
 
-	float time = 0;
+
+	game::Camera camera = game::Camera{ {0,0,10},90,0 };
+
+	const float move_speed = 0.5;
+
+	wnd.RegisterWndProc(WM_KEYDOWN, [&](auto wParam, auto lParam) {
+		//sr::Vec3 right = camera.
+
+		switch (wParam)
+		{
+		case 'W':
+			camera.position.z -= move_speed;
+			break;
+		case 'S':
+			camera.position.z += move_speed;
+			break;
+		case 'A':
+			camera.position.x -= move_speed;
+			break;
+		case 'D':
+			camera.position.x += move_speed;
+			break;
+		case 'Q':
+			camera.position.y -= move_speed;
+			break;
+		case 'E':
+			camera.position.y += move_speed;
+			break;
+		}
+
+		return true; 
+	});
+
+	int x = 0;
+	int y = 0;
+	bool flag = false;
+
+	wnd.RegisterWndProc(WM_MOUSEMOVE, [&](auto wParam, auto lParam) {
+		double dx = x - LOWORD(lParam);
+		double dy = y - HIWORD(lParam);
+		x = LOWORD(lParam);
+		y = HIWORD(lParam);
+		if (!flag) return true;
+		if (dx<20&&dy<20)
+		{
+			camera.yaw += dx * move_speed ;
+			camera.pitch -= dy * move_speed;
+		}
+		return true;
+	});
+
+	wnd.RegisterWndProc(WM_LBUTTONDOWN, [&](auto wParam, auto lParam) {
+		flag = true;
+		x = LOWORD(lParam);
+		y = HIWORD(lParam);
+		return true;
+	});
+
+	wnd.RegisterWndProc(WM_LBUTTONUP, [&](auto wParam, auto lParam) {
+		flag = false;
+		x = LOWORD(lParam);
+		y = HIWORD(lParam);
+		return true;
+	});
+
+
+	std::thread render_thread{ [&]() {
+		double time = 0;
+		while (!wnd.app_should_close())
+		{
+			ctx.Clear({ 0.4f, 0.6f, 0.2f, 1.f });
+
+			m.mat = camera.GetProjectionViewMatrix() * sr::Mat::Translate(0.0f, 0.0f, 0.0f) * /*sr::Mat::Rotate(time/3 , time/2 , time ) **/ sr::Mat::Scale(1.f, 1.f, 1.f);// *m.mat;
+			renderer.DrawTriangles(&ret->mesh[0], ret->mesh.size());
+			time += 0.1;
+			ctx.CopyToScreen(wnd.getFrameBufferView());
+			wnd.drawBuffer();
+		}
+	} };
+
 	while (!wnd.app_should_close())
 	{
-		wnd.PeekMsg();
-		ctx.Clear({ 0.4f, 0.6f, 0.2f, 1.f });
-
-		m.mat = sr::Mat::Projection( pi*0.5f,4/3, -0.1f, -1000) * sr::Mat::Camera(sr::Vec3{ 0,0,0 }, sr::Vec3{ 0,0,-1 }, sr::Vec3{ 0,1,0 }) * sr::Mat::Translate(0.0, -1,-5) * sr::Mat::Rotate(time/2, time/3,time/4) * sr::Mat::Scale(1.f, 1.f, 1);// *m.mat;
-
-		renderer.DrawTriangles(&ret->mesh[0],ret->mesh.size());
-
-
-		ctx.CopyToScreen(wnd.getFrameBufferView());
-		wnd.drawBuffer();
- 		time += 0.05f;
-		//...
+		//wnd.PeekMsg();
+		wnd.GetMsg();
+			//...
 	}
+
+	render_thread.join();
+
 
 	return 0;
 }

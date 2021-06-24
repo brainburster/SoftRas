@@ -157,6 +157,7 @@
   <ItemGroup>
     <ClInclude Include="bmp_loader.hpp" />
     <ClInclude Include="buffer_view.hpp" />
+    <ClInclude Include="camera.hpp" />
     <ClInclude Include="dc_wnd.hpp" />
     <ClInclude Include="game_math.hpp" />
     <ClInclude Include="obj_loader.hpp" />

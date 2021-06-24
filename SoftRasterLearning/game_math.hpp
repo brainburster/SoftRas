@@ -401,8 +401,8 @@ namespace gmath
 			};
 		}
 
-		//相机矩阵
-		static Mat4x4 Camera(const Vec3<T>& position, const Vec3<T>& front, const Vec3<T>& up)
+		//view矩阵
+		static Mat4x4 View(const Vec3<T>& position, const Vec3<T>& front, const Vec3<T>& up)
 		{
 			Vec3<T> f = front.normalize();
 			Vec3<T> u = up.normalize();
@@ -414,6 +414,26 @@ namespace gmath
 				-f.x,-f.y,-f.z,0,
 				0,0,0,1
 			} *Mat4x4{
+				1,0,0,-position.x,
+				0,1,0,-position.y,
+				0,0,1,-position.z,
+				0,0,0,1
+			};
+		}
+
+		//相机矩阵
+		static Mat4x4 LookAt(const Vec3<T>& position, const Vec3<T>& target, const Vec3<T>& up)
+		{
+			Vec3<T> f = (target - position).normalize();
+			Vec3<T> u = up.normalize();
+			Vec3<T> right = f.cross(u);
+
+			return Mat4x4{
+				right.x,right.y,right.z,0,
+				u.x,u.y,u.z,0,
+				-f.x,-f.y,-f.z,0,
+				0,0,0,1
+			} * Mat4x4{
 				1,0,0,-position.x,
 				0,1,0,-position.y,
 				0,0,1,-position.z,
@@ -481,6 +501,8 @@ namespace gmath
 
 		namespace Utility
 		{
+			static constexpr float pi = 3.1415926;
+
 			template<typename T, typename U, typename V>
 			inline T Clamp(T v, U a, V b)
 			{
@@ -506,6 +528,16 @@ namespace gmath
 				T color = 1.0f / a * (color1 * color1.a + (1.0f - color1.a) * color0.a * color0);
 				color.a = a;
 				return color;
+			}
+
+			inline float radians(float degree) 
+			{
+				return degree / 180.f * pi;
+			}
+
+			inline float degrees(float radian)
+			{
+				return radian * 180.f / pi;
 			}
 	};
 

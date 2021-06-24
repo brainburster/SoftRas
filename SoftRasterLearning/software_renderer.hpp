@@ -408,11 +408,11 @@ namespace sr
 
 			aa_rate /= cover_count;
 			VS_OUT interp = triangle[0] * aa_rate.x + triangle[1] * aa_rate.y + triangle[2] * aa_rate.z;
-			float depth = -1 / interp.position.z;
+			float depth = interp.position.z;
 			float depth0 = context.depth_buffer_view.Get(x, y);
 
 			//深度测试
-			if (!(depth > depth0 - 1e-8 ))
+			if (!(depth > depth0 - 1e4))
 			{
 				return;
 			}
@@ -421,7 +421,7 @@ namespace sr
 			Color color0 = context.fragment_buffer_view.Get(x, y);
 
 			//AA上色
-			if ((cover_count < Mn * Mn) && (depth - depth0 > 1e-10)) {
+			if ((cover_count < Mn * Mn) && (depth - depth0 > 1e-4)) {
 				float a = color.a;
 				color = Lerp(color, color0, cover_count / (Mn * Mn));
 				color.a = a;

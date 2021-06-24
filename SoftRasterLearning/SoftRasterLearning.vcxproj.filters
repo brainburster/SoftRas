@@ -41,5 +41,8 @@
     <ClInclude Include="obj_loader.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="camera.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
