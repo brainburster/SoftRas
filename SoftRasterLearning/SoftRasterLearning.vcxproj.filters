@@ -13,36 +13,48 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="头文件\core">
+      <UniqueIdentifier>{9ba9bbd3-7309-41dd-b920-0703e9571b2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\loader">
+      <UniqueIdentifier>{4ad0f507-449b-4c6b-87db-e63cf3aaae5e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="SoftRasterApp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="raw_wnd.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="dc_wnd.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="software_renderer.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="buffer_view.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="game_math.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="bmp_loader.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="obj_loader.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="camera.hpp">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SoftRasterApp.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="loader\bmp_loader.hpp">
+      <Filter>头文件\loader</Filter>
+    </ClInclude>
+    <ClInclude Include="loader\obj_loader.hpp">
+      <Filter>头文件\loader</Filter>
+    </ClInclude>
+    <ClInclude Include="core\buffer_view.hpp">
+      <Filter>头文件\core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\dc_wnd.hpp">
+      <Filter>头文件\core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game_math.hpp">
+      <Filter>头文件\core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\raw_wnd.hpp">
+      <Filter>头文件\core</Filter>
+    </ClInclude>
+    <ClInclude Include="software_renderer.hpp">
+      <Filter>头文件\core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

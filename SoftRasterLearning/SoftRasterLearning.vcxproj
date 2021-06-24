@@ -153,16 +153,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="SoftRasterApp.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="bmp_loader.hpp" />
-    <ClInclude Include="buffer_view.hpp" />
     <ClInclude Include="camera.hpp" />
-    <ClInclude Include="dc_wnd.hpp" />
-    <ClInclude Include="game_math.hpp" />
-    <ClInclude Include="obj_loader.hpp" />
+    <ClInclude Include="core\buffer_view.hpp" />
+    <ClInclude Include="core\dc_wnd.hpp" />
+    <ClInclude Include="core\game_math.hpp" />
+    <ClInclude Include="core\raw_wnd.hpp" />
+    <ClInclude Include="loader\bmp_loader.hpp" />
+    <ClInclude Include="loader\obj_loader.hpp" />
+    <ClInclude Include="SoftRasterApp.hpp" />
     <ClInclude Include="software_renderer.hpp" />
-    <ClInclude Include="raw_wnd.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "game_math.hpp"
+#include "core/game_math.hpp"
 
 namespace game
 {

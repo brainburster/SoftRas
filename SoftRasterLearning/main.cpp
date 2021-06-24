@@ -1,12 +1,11 @@
-//#include "Wnd.hpp"
 #include <iostream>
-#include "buffer_view.hpp"
-#include "dc_wnd.hpp"
-#include "software_renderer.hpp"
-#include "bmp_loader.hpp"
-#include "obj_loader.hpp"
-#include "camera.hpp"
 #include <thread>
+#include "loader/bmp_loader.hpp"
+#include "core/buffer_view.hpp"
+#include "core/dc_wnd.hpp"
+#include "software_renderer.hpp"
+#include "loader/obj_loader.hpp"
+#include "camera.hpp"
 
 struct Vertex
 {
@@ -75,7 +74,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 	m.tex0 = &tex;
 
 
-	game::Camera camera = game::Camera{ {0,0,10},-90,0 };
+	game::Camera camera = game::Camera{ {0,0,10},-90,0,1.33333,60,0.1,1000 };
 
 	const float move_speed = 0.5;
 

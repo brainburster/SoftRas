@@ -1,9 +1,9 @@
 #pragma once
 #include <vector>
 #include <map>
-#include "dc_wnd.hpp"
-#include "buffer_view.hpp"
-#include "game_math.hpp"
+#include "core/dc_wnd.hpp"
+#include "core/buffer_view.hpp"
+#include "core/game_math.hpp"
 
 namespace sr
 {
@@ -218,7 +218,7 @@ namespace sr
 				{ material.VS(*p3) }
 			};
 
-			//cvv
+			//w<0剔除
 			for (auto& v : triangle)
 			{
 				if (v.position.w<1e-8)
@@ -227,11 +227,28 @@ namespace sr
 				}
 			}
 
+			//
+
+
 			//归一化
 			for (auto& v : triangle)
 			{
 				v.position /= v.position.w;
 			}
+
+
+			for (auto& v : triangle)
+			{
+				//z>1 超过视距可直接剔除
+				if (v.position.z > 1)
+				{
+					return;
+				}
+				//x<-1,x>1,y<-1,y>1 没有裁剪的必要，因为裁剪的开销也挺大的，直接利用AABB限定像素扫描范围即可
+				//当v.position.z < 0 时 要进行裁剪
+				//...
+			}
+
 
 			TransToScreenSpace(triangle);
 

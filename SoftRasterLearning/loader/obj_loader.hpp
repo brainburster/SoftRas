@@ -5,8 +5,8 @@
 #include <fstream>
 #include <tuple>
 #include <optional>
-#include "game_math.hpp"
 #include <type_traits>
+#include "core/game_math.hpp"
 
 namespace obj_loader
 {

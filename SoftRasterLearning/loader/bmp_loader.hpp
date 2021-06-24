@@ -2,7 +2,7 @@
 
 #include <fstream>
 #include <vector>
-#include "game_math.hpp"
+#include "core/game_math.hpp"
 
 namespace bmp_loader
 {
