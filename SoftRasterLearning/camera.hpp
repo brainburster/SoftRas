@@ -26,13 +26,20 @@ namespace game
 		Mat4x4 GetProjectionViewMatrix() 
 		{
 			using gmath::Utility::radians;
-			Vec3 front = {};
-			front.x = cos(radians(yaw))* cos(radians(pitch));
-			front.y = sin(radians(pitch));
-			front.z = sin(radians(yaw)) * cos(radians(pitch));
+			Vec3 front = GetFront();
 			Vec3 right = front.cross({ 0,1,0 });
 			Vec3 up = right.cross(front);
 			return Mat4x4::Projection(radians(fovy), aspect, _near, _far) * Mat4x4::View(position, front, up);
+		}
+
+		Vec3 GetFront() 
+		{
+			using gmath::Utility::radians;
+			Vec3 front = {};
+			front.x = cos(radians(yaw)) * cos(radians(pitch));
+			front.y = sin(radians(pitch));
+			front.z = sin(radians(yaw)) * cos(radians(pitch));
+			return front;
 		}
 
 	//private:

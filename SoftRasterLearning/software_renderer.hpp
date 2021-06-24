@@ -40,7 +40,7 @@ namespace sr
 			Vec2 a = triangle[1].position - triangle[0].position;
 			Vec2 b = triangle[2].position - triangle[1].position;
 			//Vec2 c = triangle[0].position - triangle[2].position;
-			return a.cross(b) < 0;//&& b.cross(c) < 0 && c.cross(a) < 0;
+			return a.cross(b) < 0;//&& b.cross(c) > 0 && c.cross(a) > 0;
 		}
 
 		static Color32 trans_float4color_to_uint32color(const Color& color)
@@ -112,7 +112,7 @@ namespace sr
 		}
 		void Viewport(uint32 w, uint32 h, Color color = { 0,0,0,1 })
 		{
-			depth_buffer.resize(w * h, -1e8);
+			depth_buffer.resize(w * h, 0);
 			fragment_buffer.resize(w * h, color);
 
 			fragment_buffer_view = { &fragment_buffer[0],w , h };
@@ -126,7 +126,7 @@ namespace sr
 			}
 			for (auto& depth : depth_buffer)
 			{
-				depth = -1e8;
+				depth = 0;
 			}
 		}
 		Context() : fragment_buffer{}, depth_buffer{}, fragment_buffer_view{ nullptr }, depth_buffer_view{ nullptr }{};
@@ -219,6 +219,13 @@ namespace sr
 			};
 
 			//cvv
+			for (auto& v : triangle)
+			{
+				if (v.position.w<1e-8)
+				{
+					return;
+				}
+			}
 
 			//归一化
 			for (auto& v : triangle)
@@ -378,13 +385,6 @@ namespace sr
 			{
 				for (float j = 0; j < Mn; ++j)
 				{
-					if (!Impl::is_pixel_in_triangle(x + (i + 0.5f) / (Mn + 1),
-						y + (j + 0.5f) / (Mn + 1),
-						triangle))
-					{
-						continue;
-					}
-
 					//对插值系数进行多次采样，而不是多次插值
 					Vec3 rate = Impl::get_interpolation_rate(
 						x + (i + 0.5f) / (Mn + 1),
@@ -392,7 +392,7 @@ namespace sr
 						triangle);
 
 					//三个系数也刚好可以判断点是不是在三角形内
-					if (rate.x * rate.y * rate.z > 0)
+					if (rate.x > 1e-8 && rate.y > 1e-8 && rate.z > 1e-8)
 					{
 						aa_rate += rate;
 						++cover_count;
@@ -408,11 +408,11 @@ namespace sr
 
 			aa_rate /= cover_count;
 			VS_OUT interp = triangle[0] * aa_rate.x + triangle[1] * aa_rate.y + triangle[2] * aa_rate.z;
-			float depth = interp.position.z;
+			float depth = 1 / interp.position.z;
 			float depth0 = context.depth_buffer_view.Get(x, y);
 
 			//深度测试
-			if (!(depth > depth0 - 1e4))
+			if (!(depth > depth0 - 1e-10))
 			{
 				return;
 			}
@@ -421,7 +421,7 @@ namespace sr
 			Color color0 = context.fragment_buffer_view.Get(x, y);
 
 			//AA上色
-			if ((cover_count < Mn * Mn) && (depth - depth0 > 1e-4)) {
+			if ((cover_count < Mn * Mn) && (abs(depth - depth0) > 1e-4)) {
 				float a = color.a;
 				color = Lerp(color, color0, cover_count / (Mn * Mn));
 				color.a = a;

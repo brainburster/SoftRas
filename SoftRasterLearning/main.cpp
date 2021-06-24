@@ -75,32 +75,35 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 	m.tex0 = &tex;
 
 
-	game::Camera camera = game::Camera{ {0,0,10},90,0 };
+	game::Camera camera = game::Camera{ {0,0,10},-90,0 };
 
 	const float move_speed = 0.5;
 
 	wnd.RegisterWndProc(WM_KEYDOWN, [&](auto wParam, auto lParam) {
 		//sr::Vec3 right = camera.
+		sr::Vec3 front = camera.GetFront();
+		sr::Vec3 right = front.cross({ 0,1,0 }).normalize();
+		sr::Vec3 up = right.cross(front).normalize();
 
 		switch (wParam)
 		{
 		case 'W':
-			camera.position.z -= move_speed;
+			camera.position += move_speed * front;
 			break;
 		case 'S':
-			camera.position.z += move_speed;
+			camera.position -= move_speed * front;
 			break;
 		case 'A':
-			camera.position.x -= move_speed;
+			camera.position -= move_speed * right;
 			break;
 		case 'D':
-			camera.position.x += move_speed;
+			camera.position += move_speed * right;
 			break;
 		case 'Q':
-			camera.position.y -= move_speed;
+			camera.position += move_speed * up;
 			break;
 		case 'E':
-			camera.position.y += move_speed;
+			camera.position -= move_speed * up;
 			break;
 		}
 
@@ -116,28 +119,38 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 		double dy = y - HIWORD(lParam);
 		x = LOWORD(lParam);
 		y = HIWORD(lParam);
+		if (x<5||x>795||y<5||y>595)
+		{
+			flag = false;
+			return true;
+		}
 		if (!flag) return true;
 		if (dx<20&&dy<20)
 		{
-			camera.yaw += dx * move_speed ;
-			camera.pitch -= dy * move_speed;
+			camera.yaw -= dx * move_speed ;
+			camera.pitch += dy * move_speed;
+			camera.pitch = gmath::Utility::Clamp(camera.pitch, -89, 89);
 		}
 		return true;
 	});
 
 	wnd.RegisterWndProc(WM_LBUTTONDOWN, [&](auto wParam, auto lParam) {
 		flag = true;
-		x = LOWORD(lParam);
-		y = HIWORD(lParam);
 		return true;
 	});
 
 	wnd.RegisterWndProc(WM_LBUTTONUP, [&](auto wParam, auto lParam) {
 		flag = false;
-		x = LOWORD(lParam);
-		y = HIWORD(lParam);
 		return true;
 	});
+
+	wnd.RegisterWndProc(WM_MOUSEWHEEL, [&](auto wParam, auto lParam) {
+		short d = HIWORD(wParam);
+		camera.fovy += d * 0.1;
+		camera.fovy = gmath::Utility::Clamp(camera.fovy, 1, 179);
+		return true;
+	});
+
 
 
 	std::thread render_thread{ [&]() {
@@ -147,6 +160,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 			ctx.Clear({ 0.4f, 0.6f, 0.2f, 1.f });
 
 			m.mat = camera.GetProjectionViewMatrix() * sr::Mat::Translate(0.0f, 0.0f, 0.0f) * /*sr::Mat::Rotate(time/3 , time/2 , time ) **/ sr::Mat::Scale(1.f, 1.f, 1.f);// *m.mat;
+			renderer.DrawTriangles(&ret->mesh[0], ret->mesh.size());
+
+			m.mat = camera.GetProjectionViewMatrix() * sr::Mat::Translate(0.0f, 0.0f, -2.0f) * sr::Mat::Rotate(time/3 , time/2 , time ) * sr::Mat::Scale(1.f, 1.f, 1.f);
 			renderer.DrawTriangles(&ret->mesh[0], ret->mesh.size());
 			time += 0.1;
 			ctx.CopyToScreen(wnd.getFrameBufferView());
