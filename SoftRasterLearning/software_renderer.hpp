@@ -199,7 +199,7 @@ namespace sr
 		{
 			for (size_t i = 2; i < n; ++i)
 			{
-				if (i&1)
+				if (i & 1)
 				{
 					DrawTriangle(data + i - 3, data + i - 1, data + i);
 				}
@@ -210,6 +210,7 @@ namespace sr
 			}
 		}
 
+
 		void DrawTriangle(VS_IN* p1, VS_IN* p2, VS_IN* p3)
 		{
 			VS_OUT triangle[3] = {
@@ -218,13 +219,16 @@ namespace sr
 				{ material.VS(*p3) }
 			};
 
-			//w<0剔除
+			//简单剔除
 			for (auto& v : triangle)
 			{
-				if (v.position.w<1e-8)
-				{
-					return;
-				}
+				if (v.position.z < 0) return;
+				if (v.position.w < 1e-8) return;
+				if (v.position.z > v.position.w) return;
+				if (v.position.x > v.position.w) return;
+				if (v.position.x < -v.position.w) return;
+				if (v.position.y > v.position.w) return;
+				if (v.position.y < -v.position.w) return;
 			}
 
 			//
@@ -234,19 +238,6 @@ namespace sr
 			for (auto& v : triangle)
 			{
 				v.position /= v.position.w;
-			}
-
-
-			for (auto& v : triangle)
-			{
-				//z>1 超过视距可直接剔除
-				if (v.position.z > 1)
-				{
-					return;
-				}
-				//x<-1,x>1,y<-1,y>1 没有裁剪的必要，因为裁剪的开销也挺大的，直接利用AABB限定像素扫描范围即可
-				//当v.position.z < 0 时 要进行裁剪
-				//...
 			}
 
 
@@ -282,7 +273,7 @@ namespace sr
 		void Rasterize_AABB(VS_OUT  triangle[3])
 		{
 			//生成AABB包围盒
-			int left = -1, right = context.fragment_buffer_view.w + 1, top = -1, bottom = context.fragment_buffer_view.h + 1;
+			int left = 1e8, right = -1e8, top = 1e8, bottom = -1e8;
 
 			for (int i = 0; i < 3; ++i)
 			{
@@ -303,6 +294,14 @@ namespace sr
 					bottom = (uint32)triangle[i].position.y;
 				}
 			}
+			using gmath::Utility::Clamp;
+			const int w = context.fragment_buffer_view.w;
+			const int h = context.fragment_buffer_view.h;
+
+			left = Clamp(left, 0, w-1);
+			right = Clamp(right, 0, w-1);
+			top = Clamp(top, 0, h-1);
+			bottom = Clamp(bottom, 0, h-1);
 
 			//...
 			//光栅化
@@ -344,9 +343,9 @@ namespace sr
 				}
 			}
 
-			float y1 = Clamp(p[2].y, 0, context.fragment_buffer_view.h);
-			float y2 = Clamp(p[0].y, 0, context.fragment_buffer_view.h);
-			
+			float y1 = Clamp(p[2].y, 0.6f, context.fragment_buffer_view.h - 0.6f);
+			float y2 = Clamp(p[0].y, 0.6f, context.fragment_buffer_view.h - 0.6f);
+
 			//从上到下扫描
 			for (float y = y2 + 0.5f; y >= y1 - 0.5f; --y)
 			{
@@ -376,8 +375,8 @@ namespace sr
 					x2 = temp;
 				}
 
-				x1 = Clamp(x1, 0, (float)context.fragment_buffer_view.w);
-				x2 = Clamp(x2, 0, (float)context.fragment_buffer_view.w);
+				x1 = Clamp(x1, 0, (float)context.fragment_buffer_view.w-1);
+				x2 = Clamp(x2, 0, (float)context.fragment_buffer_view.w-1);
 
 				for (int x = (int)x1 - 1; x <= (int)x2 + 1; ++x)
 				{
