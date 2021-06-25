@@ -210,31 +210,71 @@ namespace sr
 			}
 		}
 
+		bool SimpleCull(VS_OUT triangle[3])
+		{
+			for (size_t i = 0; i < 3; ++i)
+			{
+				const auto& v = triangle[i];
+				if (v.position.z < 0 ||
+					v.position.w < 1e-8 ||
+					v.position.z > v.position.w ||
+					v.position.x > v.position.w ||
+					v.position.x < -v.position.w ||
+					v.position.y > v.position.w ||
+					v.position.y < -v.position.w
+					)
+					return true;
+			}
+			return false;
+		}
+
+		//三个点都在CVV之外,剔除
+		bool CVVCull(VS_OUT triangle[3])
+		{
+			float w0 = triangle[0].position.w;
+			float w1 = triangle[1].position.w;
+			float w2 = triangle[2].position.w;
+
+			if ( w0 < 1e-8f && w1 < 1e-8f && w2 < 1e-8f ||
+				triangle[0].position.z < 0 && triangle[1].position.z < 0 && triangle[2].position.z < 0 ||
+				triangle[0].position.z > w0 && triangle[1].position.z > w1 && triangle[2].position.z > w2 ||
+				triangle[0].position.x > w0 && triangle[1].position.x > w1  && triangle[2].position.x > w2 ||
+				triangle[0].position.x < -w0 && triangle[1].position.x < -w1 && triangle[2].position.x < -w2 ||
+				triangle[0].position.y > w0 && triangle[1].position.y > w1 && triangle[2].position.y > w2 ||
+				triangle[0].position.y < -w0 && triangle[1].position.y < -w1 && triangle[2].position.y < -w2
+				)
+			{
+				return true;
+			}
+		}
+
+		//三角形与CVV相交, 裁剪并计算插值
+		std::vector<VS_OUT> CVVClip(VS_OUT v[3],)
+		{
+			
+		}
 
 		void DrawTriangle(VS_IN* p1, VS_IN* p2, VS_IN* p3)
 		{
+			//本地空间 => 裁剪空间
 			VS_OUT triangle[3] = {
 				{ material.VS(*p1) },
 				{ material.VS(*p2) },
 				{ material.VS(*p3) }
 			};
 
-			//简单剔除
-			for (auto& v : triangle)
-			{
-				if (v.position.z < 0) return;
-				if (v.position.w < 1e-8) return;
-				if (v.position.z > v.position.w) return;
-				if (v.position.x > v.position.w) return;
-				if (v.position.x < -v.position.w) return;
-				if (v.position.y > v.position.w) return;
-				if (v.position.y < -v.position.w) return;
-			}
+			//简单CVV剔除
+			//if (SimpleCull(triangle)) return;
+			//CVV剔除
+			if (CVVCull(triangle)) return;
+
 
 			//
 
 
-			//归一化
+
+
+			//归一化设备坐标
 			for (auto& v : triangle)
 			{
 				v.position /= v.position.w;
