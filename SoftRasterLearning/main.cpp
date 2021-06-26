@@ -35,12 +35,12 @@ struct Vertex
 struct Material_Model
 {
 	sr::Mat mat = sr::Mat::Unit();
-	bmp_loader::Texture* tex0;
+	bmp_loader::Texture* tex0 = nullptr;
 
 	Vertex VS(const obj_loader::Model_Vertex& v) const
 	{
-		return { 
-			mat* sr::Vec4{v.position,1.0},
+		return {
+			mat * sr::Vec4{v.position,1.0},
 			sr::Vec4(v.normal,1),
 			v.uv
 		};
@@ -48,16 +48,14 @@ struct Material_Model
 
 	gmath::Vec4<float> FS(const Vertex& v) const
 	{
-		return v.color+tex0->Sampler(v.uv);
+		return v.color + tex0->Sampler(v.uv);
 	}
 };
-
 
 const float pi = 3.14159265358979f;
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
-
 	wnd::DC_WND wnd = wnd::DC_WND{ hInstance }.WndClassName(L"dc_wnd_cls").WndName(L"dc_wnd_wnd").Size(800, 600).AddWndStyle(~WS_MAXIMIZEBOX).Init().Move();
 
 	sr::Context ctx;
@@ -66,17 +64,15 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 	Material_Model m;
 
 	sr::Renderer<Material_Model> renderer = { ctx,m };
-	
+
 	bmp_loader::Texture tex = bmp_loader::BmpLoader::LoadBmp(L"..\\resource\\pictures\\test.bmp");
 	auto ret = obj_loader::obj::LoadFromFile(L"..\\resource\\models\\box.obj");
 
-
 	m.tex0 = &tex;
 
+	game::Camera camera = game::Camera{ {0,0,10},-90.f };
 
-	game::Camera camera = game::Camera{ {0,0,10},-90,0,1.33333,60,0.1,1000 };
-
-	const float move_speed = 0.5;
+	const float move_speed = 0.2f;
 
 	wnd.RegisterWndProc(WM_KEYDOWN, [&](auto wParam, auto lParam) {
 		//sr::Vec3 right = camera.
@@ -106,54 +102,52 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 			break;
 		}
 
-		return true; 
-	});
+		return true;
+		});
 
 	int x = 0;
 	int y = 0;
 	bool flag = false;
 
 	wnd.RegisterWndProc(WM_MOUSEMOVE, [&](auto wParam, auto lParam) {
-		double dx = x - LOWORD(lParam);
-		double dy = y - HIWORD(lParam);
+		float dx = (float)x - LOWORD(lParam);
+		float dy = (float)y - HIWORD(lParam);
 		x = LOWORD(lParam);
 		y = HIWORD(lParam);
-		if (x<5||x>795||y<5||y>595)
+		if (x < 5 || x>795 || y < 5 || y>595)
 		{
 			flag = false;
 			return true;
 		}
 		if (!flag) return true;
-		if (dx<20&&dy<20)
+		if (dx < 20 && dy < 20)
 		{
-			camera.yaw -= dx * move_speed ;
+			camera.yaw -= dx * move_speed;
 			camera.pitch += dy * move_speed;
 			camera.pitch = gmath::Utility::Clamp(camera.pitch, -89, 89);
 		}
 		return true;
-	});
+		});
 
 	wnd.RegisterWndProc(WM_LBUTTONDOWN, [&](auto wParam, auto lParam) {
 		flag = true;
 		return true;
-	});
+		});
 
 	wnd.RegisterWndProc(WM_LBUTTONUP, [&](auto wParam, auto lParam) {
 		flag = false;
 		return true;
-	});
+		});
 
 	wnd.RegisterWndProc(WM_MOUSEWHEEL, [&](auto wParam, auto lParam) {
 		short d = HIWORD(wParam);
-		camera.fovy += d * 0.1;
+		camera.fovy += d * 0.1f;
 		camera.fovy = gmath::Utility::Clamp(camera.fovy, 1, 179);
 		return true;
-	});
-
-
+		});
 
 	std::thread render_thread{ [&]() {
-		double time = 0;
+		float time = 0;
 		while (!wnd.app_should_close())
 		{
 			ctx.Clear({ 0.4f, 0.6f, 0.2f, 1.f });
@@ -161,9 +155,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 			m.mat = camera.GetProjectionViewMatrix() * sr::Mat::Translate(0.0f, 0.0f, 0.0f) * /*sr::Mat::Rotate(time/3 , time/2 , time ) **/ sr::Mat::Scale(1.f, 1.f, 1.f);// *m.mat;
 			renderer.DrawTriangles(&ret->mesh[0], ret->mesh.size());
 
-			m.mat = camera.GetProjectionViewMatrix() * sr::Mat::Translate(0.0f, 0.0f, -2.0f) * sr::Mat::Rotate(time/3 , time/2 , time ) * sr::Mat::Scale(1.f, 1.f, 1.f);
+			m.mat = camera.GetProjectionViewMatrix() * sr::Mat::Translate(0.0f, 0.0f, -2.0f) * sr::Mat::Rotate(time / 3 , time / 2 , time) * sr::Mat::Scale(1.f, 1.f, 1.f);
 			renderer.DrawTriangles(&ret->mesh[0], ret->mesh.size());
-			time += 0.1;
+			time += 0.1f;
 			ctx.CopyToScreen(wnd.getFrameBufferView());
 			wnd.drawBuffer();
 		}
@@ -173,11 +167,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 	{
 		//wnd.PeekMsg();
 		wnd.GetMsg();
-			//...
+		//...
 	}
 
 	render_thread.join();
-
 
 	return 0;
 }
