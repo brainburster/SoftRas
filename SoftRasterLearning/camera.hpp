@@ -12,7 +12,7 @@ namespace game
 
 		using Mat4x4 = gmath::Mat4x4<float>;
 
-		Camera(Vec3 position = Vec3{ 0,0,0 }, float yaw = 0, float pitch = 0, float aspect = 4.f/3.f, float fovy = 60, float _near = 0.1, float _far = 1e10) :
+		Camera(Vec3 position = Vec3{ 0,0,0 }, float yaw = -90, float pitch = 0, float aspect = 4.f / 3.f, float fovy = 60, float _near = 0.1, float _far = 1e10) :
 			position{ position },
 			yaw(yaw),
 			pitch(pitch),
@@ -22,8 +22,8 @@ namespace game
 			aspect{ aspect }
 		{
 		}
-		
-		Mat4x4 GetProjectionViewMatrix() 
+
+		Mat4x4 GetProjectionViewMatrix()
 		{
 			using gmath::Utility::radians;
 			Vec3 front = GetFront();
@@ -32,7 +32,7 @@ namespace game
 			return Mat4x4::Projection(radians(fovy), aspect, _near, _far) * Mat4x4::View(position, front, up);
 		}
 
-		Vec3 GetFront() 
+		Vec3 GetFront()
 		{
 			using gmath::Utility::radians;
 			Vec3 front = {};
@@ -42,8 +42,8 @@ namespace game
 			return front;
 		}
 
-	//private:
-		//view
+		//private:
+			//view
 		Vec3 position;
 		float yaw;
 		float pitch;

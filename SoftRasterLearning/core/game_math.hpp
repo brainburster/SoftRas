@@ -3,10 +3,8 @@
 
 namespace gmath
 {
-
 	template<typename T = float> struct Vec2;
 	template<typename T = float> struct Vec3;
-
 
 	template<typename T = float>
 	struct Vec4
@@ -94,8 +92,6 @@ namespace gmath
 			return x * rhs.x + y * rhs.y + z * rhs.z + w * rhs.w;
 		}
 
-
-
 		Vec4 normalize()
 		{
 			return { x / w,y / w,z / w, 1 };
@@ -116,7 +112,7 @@ namespace gmath
 			return { lhs.x / rhs,lhs.y / rhs,lhs.z / rhs, lhs.w / rhs };
 		}
 
-		friend Vec4 operator*(const Vec4& lhs,const Vec4& rhs)
+		friend Vec4 operator*(const Vec4& lhs, const Vec4& rhs)
 		{
 			return { lhs.x * rhs.x,lhs.y * rhs.y,lhs.z * rhs.z, lhs.w * rhs.w };
 		}
@@ -213,7 +209,7 @@ namespace gmath
 
 		Vec3 normalize() const
 		{
-			T len = pow(x*x+y*y+z*z,0.5f);
+			T len = pow(x * x + y * y + z * z, 0.5f);
 			return {
 				x / len,
 				y / len,
@@ -233,7 +229,6 @@ namespace gmath
 		Vec2() = default;
 		Vec2(const Vec4<T>& vec4) : x{ vec4.x }, y{ vec4.y }{}
 		Vec2(const Vec3<T>& vec3) : x{ vec3.x }, y{ vec3.y }{}
-
 
 		Vec2 operator+(const Vec2& rhs) const
 		{
@@ -293,7 +288,6 @@ namespace gmath
 			return *this;
 		}
 
-
 		Vec2 normalize() const
 		{
 			T len = pow(x * x + y * y, 0.5f);
@@ -313,26 +307,26 @@ namespace gmath
 		Mat4x4 operator*(const Mat4x4& rhs) const
 		{
 			return Mat4x4{
-					//第一行
-					data[0] * rhs.data[0] + data[1] * rhs.data[4] + data[2] * rhs.data[8] + data[3] * rhs.data[12],
-					data[0] * rhs.data[1] + data[1] * rhs.data[5] + data[2] * rhs.data[9] + data[3] * rhs.data[13],
-					data[0] * rhs.data[2] + data[1] * rhs.data[6] + data[2] * rhs.data[10] + data[3] * rhs.data[14],
-					data[0] * rhs.data[3] + data[1] * rhs.data[7] + data[2] * rhs.data[11] + data[3] * rhs.data[15],
-					//第二行
-					data[4] * rhs.data[0] + data[5] * rhs.data[4] + data[6] * rhs.data[8] + data[7] * rhs.data[12],
-					data[4] * rhs.data[1] + data[5] * rhs.data[5] + data[6] * rhs.data[9] + data[7] * rhs.data[13],
-					data[4] * rhs.data[2] + data[5] * rhs.data[6] + data[6] * rhs.data[10] + data[7] * rhs.data[14],
-					data[4] * rhs.data[3] + data[5] * rhs.data[7] + data[6] * rhs.data[11] + data[7] * rhs.data[15],
-					//第三行
-					data[8] * rhs.data[0] + data[9] * rhs.data[4] + data[10] * rhs.data[8] + data[11] * rhs.data[12],
-					data[8] * rhs.data[1] + data[9] * rhs.data[5] + data[10] * rhs.data[9] + data[11] * rhs.data[13],
-					data[8] * rhs.data[2] + data[9] * rhs.data[6] + data[10] * rhs.data[10] + data[11] * rhs.data[14],
-					data[8] * rhs.data[3] + data[9] * rhs.data[7] + data[10] * rhs.data[11] + data[11] * rhs.data[15],
-					//第四行
-					data[12] * rhs.data[0] + data[13] * rhs.data[4] + data[14] * rhs.data[8] + data[15] * rhs.data[12],
-					data[12] * rhs.data[1] + data[13] * rhs.data[5] + data[14] * rhs.data[9] + data[15] * rhs.data[13],
-					data[12] * rhs.data[2] + data[13] * rhs.data[6] + data[14] * rhs.data[10] + data[15] * rhs.data[14],
-					data[12] * rhs.data[3] + data[13] * rhs.data[7] + data[14] * rhs.data[11] + data[15] * rhs.data[15]
+				//第一行
+				data[0] * rhs.data[0] + data[1] * rhs.data[4] + data[2] * rhs.data[8] + data[3] * rhs.data[12],
+				data[0] * rhs.data[1] + data[1] * rhs.data[5] + data[2] * rhs.data[9] + data[3] * rhs.data[13],
+				data[0] * rhs.data[2] + data[1] * rhs.data[6] + data[2] * rhs.data[10] + data[3] * rhs.data[14],
+				data[0] * rhs.data[3] + data[1] * rhs.data[7] + data[2] * rhs.data[11] + data[3] * rhs.data[15],
+				//第二行
+				data[4] * rhs.data[0] + data[5] * rhs.data[4] + data[6] * rhs.data[8] + data[7] * rhs.data[12],
+				data[4] * rhs.data[1] + data[5] * rhs.data[5] + data[6] * rhs.data[9] + data[7] * rhs.data[13],
+				data[4] * rhs.data[2] + data[5] * rhs.data[6] + data[6] * rhs.data[10] + data[7] * rhs.data[14],
+				data[4] * rhs.data[3] + data[5] * rhs.data[7] + data[6] * rhs.data[11] + data[7] * rhs.data[15],
+				//第三行
+				data[8] * rhs.data[0] + data[9] * rhs.data[4] + data[10] * rhs.data[8] + data[11] * rhs.data[12],
+				data[8] * rhs.data[1] + data[9] * rhs.data[5] + data[10] * rhs.data[9] + data[11] * rhs.data[13],
+				data[8] * rhs.data[2] + data[9] * rhs.data[6] + data[10] * rhs.data[10] + data[11] * rhs.data[14],
+				data[8] * rhs.data[3] + data[9] * rhs.data[7] + data[10] * rhs.data[11] + data[11] * rhs.data[15],
+				//第四行
+				data[12] * rhs.data[0] + data[13] * rhs.data[4] + data[14] * rhs.data[8] + data[15] * rhs.data[12],
+				data[12] * rhs.data[1] + data[13] * rhs.data[5] + data[14] * rhs.data[9] + data[15] * rhs.data[13],
+				data[12] * rhs.data[2] + data[13] * rhs.data[6] + data[14] * rhs.data[10] + data[15] * rhs.data[14],
+				data[12] * rhs.data[3] + data[13] * rhs.data[7] + data[14] * rhs.data[11] + data[15] * rhs.data[15]
 			};
 		}
 
@@ -341,9 +335,9 @@ namespace gmath
 		{
 			return Vec4<T>{
 				data[0] * rhs.x + data[1] * rhs.y + data[2] * rhs.z + data[3] * rhs.w,
-				data[4] * rhs.x + data[5] * rhs.y + data[6] * rhs.z + data[7] * rhs.w,
-				data[8] * rhs.x + data[9] * rhs.y + data[10] * rhs.z + data[11] * rhs.w,
-				data[12] * rhs.x + data[13] * rhs.y + data[14] * rhs.z + data[15] * rhs.w,
+					data[4] * rhs.x + data[5] * rhs.y + data[6] * rhs.z + data[7] * rhs.w,
+					data[8] * rhs.x + data[9] * rhs.y + data[10] * rhs.z + data[11] * rhs.w,
+					data[12] * rhs.x + data[13] * rhs.y + data[14] * rhs.z + data[15] * rhs.w,
 			};
 		}
 
@@ -377,12 +371,12 @@ namespace gmath
 			   0, cos(x), -sin(x), 0,
 			   0, sin(x), cos(x),  0,
 			   0, 0,   0, 1.f
-			} * Mat4x4{
+			} *Mat4x4{
 			   cos(y),0,sin(y),0,
 			   0,1.f,0,0,
 			   -sin(y),0,cos(y),0,
 			   0,0,0,1.f
-			} * Mat4x4{
+			} *Mat4x4{
 			   cos(z),-sin(z),0,0,
 			   sin(z),cos(z),0,0,
 			   0,0,1.f,0,
@@ -433,7 +427,7 @@ namespace gmath
 				u.x,u.y,u.z,0,
 				-f.x,-f.y,-f.z,0,
 				0,0,0,1
-			} * Mat4x4{
+			} *Mat4x4{
 				1,0,0,-position.x,
 				0,1,0,-position.y,
 				0,0,1,-position.z,
@@ -470,7 +464,7 @@ namespace gmath
 			T a = 2 * _near / dx;
 			T b = (right + left) / dx;
 			T c = 2 * _near / dy;
-			T d = (top + bottom) /dy;
+			T d = (top + bottom) / dy;
 			T e = -(_far + _near) / dz;
 			T f = -2 * _far * _near / dz;
 			return Mat4x4{
@@ -496,49 +490,47 @@ namespace gmath
 				0,0,-1,0
 			};
 		}
-
-		};
-
-		namespace Utility
-		{
-			static constexpr float pi = 3.1415926;
-
-			template<typename T, typename U, typename V>
-			inline T Clamp(T v, U a, V b)
-			{
-				return ((v < a ? a : v) < b ? (v < a ? a : v) : b);
-			}
-
-			template<typename T>
-			inline T Clamp(T v)
-			{
-				return ((v < 0? 0 : v) < 1 ? (v < 0 ? 0 : v) : 1);
-			}
-
-			template<typename T, typename U>
-			inline T Lerp(T a, T b, U n)
-			{
-				return a * n + b * (1.0 - n);
-			}
-
-			template<typename T>
-			inline T BlendColor(T color0, T color1)
-			{
-				float a = 1.0f - (1.0f - color1.a) * (1.0f - color0.a);
-				T color = 1.0f / a * (color1 * color1.a + (1.0f - color1.a) * color0.a * color0);
-				color.a = a;
-				return color;
-			}
-
-			inline float radians(float degree) 
-			{
-				return degree / 180.f * pi;
-			}
-
-			inline float degrees(float radian)
-			{
-				return radian * 180.f / pi;
-			}
 	};
 
+	namespace Utility
+	{
+		static constexpr float pi = 3.1415926f;
+
+		template<typename T, typename U, typename V>
+		inline T Clamp(T v, U a, V b)
+		{
+			return ((v < a ? a : v) < b ? (v < a ? a : v) : b);
+		}
+
+		template<typename T>
+		inline T Clamp(T v)
+		{
+			return ((v < 0 ? 0 : v) < 1 ? (v < 0 ? 0 : v) : 1);
+		}
+
+		template<typename T, typename U>
+		inline T Lerp(T a, T b, U n)
+		{
+			return a * n + b * (1.0f - n);
+		}
+
+		template<typename T>
+		inline T BlendColor(T color0, T color1)
+		{
+			float a = 1.0f - (1.0f - color1.a) * (1.0f - color0.a);
+			T color = 1.0f / a * (color1 * color1.a + (1.0f - color1.a) * color0.a * color0);
+			color.a = a;
+			return color;
+		}
+
+		inline float radians(float degree)
+		{
+			return degree / 180.f * pi;
+		}
+
+		inline float degrees(float radian)
+		{
+			return radian * 180.f / pi;
+		}
+	};
 };

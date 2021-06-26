@@ -93,7 +93,7 @@ namespace obj_loader
 
 				if (space == std::string_view::npos)
 				{
-					if (src.size()>0) {
+					if (src.size() > 0) {
 						return std::make_optional(std::make_tuple(
 							src,
 							""
@@ -105,7 +105,7 @@ namespace obj_loader
 				return std::make_optional(
 					std::make_tuple(
 						src.substr(0, space),
-						src.substr(space+1)
+						src.substr(space + 1)
 					)
 				);
 			}
@@ -113,7 +113,7 @@ namespace obj_loader
 			template<typename Parser1, typename... ParserList>
 			constexpr static decltype(auto) Combine(Parser1 parser1, ParserList... parser_list)
 			{
-				return[=](SV src ) -> Opt<std::tuple<
+				return[=](SV src)->Opt<std::tuple<
 					std::decay_t<decltype(std::get<0>(parser1(src).value()))>,
 					std::decay_t<decltype(std::get<0>(parser_list(src).value()))>...,
 					SV>>
@@ -177,9 +177,9 @@ namespace obj_loader
 
 					auto&& [token1, token2, token3, src1] = std::move(ret1.value());
 
-					double a = std::atof(token1.data());
-					double b = std::atof(token2.data());
-					double c = std::atof(token3.data());
+					float a = (float)std::atof(token1.data());
+					float b = (float)std::atof(token2.data());
+					float c = (float)std::atof(token3.data());
 
 					data.position_buffer.emplace_back(a, b, c);
 				}
@@ -194,8 +194,8 @@ namespace obj_loader
 
 					auto&& [token1, token2, src1] = std::move(ret1.value());
 
-					double a = std::atof(token1.data());
-					double b = std::atof(token2.data());
+					float a = (float)std::atof(token1.data());
+					float b = (float)std::atof(token2.data());
 
 					data.uv_buffer.emplace_back(a, b);
 				}
@@ -210,9 +210,9 @@ namespace obj_loader
 
 					auto&& [token1, token2, token3, src1] = std::move(ret1.value());
 
-					double a = std::atof(token1.data());
-					double b = std::atof(token2.data());
-					double c = std::atof(token3.data());
+					float a = (float)std::atof(token1.data());
+					float b = (float)std::atof(token2.data());
+					float c = (float)std::atof(token3.data());
 
 					data.normal_buffer.emplace_back(a, b, c);
 				}
@@ -233,14 +233,13 @@ namespace obj_loader
 						start = end + 1;
 						(void*)((p != nullptr) && (start = p));
 						end = nullptr;
-						return strtol(start, &end, 10);
+						return (size_t)strtol(start, &end, 10);
 					};
 
-					int a[3] = { match_int(token1.data()),match_int(), match_int() };
-					int b[3] = { match_int(token2.data()),match_int(), match_int() };
-					int c[3] = { match_int(token3.data()),match_int(), match_int() };
-					int d[3] = { match_int(token4.data()),match_int(), match_int() };
-
+					size_t a[3] = { match_int(token1.data()),match_int(), match_int() };
+					size_t b[3] = { match_int(token2.data()),match_int(), match_int() };
+					size_t c[3] = { match_int(token3.data()),match_int(), match_int() };
+					size_t d[3] = { match_int(token4.data()),match_int(), match_int() };
 
 					data.mesh.emplace_back(data.position_buffer[a[0] - 1], data.uv_buffer[a[1] - 1], data.normal_buffer[a[2] - 1]);
 					data.mesh.emplace_back(data.position_buffer[b[0] - 1], data.uv_buffer[b[1] - 1], data.normal_buffer[b[2] - 1]);
@@ -250,9 +249,7 @@ namespace obj_loader
 					data.mesh.emplace_back(data.position_buffer[c[0] - 1], data.uv_buffer[c[1] - 1], data.normal_buffer[c[2] - 1]);
 				}
 			}
-
 		};
-
 
 		inline Opt<Model> LoadFromFile(const std::wstring& path)
 		{
@@ -280,5 +277,4 @@ namespace obj_loader
 			return obj_parser.ParseObj(obj_str);
 		}
 	}
-
 };

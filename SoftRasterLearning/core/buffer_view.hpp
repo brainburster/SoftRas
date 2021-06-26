@@ -7,19 +7,19 @@ namespace bview
 	template<typename T>
 	struct Buffer2DView
 	{
-		void ReSize(uint32 w, uint32 h)
+		void ReSize(size_t w, size_t h)
 		{
 			this->w = w;
 			this->h = h;
 		}
 
-		void Set(uint32 x, uint32 y, T v)
+		void Set(size_t x, size_t y, T v)
 		{
 			if (x < 0 || x >= w || y < 0 || y >= h) return;
 			size_t index = (size_t)y * w + x;
 			buffer[index] = v;
 		}
-		T Get(uint32 x, uint32 y)
+		T Get(size_t x, size_t y)
 		{
 			if (x < 0 || x >= w || y < 0 || y >= h) return { 0 };
 			size_t index = (size_t)y * w + x;
@@ -55,15 +55,15 @@ namespace bview
 		}
 
 		T* buffer;
-		uint32 w;
-		uint32 h;
+		size_t w;
+		size_t h;
 	};
 
 	template<typename T>
 	struct Buffer1DView
 	{
 		T* buffer;
-		uint32 size;
+		size_t size;
 
 		struct Iter
 		{
@@ -109,5 +109,4 @@ namespace bview
 			uint32 bgra;
 		};
 	};
-
 };

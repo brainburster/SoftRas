@@ -124,7 +124,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 		{
 			camera.yaw -= dx * move_speed;
 			camera.pitch += dy * move_speed;
-			camera.pitch = gmath::Utility::Clamp(camera.pitch, -89, 89);
+			camera.pitch = gmath::Utility::Clamp(camera.pitch, -89.f, 89.f);
 		}
 		return true;
 		});
@@ -142,7 +142,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 	wnd.RegisterWndProc(WM_MOUSEWHEEL, [&](auto wParam, auto lParam) {
 		short d = HIWORD(wParam);
 		camera.fovy += d * 0.1f;
-		camera.fovy = gmath::Utility::Clamp(camera.fovy, 1, 179);
+		camera.fovy = gmath::Utility::Clamp(camera.fovy, 1.f, 179.f);
 		return true;
 		});
 

@@ -14,6 +14,7 @@ namespace sr
 	using Vec3 = gmath::Vec3<float>;
 	using Vec2 = gmath::Vec2<float>;
 	using Mat = gmath::Mat4x4<float>;
+	static constexpr float epsilon = 1e-20f;
 
 	//默认的顶点类,只有位置和颜色
 	struct Vertex
@@ -31,11 +32,10 @@ namespace sr
 		}
 	};
 
-
 	struct Impl
 	{
 		template<typename T>
-		static bool is_backface(T* triangle)
+		static bool IsBackface(T* triangle)
 		{
 			Vec2 a = triangle[1].position - triangle[0].position;
 			Vec2 b = triangle[2].position - triangle[1].position;
@@ -43,7 +43,7 @@ namespace sr
 			return a.cross(b) < 0;//&& b.cross(c) > 0 && c.cross(a) > 0;
 		}
 
-		static Color32 trans_float4color_to_uint32color(const Color& color)
+		static Color32 TransFloat4colorToUint32color(const Color& color)
 		{
 			using gmath::Utility::Clamp;
 			//交换r通道和b通道
@@ -56,7 +56,7 @@ namespace sr
 		}
 
 		template<typename T>
-		static bool is_pixel_in_triangle(float x, float y, T* triangle)
+		static bool isPixelInTriangle(float x, float y, T* triangle)
 		{
 			Vec2 p = { x,y };
 			Vec2 pa = (Vec2)triangle[0].position - p;
@@ -68,7 +68,7 @@ namespace sr
 
 		//获取插值
 		template<typename T>
-		static Vec3 get_interpolation_rate(float x, float y, T* triangle)
+		static Vec3 getInterpolationRatio(float x, float y, T* triangle)
 		{
 			//w*p0+u*p1+v*p2=p, w=1-u-v;
 			float a1 = triangle[1].position.x - triangle[0].position.x;
@@ -82,9 +82,7 @@ namespace sr
 			float w = 1 - u - v;
 			return { w,u,v };
 		}
-
 	};
-
 
 	class Context
 	{
@@ -102,15 +100,15 @@ namespace sr
 			auto w = screen_buffer_view.w;
 			auto h = screen_buffer_view.h;
 
-			for (uint32 y = 0; y < h; ++y)
+			for (size_t y = 0; y < h; ++y)
 			{
-				for (uint32 x = 0; x < w; ++x)
+				for (size_t x = 0; x < w; ++x)
 				{
-					screen_buffer_view.Set(x, y, Impl::trans_float4color_to_uint32color(fragment_buffer_view.Get(x, y)).bgra);
+					screen_buffer_view.Set(x, y, Impl::TransFloat4colorToUint32color(fragment_buffer_view.Get(x, y)).bgra);
 				}
 			}
 		}
-		void Viewport(uint32 w, uint32 h, Color color = { 0,0,0,1 })
+		void Viewport(size_t w, size_t h, Color color = { 0,0,0,1 })
 		{
 			depth_buffer.resize(w * h, 0);
 			fragment_buffer.resize(w * h, color);
@@ -151,7 +149,6 @@ namespace sr
 			return v.color;
 		}
 	};
-
 	template<typename Material = Material_Default>
 	class Renderer
 	{
@@ -216,82 +213,158 @@ namespace sr
 			{
 				const auto& v = triangle[i];
 				if (v.position.z < 0 ||
-					v.position.w < 1e-8 ||
+					v.position.w < epsilon ||
 					v.position.z > v.position.w ||
 					v.position.x > v.position.w ||
 					v.position.x < -v.position.w ||
 					v.position.y > v.position.w ||
 					v.position.y < -v.position.w
 					)
+				{
 					return true;
+				}
 			}
 			return false;
 		}
 
-		//三个点都在CVV之外,剔除
+		//如果三个点都在CVV之外,直接剔除
 		bool CVVCull(VS_OUT triangle[3])
 		{
 			float w0 = triangle[0].position.w;
 			float w1 = triangle[1].position.w;
 			float w2 = triangle[2].position.w;
+			float z0 = triangle[0].position.z;
+			float z1 = triangle[1].position.z;
+			float z2 = triangle[2].position.z;
+			float x0 = triangle[0].position.x;
+			float x1 = triangle[1].position.x;
+			float x2 = triangle[2].position.x;
+			float y0 = triangle[0].position.y;
+			float y1 = triangle[1].position.y;
+			float y2 = triangle[2].position.y;
 
-			if ( w0 < 1e-20f || w1 < 1e-20f || w2 < 1e-20f ||
-				triangle[0].position.z < 0 && triangle[1].position.z < 0 && triangle[2].position.z < 0 ||
-				triangle[0].position.z > w0 && triangle[1].position.z > w1 && triangle[2].position.z > w2 ||
-				triangle[0].position.x > w0 && triangle[1].position.x > w1  && triangle[2].position.x > w2 ||
-				triangle[0].position.x < -w0 && triangle[1].position.x < -w1 && triangle[2].position.x < -w2 ||
-				triangle[0].position.y > w0 && triangle[1].position.y > w1 && triangle[2].position.y > w2 ||
-				triangle[0].position.y < -w0 && triangle[1].position.y < -w1 && triangle[2].position.y < -w2
+			if (w0 < epsilon || w1 < epsilon || w2 < epsilon ||
+				z0 < 0 && z1 < 0 && z2 < 0 ||
+				z0 > w0 && z1 > w1 && z2 > w2 ||
+				x0 > w0 && x1 > w1 && x2 > w2 ||
+				x0 < -w0 && x1 < -w1 && x2 < -w2 ||
+				y0 > w0 && y1 > w1 && y2 > w2 ||
+				y0 < -w0 && y1 < -w1 && y2 < -w2
 				)
 			{
 				return true;
 			}
+			return false;
 		}
 
-		//三角形与CVV相交, 裁剪并计算插值
-		std::vector<VS_OUT> CVVClip(VS_OUT v[3])
+		bool IsInside(VS_OUT* p, int plane)
 		{
-			std::vector<VS_OUT> polygon1{};
-			std::vector<VS_OUT> polygon2{};
-			polygon1.reserve(6); //假设最多6个顶点
-			polygon2.reserve(6); //假设最多6个顶点
-			polygon1.push_back(v[0]);
-			polygon1.push_back(v[1]);
-			polygon1.push_back(v[2]);
+			float x = p->position.x;
+			float y = p->position.y;
+			float z = p->position.z;
+			float w = p->position.w;
 
-			//裁剪z>0平面
-			for (size_t i = 0; i < polygon1.size(); ++i)
+			switch (plane)
 			{
-				Vec4 p1 = polygon1[i].position;
-				Vec4 p2 = polygon1[(i + 1) % polygon1.size()].position;
-				
+			case 'z>0':  return z > 0;
+			case 'w>e':  return w > epsilon;
+			case 'z<w':  return z < w;
+			case 'x<w':  return x < w;
+			case 'x>-w': return x > -w;
+			case 'y<w':  return y < w;
+			case 'y>-w': return y > -w;
+			}
+			return false;
+		}
+
+		VS_OUT GetClipIntersection(VS_OUT* p1, VS_OUT* p2, int plane)
+		{
+			//Q[x,y,z,w] = P1[x1,y1,z1,w1] + (P2[x2,y2,z2,w2] - P1[x1,y1,z1,w1]) * t
+			float t = 0;
+			float x1 = p1->position.x;
+			float x2 = p2->position.x;
+			float y1 = p1->position.y;
+			float y2 = p2->position.y;
+			float z1 = p1->position.z;
+			float z2 = p2->position.z;
+			float w1 = p1->position.w;
+			float w2 = p2->position.w;
+
+			switch (plane)
+			{
+			case 'z>0':  t = z1 / (z1 - z2); break;
+			case 'w>e':  t = (epsilon - w1) / (w2 - w1); break;
+			case 'z<w':  t = (w1 - z1) / ((z2 - z1) - (w2 - w1)); break;
+			case 'x<w':  t = (w1 - x1) / ((x2 - x1) - (w2 - w1)); break;
+			case 'x>-w': t = -(w1 + x1) / ((x2 - x1) + (w2 - w1)); break;
+			case 'y<w':  t = (w1 - y1) / ((y2 - y1) - (w2 - w1)); break;
+			case 'y>-w': t = -(w1 + y1) / ((y2 - y1) + (w2 - w1)); break;
+			}
+
+			return (*p1) * (1 - t) + (*p2) * t;
+		}
+
+		size_t ClipAgainstPlane(VS_OUT* polygon_in, size_t len, VS_OUT* polygon_out, int plane)
+		{
+			size_t len_out = 0;
+			for (size_t i = 0; i < len; ++i)
+			{
+				VS_OUT* p1 = polygon_in + i;
+				VS_OUT* p2 = polygon_in + ((i + 1) % len);
 				//sutherland_hodgman算法
 				//检查p1, p2 是否在内侧,
-				//int b_p1_inside = 1;
-				//int b_p2_inside = 1;
-				//int sh_flag = b_p2_inside << 1 | b_p1_inside;
+				int b_p1_inside = (int)IsInside(p1, plane);
+				int b_p2_inside = (int)IsInside(p2, plane);
+				int sh_flag = b_p2_inside << 1 | b_p1_inside;
 
-				//3. 如果, p2在内侧, p1也在内侧， push p1
-				//2. 如果, p2在内侧, p1在外侧, 求交点p， push p, p2
-				//1. 如果, p2在外侧, p1在内侧, 求交点p,  push p
-				//0. 如果, p2在外侧, p1在外侧, 什么都不做
+				//0: 如果, p1在外侧, p2在外侧, 什么都不做
+				//1: 如果, p1在内侧, p2在外侧, 求交点q,  add q
+				//2: 如果, p1在外侧, p2在内侧, 求交点q， add q, p2
+				//3: 如果, p1、p2都在内测, add p2
 
 				switch (sh_flag)
 				{
 				case 1:
-				case 2:
-				case 3:
-				case 0:
+				{
+					VS_OUT q = GetClipIntersection(p1, p2, plane);
+					polygon_out[len_out++] = q;
+					break; //调试了一宿，才发现是忘了break;
 				}
-
+				case 2:
+				{
+					VS_OUT q = GetClipIntersection(p1, p2, plane);
+					polygon_out[len_out++] = q;
+					polygon_out[len_out++] = *p2;
+					break;
+				}
+				case 3:
+				{
+					polygon_out[len_out++] = *p2;
+					break;
+				}
+				};
 			}
+			return len_out;
+		}
 
+		//三角形与CVV相交, 裁剪并计算插值
+		size_t CVVClip(VS_OUT* polygon_in, VS_OUT* polygon_out)
+		{
+			size_t len = 3;
+			len = ClipAgainstPlane(polygon_in, len, polygon_out, 'z>0');
+			len = ClipAgainstPlane(polygon_out, len, polygon_in, 'w>e');
+			len = ClipAgainstPlane(polygon_in, len, polygon_out, 'z<w');
+			len = ClipAgainstPlane(polygon_out, len, polygon_in, 'x<w');
+			len = ClipAgainstPlane(polygon_in, len, polygon_out, 'x>-w');
+			len = ClipAgainstPlane(polygon_out, len, polygon_in, 'y<w');
+			len = ClipAgainstPlane(polygon_in, len, polygon_out, 'y>-w');
+			return len;
 		}
 
 		void DrawTriangle(VS_IN* p1, VS_IN* p2, VS_IN* p3)
 		{
 			//本地空间 => 裁剪空间
-			VS_OUT triangle[3] = {
+			VS_OUT triangle[8] = {
 				{ material.VS(*p1) },
 				{ material.VS(*p2) },
 				{ material.VS(*p3) }
@@ -301,42 +374,48 @@ namespace sr
 			//if (SimpleCull(triangle)) return;
 			//CVV剔除
 			if (CVVCull(triangle)) return;
-			
-			//std::vector<VS_OUT> polygon = CVVClip();
+			VS_OUT polygon[8] = {};
+			size_t len = CVVClip(triangle, polygon);
 
-			//
-
-
-
+			if (len < 3)
+			{
+				return;
+			}
 
 			//转化为归一化设备坐标
-			for (auto& v : triangle)
+			for (auto& v : polygon)
 			{
 				v.position /= v.position.w;
 			}
 
 			//转化为屏幕坐标
-			TransToScreenSpace(triangle);
+			TransToScreenSpace(polygon, len);
 
-			//...	
-
-			//
-			if (Impl::is_backface(triangle))
+			//剔除背面(简易剔除)
+			if (Impl::IsBackface(polygon))
 			{
 				return;
 			}
 
-			//用包围盒光栅化
-			//Rasterize_AABB(triangle);
-			//用线扫描的方式光栅化
-			Rasterize_LineScanning(triangle);
+			//渲染第一个三角形
+			Rasterize_LineScanning(polygon);
+
+			for (size_t i = 3; i < len; ++i)
+			{
+				(void)((i & 1) ? (triangle[0] = polygon[i - 3]) : (triangle[0] = polygon[i - 2]));
+				triangle[0] = polygon[i - 3];
+				triangle[1] = polygon[i - 1];
+				triangle[2] = polygon[i];
+				//Rasterize_AABB(triangle);
+				Rasterize_LineScanning(triangle);
+			}
 		}
 
-		void TransToScreenSpace(VS_OUT triangle[3])
+		void TransToScreenSpace(VS_OUT* polygon, size_t len)
 		{
-			for (int i = 0; i < 3; ++i)
+			for (int i = 0; i < len; ++i)
 			{
-				auto& vertex = triangle[i];
+				auto& vertex = polygon[i];
 				vertex.position.x /= 2.f;
 				vertex.position.y /= 2.f;
 				vertex.position.x += 0.5f;
@@ -352,33 +431,33 @@ namespace sr
 			//生成AABB包围盒
 			int left = 1e8, right = -1e8, top = 1e8, bottom = -1e8;
 
-			for (int i = 0; i < 3; ++i)
-			{
+			for (int i = 0; i < 3; ++i) {
 				if (left > triangle[i].position.x)
 				{
 					left = (uint32)triangle[i].position.x;
 				}
-				if (right < triangle[i].position.x)
+				else if (right < triangle[i].position.x)
 				{
 					right = (uint32)triangle[i].position.x + 1;
 				}
+
 				if (top < triangle[i].position.y)
 				{
 					top = (uint32)triangle[i].position.y + 1;
 				}
-				if (bottom > triangle[i].position.y)
+				else if (bottom > triangle[i].position.y)
 				{
 					bottom = (uint32)triangle[i].position.y;
 				}
 			}
 			using gmath::Utility::Clamp;
-			const int w = context.fragment_buffer_view.w;
-			const int h = context.fragment_buffer_view.h;
+			int w = context.fragment_buffer_view.w;
+			int h = context.fragment_buffer_view.h;
 
-			left = Clamp(left, 0, w-1);
-			right = Clamp(right, 0, w-1);
-			top = Clamp(top, 0, h-1);
-			bottom = Clamp(bottom, 0, h-1);
+			left = Clamp(left, 0, w - 1);
+			right = Clamp(right, 0, w - 1);
+			top = Clamp(top, 0, h - 1);
+			bottom = Clamp(bottom, 0, h - 1);
 
 			//...
 			//光栅化
@@ -452,17 +531,15 @@ namespace sr
 					x2 = temp;
 				}
 
-				x1 = Clamp(x1, 0, (float)context.fragment_buffer_view.w-1);
-				x2 = Clamp(x2, 0, (float)context.fragment_buffer_view.w-1);
+				x1 = Clamp(x1, 0, (float)context.fragment_buffer_view.w - 1);
+				x2 = Clamp(x2, 0, (float)context.fragment_buffer_view.w - 1);
 
 				for (int x = (int)x1 - 1; x <= (int)x2 + 1; ++x)
 				{
 					PixelOperate(x, (int)y, triangle);
 				}
 			}
-
 		}
-
 
 		void PixelOperate(int x, int y, VS_OUT triangle[3])
 		{
@@ -479,13 +556,13 @@ namespace sr
 				for (float j = 0; j < Mn; ++j)
 				{
 					//对插值系数进行多次采样，而不是多次插值
-					Vec3 ratio = Impl::get_interpolation_rate(
+					Vec3 ratio = Impl::getInterpolationRatio(
 						x + (i + 0.5f) / (Mn + 1),
 						y + (j + 0.5f) / (Mn + 1),
 						triangle);
 
 					//三个系数也刚好可以判断点是不是在三角形内
-					if (ratio.x > 1e-8 && ratio.y > 1e-8 && ratio.z > 1e-8)
+					if (ratio.x > epsilon && ratio.y > epsilon && ratio.z > epsilon)
 					{
 						aa_rate += ratio;
 						++cover_count;
@@ -505,7 +582,7 @@ namespace sr
 			float depth0 = context.depth_buffer_view.Get(x, y);
 
 			//深度测试
-			if (!(depth > depth0 - 1e-10))
+			if (!(depth > depth0 - epsilon))
 			{
 				return;
 			}
@@ -514,7 +591,7 @@ namespace sr
 			Color color0 = context.fragment_buffer_view.Get(x, y);
 
 			//AA上色
-			if ((cover_count < Mn * Mn) && (fabs(depth - depth0) > 1e-4)) {
+			if ((cover_count < Mn * Mn) && (fabs(depth - depth0) > epsilon)) {
 				float a = color.a;
 				color = Lerp(color, color0, cover_count / (Mn * Mn));
 				color.a = a;
@@ -530,7 +607,6 @@ namespace sr
 			context.fragment_buffer_view.Set(x, y, color);
 			//写入depth_buffer
 			context.depth_buffer_view.Set(x, y, depth);
-
 		}
 
 		Renderer(Context& ctx, const Material& m) :

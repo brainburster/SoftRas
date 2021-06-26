@@ -10,7 +10,7 @@ namespace bmp_loader
 	using uint16 = unsigned short;
 	using uint32 = unsigned long;
 
-#pragma pack(2) 
+#pragma pack(2)
 	struct BmpHeader
 	{
 		uint16 type;
@@ -18,11 +18,11 @@ namespace bmp_loader
 		uint16 reserved[2];
 		uint32 offset;
 	};
-#pragma pack() 
+#pragma pack()
 
 	//static_assert(sizeof(BmpHeader) == 14, "the size of bmp header must be 14 bytes");
 
-#pragma pack(2) 
+#pragma pack(2)
 	struct BmpInfo
 	{
 		uint32 size_of_info;
@@ -30,14 +30,14 @@ namespace bmp_loader
 		uint32 height;
 		uint16 planes; //1
 		uint16 bitCount; //1,4,8,16,24,32
-		uint32 compression; //压缩类型 
+		uint32 compression; //压缩类型
 		uint32 size_image;
 		uint32 xppm; // x分辨率 x pixel per meter
 		uint32 yppm; // y分辨率
 		uint32 clrUsed;
 		uint32 clrImportant;
 	};
-#pragma pack() 
+#pragma pack()
 
 	//static_assert(sizeof(BmpInfo) == 40, "the size of bmp info must be 40 bytes");
 
@@ -46,19 +46,19 @@ namespace bmp_loader
 	class Texture
 	{
 	public:
-		gmath::Vec4<float> Get(int x, int y)
+		gmath::Vec4<float> Get(size_t x, size_t y)
 		{
 			using gmath::Utility::Clamp;
 			x = Clamp(x, 0, w);
 			y = Clamp(y, 0, h);
 
 			size_t i = x * channel + y * w * channel;
-			if (channel==4)
+			if (channel == 4)
 			{
 				return gmath::Vec4<float>{
 					(float)data[i], (float)data[i + 1], (float)data[i + 2], (float)data[i + 3]
 				};
-			} 
+			}
 			else
 			{
 				return gmath::Vec4<float>{
@@ -70,7 +70,7 @@ namespace bmp_loader
 		gmath::Vec4<float> Sampler(gmath::Vec2<float> uv, bool loop = true)
 		{
 			float x = uv.x * w;
-			float y = (1-uv.y) * h;
+			float y = (1 - uv.y) * h;
 			auto _x = (int)x;
 			auto _y = (int)y;
 			//float wx = _x - x;
@@ -92,9 +92,9 @@ namespace bmp_loader
 			//auto color_7 = color_5 * wy + color_6 * (1 - wy);
 
 			auto color_7 = Get(_x, _y);
-			
+
 			return gmath::Vec4<float> {
-					color_7.b / 255.f,
+				color_7.b / 255.f,
 					color_7.g / 255.f,
 					color_7.r / 255.f,
 					color_7.a / 255.f
@@ -155,7 +155,6 @@ namespace bmp_loader
 			BmpHeader bmp_header;
 			BmpInfo bmp_info;
 
-
 			bmp_file.read((char*)&bmp_header, sizeof(BmpHeader));
 			bmp_file.read((char*)&bmp_info, sizeof(BmpInfo));
 
@@ -177,5 +176,4 @@ namespace bmp_loader
 			return bitmap;
 		}
 	};
-
 }
