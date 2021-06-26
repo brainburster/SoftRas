@@ -235,7 +235,7 @@ namespace sr
 			float w1 = triangle[1].position.w;
 			float w2 = triangle[2].position.w;
 
-			if ( w0 < 1e-8f && w1 < 1e-8f && w2 < 1e-8f ||
+			if ( w0 < 1e-20f || w1 < 1e-20f || w2 < 1e-20f ||
 				triangle[0].position.z < 0 && triangle[1].position.z < 0 && triangle[2].position.z < 0 ||
 				triangle[0].position.z > w0 && triangle[1].position.z > w1 && triangle[2].position.z > w2 ||
 				triangle[0].position.x > w0 && triangle[1].position.x > w1  && triangle[2].position.x > w2 ||
@@ -249,9 +249,43 @@ namespace sr
 		}
 
 		//三角形与CVV相交, 裁剪并计算插值
-		std::vector<VS_OUT> CVVClip(VS_OUT v[3],)
+		std::vector<VS_OUT> CVVClip(VS_OUT v[3])
 		{
-			
+			std::vector<VS_OUT> polygon1{};
+			std::vector<VS_OUT> polygon2{};
+			polygon1.reserve(6); //假设最多6个顶点
+			polygon2.reserve(6); //假设最多6个顶点
+			polygon1.push_back(v[0]);
+			polygon1.push_back(v[1]);
+			polygon1.push_back(v[2]);
+
+			//裁剪z>0平面
+			for (size_t i = 0; i < polygon1.size(); ++i)
+			{
+				Vec4 p1 = polygon1[i].position;
+				Vec4 p2 = polygon1[(i + 1) % polygon1.size()].position;
+				
+				//sutherland_hodgman算法
+				//检查p1, p2 是否在内侧,
+				//int b_p1_inside = 1;
+				//int b_p2_inside = 1;
+				//int sh_flag = b_p2_inside << 1 | b_p1_inside;
+
+				//3. 如果, p2在内侧, p1也在内侧， push p1
+				//2. 如果, p2在内侧, p1在外侧, 求交点p， push p, p2
+				//1. 如果, p2在外侧, p1在内侧, 求交点p,  push p
+				//0. 如果, p2在外侧, p1在外侧, 什么都不做
+
+				switch (sh_flag)
+				{
+				case 1:
+				case 2:
+				case 3:
+				case 0:
+				}
+
+			}
+
 		}
 
 		void DrawTriangle(VS_IN* p1, VS_IN* p2, VS_IN* p3)
@@ -267,31 +301,34 @@ namespace sr
 			//if (SimpleCull(triangle)) return;
 			//CVV剔除
 			if (CVVCull(triangle)) return;
-
+			
+			//std::vector<VS_OUT> polygon = CVVClip();
 
 			//
 
 
 
 
-			//归一化设备坐标
+			//转化为归一化设备坐标
 			for (auto& v : triangle)
 			{
 				v.position /= v.position.w;
 			}
 
-
+			//转化为屏幕坐标
 			TransToScreenSpace(triangle);
 
 			//...	
 
-			//back_face_culling
+			//
 			if (Impl::is_backface(triangle))
 			{
 				return;
 			}
 
+			//用包围盒光栅化
 			//Rasterize_AABB(triangle);
+			//用线扫描的方式光栅化
 			Rasterize_LineScanning(triangle);
 		}
 
@@ -354,7 +391,7 @@ namespace sr
 			}
 		}
 
-		//使用扫描的方法
+		//使用线扫描的方法
 		void Rasterize_LineScanning(VS_OUT  triangle[3])
 		{
 			using gmath::Utility::Clamp;
@@ -442,15 +479,15 @@ namespace sr
 				for (float j = 0; j < Mn; ++j)
 				{
 					//对插值系数进行多次采样，而不是多次插值
-					Vec3 rate = Impl::get_interpolation_rate(
+					Vec3 ratio = Impl::get_interpolation_rate(
 						x + (i + 0.5f) / (Mn + 1),
 						y + (j + 0.5f) / (Mn + 1),
 						triangle);
 
 					//三个系数也刚好可以判断点是不是在三角形内
-					if (rate.x > 1e-8 && rate.y > 1e-8 && rate.z > 1e-8)
+					if (ratio.x > 1e-8 && ratio.y > 1e-8 && ratio.z > 1e-8)
 					{
-						aa_rate += rate;
+						aa_rate += ratio;
 						++cover_count;
 					}
 				}
@@ -477,7 +514,7 @@ namespace sr
 			Color color0 = context.fragment_buffer_view.Get(x, y);
 
 			//AA上色
-			if ((cover_count < Mn * Mn) && (abs(depth - depth0) > 1e-4)) {
+			if ((cover_count < Mn * Mn) && (fabs(depth - depth0) > 1e-4)) {
 				float a = color.a;
 				color = Lerp(color, color0, cover_count / (Mn * Mn));
 				color.a = a;
