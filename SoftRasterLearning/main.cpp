@@ -158,7 +158,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 			m.mat = camera.GetProjectionViewMatrix() * sr::Mat::Translate(0.0f, 0.0f, -2.0f) * sr::Mat::Rotate(time / 3 , time / 2 , time) * sr::Mat::Scale(1.f, 1.f, 1.f);
 			renderer.DrawTriangles(&ret->mesh[0], ret->mesh.size());
 			time += 0.1f;
-			ctx.CopyToScreen(wnd.getFrameBufferView());
+			ctx.CopyToBuffer(wnd.getFrameBufferView());
 			wnd.drawBuffer();
 		}
 	} };

@@ -17,17 +17,17 @@ namespace sr
 	static constexpr float epsilon = 1e-20f;
 
 	//默认的顶点类,只有位置和颜色2个属性
-	struct Vertex
+	struct Vertex_Default
 	{
 		Position position;
 		Color color;
 
 		//顶点类需要实现+和*标量, 两个方法
-		Vertex operator+(const Vertex& rhs) const
+		Vertex_Default operator+(const Vertex_Default& rhs) const
 		{
 			return { position + rhs.position,color + rhs.color };
 		}
-		friend Vertex operator*(const Vertex& lhs, float rhs)
+		friend Vertex_Default operator*(const Vertex_Default& lhs, float rhs)
 		{
 			return { lhs.position * rhs,lhs.color * rhs };
 		}
@@ -40,7 +40,7 @@ namespace sr
 		Buffer2DView<Color> fragment_buffer_view;
 		Buffer2DView<float> depth_buffer_view;
 
-		void CopyToScreen(Buffer2DView<uint32>& screen_buffer_view)
+		void CopyToBuffer(Buffer2DView<uint32>& screen_buffer_view)
 		{
 			if (!fragment_buffer_view.buffer)
 			{
@@ -58,6 +58,7 @@ namespace sr
 				}
 			}
 		}
+
 		void Viewport(size_t w, size_t h, Color color = { 0,0,0,1 })
 		{
 			depth_buffer.resize(w * h, 0);
@@ -66,6 +67,7 @@ namespace sr
 			fragment_buffer_view = { &fragment_buffer[0],w , h };
 			depth_buffer_view = { &depth_buffer[0],w , h };
 		}
+
 		void Clear(Color color = { 0,0,0,1 })
 		{
 			for (auto& pixel : fragment_buffer)
@@ -99,8 +101,8 @@ namespace sr
 	class Material_Default
 	{
 	public:
-		using VS_IN = Vertex;
-		using VS_OUT = Vertex;
+		using VS_IN = Vertex_Default;
+		using VS_OUT = Vertex_Default;
 		VS_OUT VS(const VS_IN& v)
 		{
 			return v;
@@ -330,10 +332,9 @@ namespace sr
 			using gmath::Utility::Lerp;
 			using gmath::Utility::BlendColor;
 
-			//MSAA4x
+			//简单MSAA，不想建simpler
 			float cover_count = 0;
 			float Mn = 2;
-			Vec3 avg_weight = {};
 
 			for (float i = 0; i < Mn; ++i)
 			{
@@ -345,12 +346,9 @@ namespace sr
 						y + (j + 0.5f) / (Mn + 1),
 						triangle);
 
-					//提前深度测试
-
 					//三个系数也刚好可以判断点是不是在三角形内
 					if (weight.x > epsilon && weight.y > epsilon && weight.z > epsilon)
 					{
-						avg_weight += weight;
 						++cover_count;
 					}
 				}
@@ -362,21 +360,21 @@ namespace sr
 				return;
 			}
 
-			avg_weight /= cover_count;
-
+			//取中心像素的重心坐标
+			Vec3 weight = GetInterpolationWeight(x + 0.5, y + 0.5, triangle);
 			//对插值进行透视修复
-			avg_weight.x /= triangle[0].position.w;
-			avg_weight.y /= triangle[1].position.w;
-			avg_weight.z /= triangle[2].position.w;
-			avg_weight /= (avg_weight.x + avg_weight.y + avg_weight.z);
+			weight.x /= triangle[0].position.w;
+			weight.y /= triangle[1].position.w;
+			weight.z /= triangle[2].position.w;
+			weight /= (weight.x + weight.y + weight.z);
 
 			//求插值
-			VS_OUT interp = triangle[0] * avg_weight.x + triangle[1] * avg_weight.y + triangle[2] * avg_weight.z;
-			float depth = 1 / interp.position.z;
+			VS_OUT interp = triangle[0] * weight.x + triangle[1] * weight.y + triangle[2] * weight.z;
+			float depth = 1 / (interp.position.w * interp.position.w);
 			float depth0 = context.depth_buffer_view.Get(x, y);
 
 			//深度测试
-			if (!(depth > depth0 - epsilon))
+			if (!(depth > depth0 - 1e-8))
 			{
 				return;
 			}
@@ -385,7 +383,7 @@ namespace sr
 			Color color0 = context.fragment_buffer_view.Get(x, y);
 
 			//AA上色
-			if ((cover_count < Mn * Mn) && (fabs(depth - depth0) > epsilon)) {
+			if ((cover_count < Mn * Mn) && (fabs(depth - depth0) > 1e-8)) {
 				float a = color.a;
 				color = Lerp(color, color0, cover_count / (Mn * Mn));
 				color.a = a;
