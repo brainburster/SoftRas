@@ -153,28 +153,9 @@ namespace sr
 			}
 		}
 
-		void DrawQuadrangles(VS_IN* data, size_t n)
-		{
-			for (size_t i = 0; i < n; i += 4)
-			{
-				DrawTriangle(data + i, data + i + 1, data + i + 2);
-				DrawTriangle(data + i, data + i + 2, data + i + 3);
-			}
-		}
-
-		void DrawSTRIP(VS_IN* data, size_t n)
-		{
-			for (size_t i = 2; i < n; ++i)
-			{
-				(void)((i & 1) ?
-					(DrawTriangle(data + i - 3, data + i - 1, data + i)) :
-					(DrawTriangle(data + i - 2, data + i - 1, data + i)));
-			}
-		}
-
 		void DrawTriangle(VS_IN* p1, VS_IN* p2, VS_IN* p3)
 		{
-			//本地空间 => 裁剪空间
+			//本地空间 => 裁剪空间 clip space
 			VS_OUT triangle[8] = {
 				{ material.VS(*p1) },
 				{ material.VS(*p2) },
@@ -194,17 +175,17 @@ namespace sr
 				return;
 			}
 
-			//转化为归一化设备坐标
+			//转化为归一化设备坐标ndc
 			for (auto& v : polygon)
 			{
 				//v.position /= v.position.w;
 				v.position.x /= v.position.w;
 				v.position.y /= v.position.w;
-				//v.position.z /= v.position.w;
+				v.position.z /= v.position.w;
 				//保留w信息
 			}
 
-			//转化为屏幕坐标
+			//转化为屏幕坐标 screen space
 			TransToScreenSpace(polygon, len);
 
 			//剔除背面(简易剔除)
@@ -219,8 +200,7 @@ namespace sr
 			//渲染后面的三角形
 			for (size_t i = 3; i < len; ++i)
 			{
-				(void)((i & 1) ? (triangle[0] = polygon[i - 3]) : (triangle[0] = polygon[i - 2]));
-				triangle[0] = polygon[i - 3];
+				triangle[0] = polygon[0];
 				triangle[1] = polygon[i - 1];
 				triangle[2] = polygon[i];
 				//Rasterize_AABB(triangle);
@@ -364,6 +344,8 @@ namespace sr
 						x + (i + 0.5f) / (Mn + 1),
 						y + (j + 0.5f) / (Mn + 1),
 						triangle);
+
+					//提前深度测试
 
 					//三个系数也刚好可以判断点是不是在三角形内
 					if (weight.x > epsilon && weight.y > epsilon && weight.z > epsilon)
@@ -527,8 +509,8 @@ namespace sr
 				VS_OUT* p2 = polygon_in + ((i + 1) % len);
 				//sutherland_hodgman算法
 				//检查p1, p2 是否在内侧,
-				int b_p1_inside = (int)IsInside(p1, plane);
-				int b_p2_inside = (int)IsInside(p2, plane);
+				int b_p1_inside = IsInside(p1, plane);
+				int b_p2_inside = IsInside(p2, plane);
 				int sh_flag = b_p2_inside << 1 | b_p1_inside;
 
 				//0: 如果, p1在外侧, p2在外侧, 什么都不做
