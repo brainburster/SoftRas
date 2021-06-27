@@ -200,7 +200,7 @@ namespace sr
 				//v.position /= v.position.w;
 				v.position.x /= v.position.w;
 				v.position.y /= v.position.w;
-				v.position.z /= v.position.w;
+				//v.position.z /= v.position.w;
 				//保留w信息
 			}
 
@@ -216,6 +216,7 @@ namespace sr
 			//渲染第一个三角形
 			Rasterize_LineScanning(polygon);
 
+			//渲染后面的三角形
 			for (size_t i = 3; i < len; ++i)
 			{
 				(void)((i & 1) ? (triangle[0] = polygon[i - 3]) : (triangle[0] = polygon[i - 2]));
@@ -352,7 +353,7 @@ namespace sr
 			//MSAA4x
 			float cover_count = 0;
 			float Mn = 2;
-			Vec3 aa_weight = {};
+			Vec3 avg_weight = {};
 
 			for (float i = 0; i < Mn; ++i)
 			{
@@ -367,7 +368,7 @@ namespace sr
 					//三个系数也刚好可以判断点是不是在三角形内
 					if (weight.x > epsilon && weight.y > epsilon && weight.z > epsilon)
 					{
-						aa_weight += weight;
+						avg_weight += weight;
 						++cover_count;
 					}
 				}
@@ -379,8 +380,16 @@ namespace sr
 				return;
 			}
 
-			aa_weight /= cover_count;
-			VS_OUT interp = triangle[0] * aa_weight.x + triangle[1] * aa_weight.y + triangle[2] * aa_weight.z;
+			avg_weight /= cover_count;
+
+			//对插值进行透视修复
+			avg_weight.x /= triangle[0].position.w;
+			avg_weight.y /= triangle[1].position.w;
+			avg_weight.z /= triangle[2].position.w;
+			avg_weight /= (avg_weight.x + avg_weight.y + avg_weight.z);
+
+			//求插值
+			VS_OUT interp = triangle[0] * avg_weight.x + triangle[1] * avg_weight.y + triangle[2] * avg_weight.z;
 			float depth = 1 / interp.position.z;
 			float depth0 = context.depth_buffer_view.Get(x, y);
 
