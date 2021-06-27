@@ -16,12 +16,13 @@ namespace sr
 	using Mat = gmath::Mat4x4<float>;
 	static constexpr float epsilon = 1e-20f;
 
-	//默认的顶点类,只有位置和颜色
+	//默认的顶点类,只有位置和颜色2个属性
 	struct Vertex
 	{
 		Position position;
 		Color color;
 
+		//顶点类需要实现+和*标量, 两个方法
 		Vertex operator+(const Vertex& rhs) const
 		{
 			return { position + rhs.position,color + rhs.color };
@@ -32,58 +33,7 @@ namespace sr
 		}
 	};
 
-	struct Impl
-	{
-		template<typename T>
-		static bool IsBackface(T* triangle)
-		{
-			Vec2 a = triangle[1].position - triangle[0].position;
-			Vec2 b = triangle[2].position - triangle[1].position;
-			//Vec2 c = triangle[0].position - triangle[2].position;
-			return a.cross(b) < 0;//&& b.cross(c) > 0 && c.cross(a) > 0;
-		}
-
-		static Color32 TransFloat4colorToUint32color(const Color& color)
-		{
-			using gmath::Utility::Clamp;
-			//交换r通道和b通道
-			return Color32{
-				(unsigned char)(Clamp(color.z) * 255),
-				(unsigned char)(Clamp(color.y) * 255),
-				(unsigned char)(Clamp(color.x) * 255),
-				(unsigned char)(Clamp(color.w) * 255)
-			};
-		}
-
-		template<typename T>
-		static bool isPixelInTriangle(float x, float y, T* triangle)
-		{
-			Vec2 p = { x,y };
-			Vec2 pa = (Vec2)triangle[0].position - p;
-			Vec2 pb = (Vec2)triangle[1].position - p;
-			Vec2 pc = (Vec2)triangle[2].position - p;;
-
-			return (pa.cross(pb) > 0 && pb.cross(pc) > 0 && pc.cross(pa) > 0) || (pa.cross(pb) < 0 && pb.cross(pc) < 0 && pc.cross(pa) < 0);
-		}
-
-		//获取插值
-		template<typename T>
-		static Vec3 getInterpolationRatio(float x, float y, T* triangle)
-		{
-			//w*p0+u*p1+v*p2=p, w=1-u-v;
-			float a1 = triangle[1].position.x - triangle[0].position.x;
-			float b1 = triangle[2].position.x - triangle[0].position.x;
-			float c1 = x - triangle[0].position.x;
-			float a2 = triangle[1].position.y - triangle[0].position.y;
-			float b2 = triangle[2].position.y - triangle[0].position.y;
-			float c2 = y - triangle[0].position.y;
-			float v = (a1 * c2 - a2 * c1) / (b2 * a1 - a2 * b1);
-			float u = (b2 * c1 - b1 * c2) / (b2 * a1 - a2 * b1);
-			float w = 1 - u - v;
-			return { w,u,v };
-		}
-	};
-
+	//渲染上下文
 	class Context
 	{
 	public:
@@ -104,7 +54,7 @@ namespace sr
 			{
 				for (size_t x = 0; x < w; ++x)
 				{
-					screen_buffer_view.Set(x, y, Impl::TransFloat4colorToUint32color(fragment_buffer_view.Get(x, y)).bgra);
+					screen_buffer_view.Set(x, y, TransFloat4colorToUint32color(fragment_buffer_view.Get(x, y)).bgra);
 				}
 			}
 		}
@@ -126,6 +76,18 @@ namespace sr
 			{
 				depth = 0;
 			}
+		}
+
+		static Color32 TransFloat4colorToUint32color(const Color& color)
+		{
+			using gmath::Utility::Clamp;
+			//交换r通道和b通道
+			return Color32{
+				(unsigned char)(Clamp(color.z) * 255),
+				(unsigned char)(Clamp(color.y) * 255),
+				(unsigned char)(Clamp(color.x) * 255),
+				(unsigned char)(Clamp(color.w) * 255)
+			};
 		}
 		Context() : fragment_buffer{}, depth_buffer{}, fragment_buffer_view{ nullptr }, depth_buffer_view{ nullptr }{};
 	protected:
@@ -149,6 +111,8 @@ namespace sr
 			return v.color;
 		}
 	};
+
+	//渲染器类
 	template<typename Material = Material_Default>
 	class Renderer
 	{
@@ -166,6 +130,12 @@ namespace sr
 	public:
 		using VS_IN = std::decay_t<decltype(get_in_type<Material>(std::declval<decltype(&Material::VS)>()))>;
 		using VS_OUT = std::decay_t<decltype(get_in_type<Material>(std::declval<decltype(&Material::FS)>()))>;
+
+		Renderer(Context& ctx, const Material& m) :
+			context{ ctx },
+			material{ m }
+		{
+		}
 
 		void DrawIndex(VS_IN* data, size_t* index, size_t n)
 		{
@@ -196,15 +166,250 @@ namespace sr
 		{
 			for (size_t i = 2; i < n; ++i)
 			{
-				if (i & 1)
+				(void)((i & 1) ?
+					(DrawTriangle(data + i - 3, data + i - 1, data + i)) :
+					(DrawTriangle(data + i - 2, data + i - 1, data + i)));
+			}
+		}
+
+		void DrawTriangle(VS_IN* p1, VS_IN* p2, VS_IN* p3)
+		{
+			//本地空间 => 裁剪空间
+			VS_OUT triangle[8] = {
+				{ material.VS(*p1) },
+				{ material.VS(*p2) },
+				{ material.VS(*p3) }
+			};
+
+			//简单CVV剔除
+			//if (SimpleCull(triangle)) return;
+			//CVV剔除
+			if (CVVCull(triangle)) return;
+			//CVV裁剪
+			VS_OUT polygon[8] = {};
+			size_t len = CVVClip(triangle, polygon);
+
+			if (len < 3)
+			{
+				return;
+			}
+
+			//转化为归一化设备坐标
+			for (auto& v : polygon)
+			{
+				//v.position /= v.position.w;
+				v.position.x /= v.position.w;
+				v.position.y /= v.position.w;
+				v.position.z /= v.position.w;
+				//保留w信息
+			}
+
+			//转化为屏幕坐标
+			TransToScreenSpace(polygon, len);
+
+			//剔除背面(简易剔除)
+			if (IsBackface(polygon))
+			{
+				return;
+			}
+
+			//渲染第一个三角形
+			Rasterize_LineScanning(polygon);
+
+			for (size_t i = 3; i < len; ++i)
+			{
+				(void)((i & 1) ? (triangle[0] = polygon[i - 3]) : (triangle[0] = polygon[i - 2]));
+				triangle[0] = polygon[i - 3];
+				triangle[1] = polygon[i - 1];
+				triangle[2] = polygon[i];
+				//Rasterize_AABB(triangle);
+				Rasterize_LineScanning(triangle);
+			}
+		}
+	protected:
+
+		//使用AABB包围盒进行光栅化
+		void Rasterize_AABB(VS_OUT  triangle[3])
+		{
+			//生成AABB包围盒
+			int left = 1e8, right = -1e8, top = 1e8, bottom = -1e8;
+
+			for (int i = 0; i < 3; ++i) {
+				if (left > triangle[i].position.x)
 				{
-					DrawTriangle(data + i - 3, data + i - 1, data + i);
+					left = (uint32)triangle[i].position.x;
+				}
+				else if (right < triangle[i].position.x)
+				{
+					right = (uint32)triangle[i].position.x + 1;
+				}
+
+				if (top < triangle[i].position.y)
+				{
+					top = (uint32)triangle[i].position.y + 1;
+				}
+				else if (bottom > triangle[i].position.y)
+				{
+					bottom = (uint32)triangle[i].position.y;
+				}
+			}
+			using gmath::Utility::Clamp;
+			int w = context.fragment_buffer_view.w;
+			int h = context.fragment_buffer_view.h;
+
+			left = Clamp(left, 0, w - 1);
+			right = Clamp(right, 0, w - 1);
+			top = Clamp(top, 0, h - 1);
+			bottom = Clamp(bottom, 0, h - 1);
+
+			//...
+			//光栅化
+			for (int y = bottom; y <= top; ++y)
+			{
+				for (int x = left; x <= right; ++x)
+				{
+					PixelOperate(x, y, triangle);
+				}
+			}
+		}
+
+		//使用线扫描的方法
+		void Rasterize_LineScanning(VS_OUT  triangle[3])
+		{
+			using gmath::Utility::Clamp;
+			//是否隔行扫描
+			//float bInterlacing = false;
+
+			//获得三角形三个顶点
+			Vec2 p[3] = {
+				triangle[0].position,
+				triangle[1].position,
+				triangle[2].position,
+			};
+
+			//对三个顶点按y坐标从高到底进行排序
+
+			for (int i = 0; i < 2; ++i)
+			{
+				for (int j = i; j < 3; ++j)
+				{
+					if (p[i].y < p[j].y)
+					{
+						Vec2 temp = p[j];
+						p[j] = p[i];
+						p[i] = temp;
+					}
+				}
+			}
+
+			float y1 = Clamp(p[2].y, 0.6f, context.fragment_buffer_view.h - 0.6f);
+			float y2 = Clamp(p[0].y, 0.6f, context.fragment_buffer_view.h - 0.6f);
+
+			//从上到下扫描
+			for (float y = y2 + 0.5f; y >= y1 - 0.5f; --y)
+			{
+				//计算出直线 y = y 与 三角形相交2点的x坐标
+
+				//float k = (p[2].y - p[0].y) / (p[2].x - p[0].x);
+				//float b = p[0].y - k * p[0].x;
+				//float x1 = ((float)y - b) / k;
+
+				float x1 = (y + 0.5f - p[0].y) * (p[2].x - p[0].x) / (p[2].y - p[0].y) + p[0].x;
+				float x2 = 0;
+
+				if (y >= p[1].y)
+				{
+					//y减0.5f是为了矫正斜率
+					x2 = (y - 0.5f - p[0].y) * (p[1].x - p[0].x) / (p[1].y - p[0].y) + p[0].x;
 				}
 				else
 				{
-					DrawTriangle(data + i - 2, data + i - 1, data + i);
+					x2 = (y + 0.5f - p[1].y) * (p[2].x - p[1].x) / (p[2].y - p[1].y) + p[1].x;
+				}
+
+				if (x1 > x2)
+				{
+					float temp = x1;
+					x1 = x2;
+					x2 = temp;
+				}
+
+				x1 = Clamp(x1, 0, (float)context.fragment_buffer_view.w - 1);
+				x2 = Clamp(x2, 0, (float)context.fragment_buffer_view.w - 1);
+
+				for (int x = (int)x1 - 1; x <= (int)x2 + 1; ++x)
+				{
+					PixelOperate(x, (int)y, triangle);
 				}
 			}
+		}
+
+		void PixelOperate(int x, int y, VS_OUT triangle[3])
+		{
+			using gmath::Utility::Lerp;
+			using gmath::Utility::BlendColor;
+
+			//MSAA4x
+			float cover_count = 0;
+			float Mn = 2;
+			Vec3 aa_weight = {};
+
+			for (float i = 0; i < Mn; ++i)
+			{
+				for (float j = 0; j < Mn; ++j)
+				{
+					//对插值系数进行多次采样，而不是多次插值
+					Vec3 weight = GetInterpolationWeight(
+						x + (i + 0.5f) / (Mn + 1),
+						y + (j + 0.5f) / (Mn + 1),
+						triangle);
+
+					//三个系数也刚好可以判断点是不是在三角形内
+					if (weight.x > epsilon && weight.y > epsilon && weight.z > epsilon)
+					{
+						aa_weight += weight;
+						++cover_count;
+					}
+				}
+			}
+
+			//覆盖测试
+			if (!cover_count)
+			{
+				return;
+			}
+
+			aa_weight /= cover_count;
+			VS_OUT interp = triangle[0] * aa_weight.x + triangle[1] * aa_weight.y + triangle[2] * aa_weight.z;
+			float depth = 1 / interp.position.z;
+			float depth0 = context.depth_buffer_view.Get(x, y);
+
+			//深度测试
+			if (!(depth > depth0 - epsilon))
+			{
+				return;
+			}
+
+			Color color = material.FS(interp);
+			Color color0 = context.fragment_buffer_view.Get(x, y);
+
+			//AA上色
+			if ((cover_count < Mn * Mn) && (fabs(depth - depth0) > epsilon)) {
+				float a = color.a;
+				color = Lerp(color, color0, cover_count / (Mn * Mn));
+				color.a = a;
+			}
+
+			//颜色混合
+			if (color.a < 0.99999f)
+			{
+				color = BlendColor(color0, color);
+			}
+
+			//写入fragment_buffer
+			context.fragment_buffer_view.Set(x, y, color);
+			//写入depth_buffer
+			context.depth_buffer_view.Set(x, y, depth);
 		}
 
 		bool SimpleCull(VS_OUT triangle[3])
@@ -361,57 +566,7 @@ namespace sr
 			return len;
 		}
 
-		void DrawTriangle(VS_IN* p1, VS_IN* p2, VS_IN* p3)
-		{
-			//本地空间 => 裁剪空间
-			VS_OUT triangle[8] = {
-				{ material.VS(*p1) },
-				{ material.VS(*p2) },
-				{ material.VS(*p3) }
-			};
-
-			//简单CVV剔除
-			//if (SimpleCull(triangle)) return;
-			//CVV剔除
-			if (CVVCull(triangle)) return;
-			VS_OUT polygon[8] = {};
-			size_t len = CVVClip(triangle, polygon);
-
-			if (len < 3)
-			{
-				return;
-			}
-
-			//转化为归一化设备坐标
-			for (auto& v : polygon)
-			{
-				v.position /= v.position.w;
-			}
-
-			//转化为屏幕坐标
-			TransToScreenSpace(polygon, len);
-
-			//剔除背面(简易剔除)
-			if (Impl::IsBackface(polygon))
-			{
-				return;
-			}
-
-			//渲染第一个三角形
-			Rasterize_LineScanning(polygon);
-
-			for (size_t i = 3; i < len; ++i)
-			{
-				(void)((i & 1) ? (triangle[0] = polygon[i - 3]) : (triangle[0] = polygon[i - 2]));
-				triangle[0] = polygon[i - 3];
-				triangle[1] = polygon[i - 1];
-				triangle[2] = polygon[i];
-				//Rasterize_AABB(triangle);
-				Rasterize_LineScanning(triangle);
-			}
-		}
-
-		void TransToScreenSpace(VS_OUT* polygon, size_t len)
+		void TransToScreenSpace(VS_OUT* polygon, size_t len) const
 		{
 			for (int i = 0; i < len; ++i)
 			{
@@ -425,194 +580,38 @@ namespace sr
 			}
 		}
 
-		//使用AABB包围盒进行光栅化
-		void Rasterize_AABB(VS_OUT  triangle[3])
+		bool IsBackface(VS_OUT* triangle) const
 		{
-			//生成AABB包围盒
-			int left = 1e8, right = -1e8, top = 1e8, bottom = -1e8;
-
-			for (int i = 0; i < 3; ++i) {
-				if (left > triangle[i].position.x)
-				{
-					left = (uint32)triangle[i].position.x;
-				}
-				else if (right < triangle[i].position.x)
-				{
-					right = (uint32)triangle[i].position.x + 1;
-				}
-
-				if (top < triangle[i].position.y)
-				{
-					top = (uint32)triangle[i].position.y + 1;
-				}
-				else if (bottom > triangle[i].position.y)
-				{
-					bottom = (uint32)triangle[i].position.y;
-				}
-			}
-			using gmath::Utility::Clamp;
-			int w = context.fragment_buffer_view.w;
-			int h = context.fragment_buffer_view.h;
-
-			left = Clamp(left, 0, w - 1);
-			right = Clamp(right, 0, w - 1);
-			top = Clamp(top, 0, h - 1);
-			bottom = Clamp(bottom, 0, h - 1);
-
-			//...
-			//光栅化
-			for (int y = bottom; y <= top; ++y)
-			{
-				for (int x = left; x <= right; ++x)
-				{
-					PixelOperate(x, y, triangle);
-				}
-			}
+			Vec2 a = triangle[1].position - triangle[0].position;
+			Vec2 b = triangle[2].position - triangle[1].position;
+			//Vec2 c = triangle[0].position - triangle[2].position;
+			return a.cross(b) < 0;//&& b.cross(c) > 0 && c.cross(a) > 0;
 		}
 
-		//使用线扫描的方法
-		void Rasterize_LineScanning(VS_OUT  triangle[3])
+		bool IsPointInTriangle2D(float x, float y, VS_OUT* triangle) const
 		{
-			using gmath::Utility::Clamp;
-			//是否隔行扫描
-			//float bInterlacing = false;
+			Vec2 p = { x,y };
+			Vec2 pa = (Vec2)triangle[0].position - p;
+			Vec2 pb = (Vec2)triangle[1].position - p;
+			Vec2 pc = (Vec2)triangle[2].position - p;;
 
-			//获得三角形三个顶点
-			Vec2 p[3] = {
-				triangle[0].position,
-				triangle[1].position,
-				triangle[2].position,
-			};
-
-			//对三个顶点按y坐标从高到底进行排序
-
-			for (int i = 0; i < 2; ++i)
-			{
-				for (int j = i; j < 3; ++j)
-				{
-					if (p[i].y < p[j].y)
-					{
-						Vec2 temp = p[j];
-						p[j] = p[i];
-						p[i] = temp;
-					}
-				}
-			}
-
-			float y1 = Clamp(p[2].y, 0.6f, context.fragment_buffer_view.h - 0.6f);
-			float y2 = Clamp(p[0].y, 0.6f, context.fragment_buffer_view.h - 0.6f);
-
-			//从上到下扫描
-			for (float y = y2 + 0.5f; y >= y1 - 0.5f; --y)
-			{
-				//计算出直线 y = y 与 三角形相交2点的x坐标
-
-				//float k = (p[2].y - p[0].y) / (p[2].x - p[0].x);
-				//float b = p[0].y - k * p[0].x;
-				//float x1 = ((float)y - b) / k;
-
-				float x1 = (y + 0.5f - p[0].y) * (p[2].x - p[0].x) / (p[2].y - p[0].y) + p[0].x;
-				float x2 = 0;
-
-				if (y >= p[1].y)
-				{
-					//y减0.5f是为了矫正斜率
-					x2 = (y - 0.5f - p[0].y) * (p[1].x - p[0].x) / (p[1].y - p[0].y) + p[0].x;
-				}
-				else
-				{
-					x2 = (y + 0.5f - p[1].y) * (p[2].x - p[1].x) / (p[2].y - p[1].y) + p[1].x;
-				}
-
-				if (x1 > x2)
-				{
-					float temp = x1;
-					x1 = x2;
-					x2 = temp;
-				}
-
-				x1 = Clamp(x1, 0, (float)context.fragment_buffer_view.w - 1);
-				x2 = Clamp(x2, 0, (float)context.fragment_buffer_view.w - 1);
-
-				for (int x = (int)x1 - 1; x <= (int)x2 + 1; ++x)
-				{
-					PixelOperate(x, (int)y, triangle);
-				}
-			}
+			return (pa.cross(pb) > 0 && pb.cross(pc) > 0 && pc.cross(pa) > 0) || (pa.cross(pb) < 0 && pb.cross(pc) < 0 && pc.cross(pa) < 0);
 		}
 
-		void PixelOperate(int x, int y, VS_OUT triangle[3])
+		//获取插值
+		Vec3 GetInterpolationWeight(float x, float y, VS_OUT* triangle) const
 		{
-			using gmath::Utility::Lerp;
-			using gmath::Utility::BlendColor;
-
-			//MSAA4x
-			float cover_count = 0;
-			float Mn = 2;
-			Vec3 aa_rate = {};
-
-			for (float i = 0; i < Mn; ++i)
-			{
-				for (float j = 0; j < Mn; ++j)
-				{
-					//对插值系数进行多次采样，而不是多次插值
-					Vec3 ratio = Impl::getInterpolationRatio(
-						x + (i + 0.5f) / (Mn + 1),
-						y + (j + 0.5f) / (Mn + 1),
-						triangle);
-
-					//三个系数也刚好可以判断点是不是在三角形内
-					if (ratio.x > epsilon && ratio.y > epsilon && ratio.z > epsilon)
-					{
-						aa_rate += ratio;
-						++cover_count;
-					}
-				}
-			}
-
-			//覆盖测试
-			if (!cover_count)
-			{
-				return;
-			}
-
-			aa_rate /= cover_count;
-			VS_OUT interp = triangle[0] * aa_rate.x + triangle[1] * aa_rate.y + triangle[2] * aa_rate.z;
-			float depth = 1 / interp.position.z;
-			float depth0 = context.depth_buffer_view.Get(x, y);
-
-			//深度测试
-			if (!(depth > depth0 - epsilon))
-			{
-				return;
-			}
-
-			Color color = material.FS(interp);
-			Color color0 = context.fragment_buffer_view.Get(x, y);
-
-			//AA上色
-			if ((cover_count < Mn * Mn) && (fabs(depth - depth0) > epsilon)) {
-				float a = color.a;
-				color = Lerp(color, color0, cover_count / (Mn * Mn));
-				color.a = a;
-			}
-
-			//颜色混合
-			if (color.a < 0.99999f)
-			{
-				color = BlendColor(color0, color);
-			}
-
-			//写入fragment_buffer
-			context.fragment_buffer_view.Set(x, y, color);
-			//写入depth_buffer
-			context.depth_buffer_view.Set(x, y, depth);
-		}
-
-		Renderer(Context& ctx, const Material& m) :
-			context{ ctx },
-			material{ m }
-		{
+			//t*p0+u*p1+v*p2=p, t=1-u-v;
+			float a1 = triangle[1].position.x - triangle[0].position.x;
+			float b1 = triangle[2].position.x - triangle[0].position.x;
+			float c1 = x - triangle[0].position.x;
+			float a2 = triangle[1].position.y - triangle[0].position.y;
+			float b2 = triangle[2].position.y - triangle[0].position.y;
+			float c2 = y - triangle[0].position.y;
+			float v = (a1 * c2 - a2 * c1) / (b2 * a1 - a2 * b1);
+			float u = (b2 * c1 - b1 * c2) / (b2 * a1 - a2 * b1);
+			float t = 1 - u - v;
+			return { t,u,v };
 		}
 
 	protected:
