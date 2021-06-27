@@ -2,17 +2,16 @@
 
 #include "core/game_math.hpp"
 
-namespace game
+namespace camera
 {
-	class Camera
+	class FPSCamera
 	{
 	public:
 		using Vec3 = gmath::Vec3<float>;
 		using Vec2 = gmath::Vec3<float>;
-
 		using Mat4x4 = gmath::Mat4x4<float>;
 
-		Camera(Vec3 position = Vec3{ 0,0,0 }, float yaw = -90, float pitch = 0, float aspect = 4.f / 3.f, float fovy = 60, float _near = 0.1, float _far = 1e10) :
+		FPSCamera(Vec3 position = Vec3{ 0,0,0 }, float yaw = -90, float pitch = 0, float aspect = 4.f / 3.f, float fovy = 60, float _near = 0.1, float _far = 1e10) :
 			position{ position },
 			yaw(yaw),
 			pitch(pitch),
@@ -43,7 +42,7 @@ namespace game
 		}
 
 		//private:
-			//view
+		//view
 		Vec3 position;
 		float yaw;
 		float pitch;

@@ -70,7 +70,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 
 	m.tex0 = &tex;
 
-	game::Camera camera = game::Camera{ {0,0,10},-90.f };
+	camera::FPSCamera camera = camera::FPSCamera{ {0,0,10},-90.f };
 
 	const float move_speed = 0.2f;
 

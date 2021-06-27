@@ -361,7 +361,7 @@ namespace sr
 			}
 
 			//取中心像素的重心坐标
-			Vec3 weight = GetInterpolationWeight(x + 0.5, y + 0.5, triangle);
+			Vec3 weight = GetInterpolationWeight(x + 0.5f, y + 0.5f, triangle);
 			//对插值进行透视修复
 			weight.x /= triangle[0].position.w;
 			weight.y /= triangle[1].position.w;
@@ -374,7 +374,7 @@ namespace sr
 			float depth0 = context.depth_buffer_view.Get(x, y);
 
 			//深度测试
-			if (!(depth > depth0 - 1e-8))
+			if (!(depth > depth0 - 1e-8f))
 			{
 				return;
 			}
@@ -383,7 +383,7 @@ namespace sr
 			Color color0 = context.fragment_buffer_view.Get(x, y);
 
 			//AA上色
-			if ((cover_count < Mn * Mn) && (fabs(depth - depth0) > 1e-8)) {
+			if ((cover_count < Mn * Mn) && (fabs(depth - depth0) > 1e-8f)) {
 				float a = color.a;
 				color = Lerp(color, color0, cover_count / (Mn * Mn));
 				color.a = a;

@@ -29,7 +29,7 @@ namespace wnd
 		DC_WND& operator=(const DC_WND& other) = delete;
 	};
 
-	DC_WND::DC_WND(HINSTANCE hinst) :
+	inline DC_WND::DC_WND(HINSTANCE hinst) :
 		Wnd{ hinst },
 		m_hdc{ NULL },
 		m_hcdc{ NULL },
@@ -136,5 +136,4 @@ namespace wnd
 
 		return *this;
 	}
-
 };
