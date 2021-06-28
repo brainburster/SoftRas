@@ -1,4 +1,5 @@
 #pragma once
+
 #include "../core/dc_wnd.hpp"
 #include "../core/software_renderer.hpp"
 #include "world.hpp"

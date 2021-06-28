@@ -1,4 +1,5 @@
 #pragma once
+
 #include "types_and_defs.hpp"
 
 namespace core

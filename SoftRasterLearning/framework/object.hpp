@@ -1,4 +1,5 @@
 #pragma once
+
 #include "../core/software_renderer.hpp"
 
 namespace framework
