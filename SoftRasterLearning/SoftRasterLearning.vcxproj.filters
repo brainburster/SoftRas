@@ -53,7 +53,7 @@
     <ClInclude Include="framework\camera.hpp">
       <Filter>头文件\framework</Filter>
     </ClInclude>
-    <ClInclude Include="framework\SoftRasterApp.hpp">
+    <ClInclude Include="framework\softraster_app.hpp">
       <Filter>头文件\framework</Filter>
     </ClInclude>
     <ClInclude Include="framework\world.hpp">
@@ -61,6 +61,18 @@
     </ClInclude>
     <ClInclude Include="framework\object.hpp">
       <Filter>头文件\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="resource_manager.hpp">
+      <Filter>头文件\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="core\types_and_defs.hpp">
+      <Filter>头文件\core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\texture.hpp">
+      <Filter>头文件\core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\model.hpp">
+      <Filter>头文件\core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

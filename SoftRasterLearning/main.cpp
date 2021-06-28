@@ -9,9 +9,9 @@
 
 struct Vertex
 {
-	sr::Position position;
-	sr::Color color;
-	sr::Vec2 uv;
+	core::Position position;
+	core::Color color;
+	core::Vec2 uv;
 
 	Vertex operator+(const Vertex& rhs) const
 	{
@@ -34,14 +34,14 @@ struct Vertex
 
 struct Material_Model
 {
-	sr::Mat mat = sr::Mat::Unit();
-	bmp_loader::Texture* tex0 = nullptr;
+	core::Mat mat = core::Mat::Unit();
+	core::Texture* tex0 = nullptr;
 
-	Vertex VS(const obj_loader::Model_Vertex& v) const
+	Vertex VS(const core::Model_Vertex& v) const
 	{
 		return {
-			mat * sr::Vec4{v.position,1.0},
-			sr::Vec4(v.normal,1),
+			mat * core::Vec4{v.position,1.0},
+			core::Vec4(v.normal,1),
 			v.uv
 		};
 	}
@@ -52,23 +52,21 @@ struct Material_Model
 	}
 };
 
-const float pi = 3.14159265358979f;
-
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
-	wnd::DC_WND wnd = wnd::DC_WND{ hInstance }.WndClassName(L"dc_wnd_cls").WndName(L"dc_wnd_wnd").Size(800, 600).AddWndStyle(~WS_MAXIMIZEBOX).Init().Move();
+	core::DC_WND wnd = core::DC_WND{ hInstance }.WndClassName(L"dc_wnd_cls").WndName(L"dc_wnd_wnd").Size(800, 600).AddWndStyle(~WS_MAXIMIZEBOX).Init().Move();
 
-	sr::Context ctx;
+	core::Context ctx;
 	ctx.Viewport(800, 600, { 0.4f, 0.6f, 0.2f, 1.f });
 
 	Material_Model m;
 
-	sr::Renderer<Material_Model> renderer = { ctx,m };
+	core::Renderer<Material_Model> renderer = { ctx,m };
 
-	bmp_loader::Texture tex = bmp_loader::BmpLoader::LoadBmp(L"..\\resource\\pictures\\test.bmp");
-	auto ret = obj_loader::obj::LoadFromFile(L"..\\resource\\models\\box.obj");
+	auto tex = loader::bmp::LoadFromFile(L"..\\resource\\pictures\\test.bmp");
+	auto ret = loader::obj::LoadFromFile(L"..\\resource\\models\\box.obj");
 
-	m.tex0 = &tex;
+	m.tex0 = &tex.value();
 
 	framework::FPSCamera camera = framework::FPSCamera{ {0,0,10},-90.f };
 
@@ -76,9 +74,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 
 	wnd.RegisterWndProc(WM_KEYDOWN, [&](auto wParam, auto lParam) {
 		//sr::Vec3 right = camera.
-		sr::Vec3 front = camera.GetFront();
-		sr::Vec3 right = front.cross({ 0,1,0 }).normalize();
-		sr::Vec3 up = right.cross(front).normalize();
+		core::Vec3 front = camera.GetFront();
+		core::Vec3 right = front.cross({ 0,1,0 }).normalize();
+		core::Vec3 up = right.cross(front).normalize();
 
 		switch (wParam)
 		{
@@ -152,14 +150,14 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPreInstance, _I
 		{
 			ctx.Clear({ 0.4f, 0.6f, 0.2f, 1.f });
 
-			m.mat = camera.GetProjectionViewMatrix() * sr::Mat::Translate(0.0f, 0.0f, 0.0f) * /*sr::Mat::Rotate(time/3 , time/2 , time ) **/ sr::Mat::Scale(1.f, 1.f, 1.f);// *m.mat;
+			m.mat = camera.GetProjectionViewMatrix() * core::Mat::Translate(0.0f, 0.0f, 0.0f) * /*sr::Mat::Rotate(time/3 , time/2 , time ) **/ core::Mat::Scale(1.f, 1.f, 1.f);// *m.mat;
 			renderer.DrawTriangles(&ret->mesh[0], ret->mesh.size());
 
-			m.mat = camera.GetProjectionViewMatrix() * sr::Mat::Translate(0.0f, 0.0f, -2.0f) * sr::Mat::Rotate(time / 3 , time / 2 , time) * sr::Mat::Scale(1.f, 1.f, 1.f);
+			m.mat = camera.GetProjectionViewMatrix() * core::Mat::Translate(0.0f, 0.0f, -2.0f) * core::Mat::Rotate(time / 3 , time / 2 , time) * core::Mat::Scale(1.f, 1.f, 1.f);
 			renderer.DrawTriangles(&ret->mesh[0], ret->mesh.size());
 			time += 0.1f;
-			ctx.CopyToBuffer(wnd.getFrameBufferView());
-			wnd.drawBuffer();
+			ctx.CopyToBuffer(wnd.GetFrameBufferView());
+			wnd.BitBltBuffer();
 		}
 	} };
 

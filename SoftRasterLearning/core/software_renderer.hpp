@@ -4,18 +4,10 @@
 #include "dc_wnd.hpp"
 #include "buffer_view.hpp"
 #include "game_math.hpp"
+#include "types_and_defs.hpp"
 
-namespace sr
+namespace core
 {
-	using namespace bview;
-	using Position = gmath::Vec4<float>;
-	using Color = gmath::Vec4<float>;
-	using Vec4 = gmath::Vec4<float>;
-	using Vec3 = gmath::Vec3<float>;
-	using Vec2 = gmath::Vec2<float>;
-	using Mat = gmath::Mat4x4<float>;
-	static constexpr float epsilon = 1e-20f;
-
 	//默认的顶点类,只有位置和颜色2个属性
 	struct Vertex_Default
 	{

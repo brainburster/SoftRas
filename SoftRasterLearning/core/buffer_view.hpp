@@ -1,9 +1,8 @@
 #pragma once
+#include "types_and_defs.hpp"
 
-namespace bview
+namespace core
 {
-	using uint32 = unsigned int;
-
 	template<typename T>
 	struct Buffer2DView
 	{

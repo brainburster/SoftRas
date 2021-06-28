@@ -1,39 +1,43 @@
 #pragma once
-#include "core/software_renderer.hpp"
+#include "../core/software_renderer.hpp"
 
 namespace framework
 {
+	class IRenderEngine;
+
 	//渲染接口
 	class IRenderAble
 	{
 	public:
-		virtual void Render(const sr::Context& ctx) = 0;
+		virtual void Render(const IRenderEngine& ctx) = 0;
 	};
 
 	//...
+
+	//位置旋转缩放信息
 	struct Transform
 	{
-		sr::Vec3 position;
-		sr::Vec3 rotation;
-		sr::Vec3 scale;
-		sr::Mat GetModelMatrix()
+		core::Vec3 position;
+		core::Vec3 rotation;
+		core::Vec3 scale;
+		core::Mat GetModelMatrix() const
 		{
-			return sr::Mat::Translate(position) * sr::Mat::Rotate(rotation) * sr::Mat::Scale(scale);
+			return core::Mat::Translate(position) * core::Mat::Rotate(rotation) * core::Mat::Scale(scale);
 		}
 	};
 
 	//可以被渲染的物体
-	class Object : public IRenderAble
+	class Object : public IRenderAble //,...
 	{
 	public:
 		Transform transfom;
-		virtual ~Object() {}
+		virtual ~Object() = default;
 	};
 
 	//拥有mesh的物体
 	class Entity : public Object
 	{
 	public:
-		std::vector<sr::Vec3> mesh;
+		std::vector<core::Vec3> mesh;
 	};
 };

@@ -1,11 +1,10 @@
 #pragma once
-
 #include "buffer_view.hpp"
 #include "raw_wnd.hpp"
+#include "types_and_defs.hpp"
 
-namespace wnd
+namespace core
 {
-	using namespace bview;
 	class DC_WND : public Wnd<DC_WND>
 	{
 	public:
@@ -16,9 +15,9 @@ namespace wnd
 		DC_WND(DC_WND&& other) noexcept;
 		DC_WND& operator=(DC_WND&& other) noexcept;
 		void FillBuffer(uint32 color);
-		void drawBuffer();
-		void setPixel(uint32 x, uint32 y, uint32 color);
-		Buffer2DView<uint32>& getFrameBufferView();
+		void BitBltBuffer();
+		void SetPixelColor(uint32 x, uint32 y, uint32 color);
+		Buffer2DView<uint32>& GetFrameBufferView();
 	protected:
 		HDC m_hdc;
 		HDC m_hcdc;
@@ -73,17 +72,17 @@ namespace wnd
 		}
 	}
 
-	inline void DC_WND::drawBuffer()
+	inline void DC_WND::BitBltBuffer()
 	{
 		::BitBlt(m_hdc, 0, 0, m_width, m_height, m_hcdc, 0, 0, SRCCOPY);
 	}
 
-	inline void DC_WND::setPixel(uint32 x, uint32 y, uint32 color)
+	inline void DC_WND::SetPixelColor(uint32 x, uint32 y, uint32 color)
 	{
 		m_buffer_view.Set(x, y, color);
 	}
 
-	inline Buffer2DView<uint32>& DC_WND::getFrameBufferView()
+	inline Buffer2DView<uint32>& DC_WND::GetFrameBufferView()
 	{
 		return m_buffer_view;
 	}

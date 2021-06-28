@@ -161,14 +161,18 @@
     <ClInclude Include="core\buffer_view.hpp" />
     <ClInclude Include="core\dc_wnd.hpp" />
     <ClInclude Include="core\game_math.hpp" />
+    <ClInclude Include="core\model.hpp" />
     <ClInclude Include="core\raw_wnd.hpp" />
     <ClInclude Include="core\software_renderer.hpp" />
+    <ClInclude Include="core\texture.hpp" />
+    <ClInclude Include="core\types_and_defs.hpp" />
     <ClInclude Include="framework\camera.hpp" />
     <ClInclude Include="framework\object.hpp" />
-    <ClInclude Include="framework\SoftRasterApp.hpp" />
+    <ClInclude Include="framework\softraster_app.hpp" />
     <ClInclude Include="framework\world.hpp" />
     <ClInclude Include="loader\bmp_loader.hpp" />
     <ClInclude Include="loader\obj_loader.hpp" />
+    <ClInclude Include="resource_manager.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -5,7 +5,7 @@
 #include <map>
 #include <tuple>
 
-namespace wnd
+namespace core
 {
 #define $_str(x) #x
 #define $str(x) $_str(x)
