@@ -12,6 +12,9 @@ namespace framework
 	{
 	public:
 		virtual void Run() = 0;
+		//获取ctx
+		virtual core::Context& GetCtx() = 0;
+		virtual const ICamera& GetCamera() const = 0;
 	protected:
 		//为windwos消息添加回调函数，调用一次
 		virtual void HookInput() = 0;
@@ -28,7 +31,7 @@ namespace framework
 
 	class SoftRasterApp : public IRenderEngine
 	{
-	private:
+	protected:
 		struct InputState
 		{
 			bool key[256];
@@ -45,20 +48,29 @@ namespace framework
 		struct APPState {
 			long long time;
 		} app_state;
-		wnd::DC_WND dc_wnd;
-		sr::Context ctx;
+		core::DC_WND dc_wnd;
+		core::Context ctx;
 		std::shared_ptr<ICamera> camera;
 		World world;
 
 		SoftRasterApp(const SoftRasterApp& other) = delete;
 		SoftRasterApp& operator=(const SoftRasterApp& other) = delete;
+
 	public:
-		SoftRasterApp(HINSTANCE hinst) : dc_wnd{ hinst }, input_state{}
+		SoftRasterApp(HINSTANCE hinst) : dc_wnd{ hinst }, input_state{}, app_state{}, ctx{}, camera{}, world{}
 		{
 		}
-		SoftRasterApp(SoftRasterApp&& other) noexcept : dc_wnd(std::move(other.dc_wnd)), input_state{ other.input_state }
+
+		SoftRasterApp(SoftRasterApp&& other) noexcept :
+			input_state{ std::move(other.input_state) },
+			app_state{ std::move(other.app_state) },
+			dc_wnd(std::move(other.dc_wnd)),
+			ctx{ std::move(other.ctx) },
+			camera{ std::move(other.camera) },
+			world{ std::move(other.world) }
 		{
 		}
+
 		SoftRasterApp& operator=(SoftRasterApp&& other) noexcept
 		{
 			if (this == &other)
@@ -68,6 +80,16 @@ namespace framework
 			memcpy(this, &other, sizeof(SoftRasterApp));
 			memset(&other, 0, sizeof(SoftRasterApp));
 			return *this;
+		}
+
+		const ICamera& GetCamera() const override
+		{
+			return *camera.get();
+		}
+
+		core::Context& GetCtx() override
+		{
+			return ctx;
 		}
 
 		const InputState& GetInputeState() const
@@ -116,10 +138,10 @@ namespace framework
 				});
 
 			dc_wnd.RegisterWndProc(WM_MOUSEMOVE, [&](auto wParam, auto lParam) {
-				float dx = input_state.mouse_state.x - LOWORD(lParam);
-				float dy = input_state.mouse_state.y - HIWORD(lParam);
-				input_state.mouse_state.x = LOWORD(lParam);
-				input_state.mouse_state.y = HIWORD(lParam);
+				input_state.mouse_state.dx = (short)LOWORD(lParam) - input_state.mouse_state.x;
+				input_state.mouse_state.dy = (short)HIWORD(lParam) - input_state.mouse_state.y;
+				input_state.mouse_state.x = (short)LOWORD(lParam);
+				input_state.mouse_state.y = (short)HIWORD(lParam);
 				return true;
 				});
 
@@ -154,7 +176,7 @@ namespace framework
 				});
 
 			dc_wnd.RegisterWndProc(WM_MOUSEWHEEL, [&](auto wParam, auto lParam) {
-				input_state.mouse_state.scroll = HIWORD(wParam);
+				input_state.mouse_state.scroll = (short)HIWORD(wParam);
 				return true;
 				});
 		}
@@ -163,6 +185,7 @@ namespace framework
 		void Init() override
 		{
 			dc_wnd.WndClassName(L"dc_wnd_cls").WndName(L"dc_wnd_wnd").Size(800, 600).AddWndStyle(~WS_MAXIMIZEBOX).Init();
+			ctx.Viewport(800, 600);
 		}
 
 		//更新

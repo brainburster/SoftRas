@@ -62,9 +62,6 @@
     <ClInclude Include="framework\object.hpp">
       <Filter>头文件\framework</Filter>
     </ClInclude>
-    <ClInclude Include="resource_manager.hpp">
-      <Filter>头文件\framework</Filter>
-    </ClInclude>
     <ClInclude Include="core\types_and_defs.hpp">
       <Filter>头文件\core</Filter>
     </ClInclude>
@@ -73,6 +70,9 @@
     </ClInclude>
     <ClInclude Include="core\model.hpp">
       <Filter>头文件\core</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\resource_manager.hpp">
+      <Filter>头文件\framework</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

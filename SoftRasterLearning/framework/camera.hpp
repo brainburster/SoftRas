@@ -10,7 +10,14 @@ namespace framework
 		using Vec3 = gmath::Vec3<float>;
 		using Vec2 = gmath::Vec3<float>;
 		using Mat4x4 = gmath::Mat4x4<float>;
-		virtual Mat4x4  GetProjectionViewMatrix() = 0;
+		virtual Mat4x4  GetProjectionViewMatrix() const = 0;
+		virtual Vec3 GetFront() const = 0;
+		virtual void SetPosition(Vec3) = 0;
+		virtual void AddPosition(Vec3) = 0;
+		virtual void SetYawPitch(float, float) = 0;
+		virtual void AddYaw(float) = 0;
+		virtual void AddPitch(float) = 0;
+		virtual void AddFovy(float) = 0;
 	};
 
 	class FPSCamera : public ICamera
@@ -28,7 +35,7 @@ namespace framework
 		{
 		}
 
-		virtual Mat4x4 GetProjectionViewMatrix() override
+		Mat4x4 GetProjectionViewMatrix()const override
 		{
 			using gmath::Utility::radians;
 			Vec3 front = GetFront();
@@ -37,7 +44,7 @@ namespace framework
 			return Mat4x4::Projection(radians(fovy), aspect, _near, _far) * Mat4x4::View(position, front, up);
 		}
 
-		Vec3 GetFront()
+		Vec3 GetFront() const override
 		{
 			using gmath::Utility::radians;
 			Vec3 front = {};
@@ -47,7 +54,40 @@ namespace framework
 			return front;
 		}
 
-		//private:
+		void SetPosition(Vec3 position) override
+		{
+			this->position = position;
+		}
+
+		void AddPosition(Vec3 position) override
+		{
+			this->position += position;
+		}
+
+		void SetYawPitch(float yaw, float pitch) override
+		{
+			this->yaw = yaw;
+			this->pitch = pitch;
+		}
+
+		void AddYaw(float yaw) override
+		{
+			this->yaw += yaw;
+		}
+
+		void AddPitch(float pitch) override
+		{
+			this->pitch += pitch;
+			this->pitch = gmath::Utility::Clamp(this->pitch, -89.f, 89.f);
+		}
+
+		void AddFovy(float fovy) override
+		{
+			this->fovy += fovy;
+			this->fovy = gmath::Utility::Clamp(this->fovy, 1.f, 179.f);
+		}
+
+	private:
 		//view
 		Vec3 position;
 		float yaw;

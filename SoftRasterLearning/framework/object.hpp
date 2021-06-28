@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../core/software_renderer.hpp"
+#include <memory>
 
 namespace framework
 {
@@ -10,7 +11,7 @@ namespace framework
 	class IRenderAble
 	{
 	public:
-		virtual void Render(const IRenderEngine& ctx) = 0;
+		virtual void Render(IRenderEngine& engine) = 0;
 	};
 
 	//...
@@ -18,9 +19,9 @@ namespace framework
 	//位置旋转缩放信息
 	struct Transform
 	{
-		core::Vec3 position;
-		core::Vec3 rotation;
-		core::Vec3 scale;
+		core::Vec3 position = { 0,0,0 };
+		core::Vec3 rotation = { 0,0,0 };
+		core::Vec3 scale = { 1,1,1 };
 		core::Mat GetModelMatrix() const
 		{
 			return core::Mat::Translate(position) * core::Mat::Rotate(rotation) * core::Mat::Scale(scale);
@@ -31,7 +32,7 @@ namespace framework
 	class Object : public IRenderAble //,...
 	{
 	public:
-		Transform transfom;
+		Transform transform;
 		virtual ~Object() = default;
 	};
 
@@ -39,6 +40,6 @@ namespace framework
 	class Entity : public Object
 	{
 	public:
-		std::vector<core::Vec3> mesh;
+		std::shared_ptr<core::Model> model;
 	};
 };

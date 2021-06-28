@@ -168,11 +168,11 @@
     <ClInclude Include="core\types_and_defs.hpp" />
     <ClInclude Include="framework\camera.hpp" />
     <ClInclude Include="framework\object.hpp" />
+    <ClInclude Include="framework\resource_manager.hpp" />
     <ClInclude Include="framework\softraster_app.hpp" />
     <ClInclude Include="framework\world.hpp" />
     <ClInclude Include="loader\bmp_loader.hpp" />
     <ClInclude Include="loader\obj_loader.hpp" />
-    <ClInclude Include="resource_manager.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
