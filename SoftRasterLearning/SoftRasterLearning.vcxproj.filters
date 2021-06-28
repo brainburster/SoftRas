@@ -30,6 +30,9 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="framework\test.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="loader\bmp_loader.hpp">
@@ -79,6 +82,9 @@
     </ClInclude>
     <ClInclude Include="render_test\render_test_1.hpp">
       <Filter>头文件\render_test</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\fps_renderer_app.hpp">
+      <Filter>头文件\framework</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

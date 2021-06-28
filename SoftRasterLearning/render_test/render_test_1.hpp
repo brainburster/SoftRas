@@ -1,13 +1,13 @@
 #pragma once
 
-#include "../framework/softraster_app.hpp"
-#include "../framework/resource_manager.hpp"
 #include "../core/texture.hpp"
 #include "../core/model.hpp"
 #include "../loader/bmp_loader.hpp"
 #include "../loader/obj_loader.hpp"
 #include "../core/buffer_view.hpp"
 #include "../core/software_renderer.hpp"
+#include "../framework/fps_renderer_app.hpp"
+#include "../framework/resource_manager.hpp"
 
 struct Vertex
 {
@@ -74,37 +74,18 @@ public:
 	}
 };
 
-class RenderApp final : public framework::SoftRasterApp
+class RenderApp final : public framework::FPSRenderAPP
 {
 private:
 	//暂时不考虑帧率和时间
 	float move_speed = 0.00001f;
 	float camera_speed = 1.f;
 	float scroll_speed = 0.1f;
+	std::shared_ptr<framework::Object> cube;
 public:
-	RenderApp(HINSTANCE hinst) : SoftRasterApp{ hinst } {}
+	RenderApp(HINSTANCE hinst) : FPSRenderAPP{ hinst } {}
 
 protected:
-	void HookInput() override
-	{
-		SoftRasterApp::HookInput();
-		//...
-		dc_wnd.RegisterWndProc(WM_MOUSEMOVE, [&](auto wParam, auto lParam) {
-			const auto& _mouse_state = input_state.mouse_state;
-			if (!_mouse_state.button[0]) return true;
-			if (fabs(_mouse_state.dx < 20) && fabs(_mouse_state.dy) < 20)
-			{
-				using gmath::Utility::Clamp;
-				camera->AddYaw(_mouse_state.dx * camera_speed);
-				camera->AddPitch(Clamp(-_mouse_state.dy * camera_speed, -89.f, 89.f));
-			}
-			return true;
-			});
-		dc_wnd.RegisterWndProc(WM_MOUSEWHEEL, [&](auto wParam, auto lParam) {
-			camera->AddFovy((float)input_state.mouse_state.scroll * scroll_speed);
-			return true;
-			});
-	}
 
 	void Init() override
 	{
@@ -116,50 +97,17 @@ protected:
 		framework::Resource<core::Texture>::Set(L"tex0", std::make_shared<core::Texture>(std::move(tex.value())));
 
 		camera = std::make_shared<framework::FPSCamera>(core::Vec3{ 0,0,5 }, -90.f);
-		auto cube = world.Spawn<Cube>();
+		cube = world.Spawn<Cube>();
 		//...
 	}
 
-	//void Update() override
-	//{
-	//	SoftRasterApp::Update();
-	//}
-
 	void HandleInput() override
 	{
-		SoftRasterApp::HandleInput();
+		FPSRenderAPP::HandleInput();
 
-		core::Vec3 front = camera->GetFront();
-		core::Vec3 right = front.cross({ 0,1,0 }).normalize();
-		core::Vec3 up = right.cross(front).normalize();
-		if (input_state.key['W'])
+		if (input_state.key[' '])
 		{
-			camera->AddPosition(move_speed * front);
+			cube->transform.rotation += core::Vec3{ 1, 1, 1 }*0.01f;
 		}
-		if (input_state.key['S'])
-		{
-			camera->AddPosition(-move_speed * front);
-		}
-		if (input_state.key['A'])
-		{
-			camera->AddPosition(-move_speed * right);
-		}
-		if (input_state.key['D'])
-		{
-			camera->AddPosition(move_speed * right);
-		}
-		if (input_state.key['Q'])
-		{
-			camera->AddPosition(-move_speed * up);
-		}
-		if (input_state.key['E'])
-		{
-			camera->AddPosition(move_speed * up);
-		}
-	}
-
-	void RenderFrame() override
-	{
-		SoftRasterApp::RenderFrame();
 	}
 };
