@@ -197,45 +197,51 @@ namespace sr
 			}
 
 			//渲染第一个三角形
-			Rasterize_LineScanning(polygon);
+			Rasterize_LineScanning(polygon, polygon + 1, polygon + 2);
+			//Rasterize_AABB(polygon, polygon + 1, polygon + 2);
 
 			//渲染后面的三角形
 			for (size_t i = 3; i < len; ++i)
 			{
-				triangle[0] = polygon[0];
-				triangle[1] = polygon[i - 1];
-				triangle[2] = polygon[i];
-				//Rasterize_AABB(triangle);
-				Rasterize_LineScanning(triangle);
+				//Rasterize_AABB(polygon, polygon + i - 1, polygon + i);
+				Rasterize_LineScanning(polygon, polygon + i - 1, polygon + i);
 			}
 		}
 	protected:
 
 		//使用AABB包围盒进行光栅化
-		void Rasterize_AABB(VS_OUT  triangle[3])
+		void Rasterize_AABB(VS_OUT* p1, VS_OUT* p2, VS_OUT* p3)
 		{
+			//获得三角形三个顶点
+			Vec2 p[3] = {
+				p1->position,
+				p2->position,
+				p3->position,
+			};
+
 			//生成AABB包围盒
-			int left = 1e8, right = -1e8, top = 1e8, bottom = -1e8;
+			int left = INT_MAX, right = -INT_MAX, top = -INT_MAX, bottom = INT_MAX;
 
 			for (int i = 0; i < 3; ++i) {
-				if (left > triangle[i].position.x)
+				if (left > p[i].x)
 				{
-					left = (uint32)triangle[i].position.x;
+					left = (int)p[i].x - 1;
 				}
-				else if (right < triangle[i].position.x)
+				if (right < p[i].x)
 				{
-					right = (uint32)triangle[i].position.x + 1;
+					right = (int)p[i].x + 1;
 				}
 
-				if (top < triangle[i].position.y)
+				if (top < p[i].y)
 				{
-					top = (uint32)triangle[i].position.y + 1;
+					top = (int)p[i].y + 1;
 				}
-				else if (bottom > triangle[i].position.y)
+				if (bottom > p[i].y)
 				{
-					bottom = (uint32)triangle[i].position.y;
+					bottom = (int)p[i].y - 1;
 				}
 			}
+
 			using gmath::Utility::Clamp;
 			int w = context.fragment_buffer_view.w;
 			int h = context.fragment_buffer_view.h;
@@ -251,13 +257,13 @@ namespace sr
 			{
 				for (int x = left; x <= right; ++x)
 				{
-					PixelOperate(x, y, triangle);
+					PixelOperate(x, y, p1, p2, p3);
 				}
 			}
 		}
 
 		//使用线扫描的方法
-		void Rasterize_LineScanning(VS_OUT  triangle[3])
+		void Rasterize_LineScanning(VS_OUT* p1, VS_OUT* p2, VS_OUT* p3)
 		{
 			using gmath::Utility::Clamp;
 			//是否隔行扫描
@@ -265,9 +271,9 @@ namespace sr
 
 			//获得三角形三个顶点
 			Vec2 p[3] = {
-				triangle[0].position,
-				triangle[1].position,
-				triangle[2].position,
+				p1->position,
+				p2->position,
+				p3->position,
 			};
 
 			//对三个顶点按y坐标从高到底进行排序
@@ -322,12 +328,12 @@ namespace sr
 
 				for (int x = (int)x1 - 1; x <= (int)x2 + 1; ++x)
 				{
-					PixelOperate(x, (int)y, triangle);
+					PixelOperate(x, (int)y, p1, p2, p3);
 				}
 			}
 		}
 
-		void PixelOperate(int x, int y, VS_OUT triangle[3])
+		void PixelOperate(int x, int y, VS_OUT* p1, VS_OUT* p2, VS_OUT* p3)
 		{
 			using gmath::Utility::Lerp;
 			using gmath::Utility::BlendColor;
@@ -344,7 +350,7 @@ namespace sr
 					Vec3 weight = GetInterpolationWeight(
 						x + (i + 0.5f) / (Mn + 1),
 						y + (j + 0.5f) / (Mn + 1),
-						triangle);
+						p1, p2, p3);
 
 					//三个系数也刚好可以判断点是不是在三角形内
 					if (weight.x > epsilon && weight.y > epsilon && weight.z > epsilon)
@@ -361,15 +367,15 @@ namespace sr
 			}
 
 			//取中心像素的重心坐标
-			Vec3 weight = GetInterpolationWeight(x + 0.5f, y + 0.5f, triangle);
+			Vec3 weight = GetInterpolationWeight(x + 0.5f, y + 0.5f, p1, p2, p3);
 			//对插值进行透视修复
-			weight.x /= triangle[0].position.w;
-			weight.y /= triangle[1].position.w;
-			weight.z /= triangle[2].position.w;
+			weight.x /= p1->position.w;
+			weight.y /= p2->position.w;
+			weight.z /= p3->position.w;
 			weight /= (weight.x + weight.y + weight.z);
 
 			//求插值
-			VS_OUT interp = triangle[0] * weight.x + triangle[1] * weight.y + triangle[2] * weight.z;
+			VS_OUT interp = *p1 * weight.x + *p2 * weight.y + *p3 * weight.z;
 			float depth = 1 / (interp.position.w * interp.position.w);
 			float depth0 = context.depth_buffer_view.Get(x, y);
 
@@ -588,15 +594,15 @@ namespace sr
 		}
 
 		//获取插值
-		Vec3 GetInterpolationWeight(float x, float y, VS_OUT* triangle) const
+		Vec3 GetInterpolationWeight(float x, float y, VS_OUT* p1, VS_OUT* p2, VS_OUT* p3) const
 		{
 			//t*p0+u*p1+v*p2=p, t=1-u-v;
-			float a1 = triangle[1].position.x - triangle[0].position.x;
-			float b1 = triangle[2].position.x - triangle[0].position.x;
-			float c1 = x - triangle[0].position.x;
-			float a2 = triangle[1].position.y - triangle[0].position.y;
-			float b2 = triangle[2].position.y - triangle[0].position.y;
-			float c2 = y - triangle[0].position.y;
+			float a1 = p2->position.x - p1->position.x;
+			float b1 = p3->position.x - p1->position.x;
+			float c1 = x - p1->position.x;
+			float a2 = p2->position.y - p1->position.y;
+			float b2 = p3->position.y - p1->position.y;
+			float c2 = y - p1->position.y;
 			float v = (a1 * c2 - a2 * c1) / (b2 * a1 - a2 * b1);
 			float u = (b2 * c1 - b1 * c2) / (b2 * a1 - a2 * b1);
 			float t = 1 - u - v;
