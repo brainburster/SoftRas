@@ -5,7 +5,7 @@
 #include "world.hpp"
 #include "camera.hpp"
 #include <thread>
-#include <mutex>
+#include <chrono>
 
 namespace framework
 {
@@ -27,6 +27,7 @@ namespace framework
 		virtual void HandleInput() = 0;
 		//‰÷»æ√ø÷°
 		virtual void RenderFrame() = 0;
+		virtual std::chrono::milliseconds GetDeltaTime() const = 0;
 		virtual ~IRenderEngine() = default;
 	};
 
@@ -47,7 +48,8 @@ namespace framework
 			} mouse_state;
 		} input_state;
 		struct APPState {
-			long long time;
+			std::chrono::system_clock::time_point time;
+			std::chrono::milliseconds delta;
 		} app_state;
 		core::DC_WND dc_wnd;
 		core::Context ctx;
@@ -93,6 +95,11 @@ namespace framework
 			return ctx;
 		}
 
+		std::chrono::milliseconds GetDeltaTime() const override
+		{
+			return app_state.delta;
+		}
+
 		const InputState& GetInputeState() const
 		{
 			return input_state;
@@ -103,25 +110,33 @@ namespace framework
 			Init();
 			HookInput();
 
-			std::thread render_thread{ [&]() {
-				while (!dc_wnd.app_should_close())
-				{
-					RenderFrame();
-					ctx.CopyToBuffer(dc_wnd.GetFrameBufferView());
-					dc_wnd.BitBltBuffer();
-				}
-			} };
+			//std::thread render_thread{ [&]() {
+			//	while (!dc_wnd.app_should_close())
+			//	{
+			//		RenderFrame();
+			//		ctx.CopyToBuffer(dc_wnd.GetFrameBufferView());
+			//		dc_wnd.BitBltBuffer();
+			//	}
+			//} };
 
 			while (!dc_wnd.app_should_close())
 			{
 				dc_wnd.PeekMsg();
 				//dc_wnd.GetMsg();
 				//...
+				auto last = app_state.time;
+				app_state.time = std::chrono::system_clock::now();
+				app_state.delta = std::chrono::duration_cast<std::chrono::milliseconds>(app_state.time - last);
+
 				HandleInput();
 				Update();
+
+				RenderFrame();
+				ctx.CopyToBuffer(dc_wnd.GetFrameBufferView());
+				dc_wnd.BitBltBuffer();
 			}
 
-			render_thread.join();
+			//render_thread.join();
 		}
 
 	protected:

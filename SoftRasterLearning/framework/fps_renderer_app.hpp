@@ -7,8 +7,7 @@ namespace framework
 	class FPSRenderAPP : public framework::SoftRasterApp
 	{
 	private:
-		//暂时不考虑帧率和时间
-		float move_speed = 0.00001f;
+		float move_speed = 0.05f;
 		float camera_speed = 1.f;
 		float scroll_speed = 0.1f;
 	public:
@@ -54,29 +53,30 @@ namespace framework
 			core::Vec3 front = camera->GetFront();
 			core::Vec3 right = front.cross({ 0,1,0 }).normalize();
 			core::Vec3 up = right.cross(front).normalize();
+			auto delta = app_state.delta.count();
 			if (input_state.key['W'])
 			{
-				camera->AddPosition(move_speed * front);
+				camera->AddPosition(move_speed * front * delta);
 			}
 			if (input_state.key['S'])
 			{
-				camera->AddPosition(-move_speed * front);
+				camera->AddPosition(-move_speed * front * delta);
 			}
 			if (input_state.key['A'])
 			{
-				camera->AddPosition(-move_speed * right);
+				camera->AddPosition(-move_speed * right * delta);
 			}
 			if (input_state.key['D'])
 			{
-				camera->AddPosition(move_speed * right);
+				camera->AddPosition(move_speed * right * delta);
 			}
 			if (input_state.key['Q'])
 			{
-				camera->AddPosition(-move_speed * up);
+				camera->AddPosition(-move_speed * up * delta);
 			}
 			if (input_state.key['E'])
 			{
-				camera->AddPosition(move_speed * up);
+				camera->AddPosition(move_speed * up * delta);
 			}
 		}
 
