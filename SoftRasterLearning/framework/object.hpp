@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../core/software_renderer.hpp"
+#include "../core/model.hpp"
 #include <memory>
 
 namespace framework

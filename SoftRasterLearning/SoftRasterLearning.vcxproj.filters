@@ -22,6 +22,9 @@
     <Filter Include="头文件\framework">
       <UniqueIdentifier>{22506bba-1f6a-4d15-92f3-6fb1606e1aa5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\render_test">
+      <UniqueIdentifier>{d6c0f5b7-2497-4c2b-ae07-48a4a669df73}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -73,6 +76,9 @@
     </ClInclude>
     <ClInclude Include="framework\resource_manager.hpp">
       <Filter>头文件\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="render_test\render_test_1.hpp">
+      <Filter>头文件\render_test</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

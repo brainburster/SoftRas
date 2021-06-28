@@ -5,6 +5,7 @@
 #include "world.hpp"
 #include "camera.hpp"
 #include <thread>
+#include <mutex>
 
 namespace framework
 {
