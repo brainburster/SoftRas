@@ -77,10 +77,6 @@ public:
 class RenderApp final : public framework::FPSRenderAPP
 {
 private:
-	//暂时不考虑帧率和时间
-	float move_speed = 0.00001f;
-	float camera_speed = 1.f;
-	float scroll_speed = 0.1f;
 	std::shared_ptr<framework::Object> cube;
 public:
 	RenderApp(HINSTANCE hinst) : FPSRenderAPP{ hinst } {}

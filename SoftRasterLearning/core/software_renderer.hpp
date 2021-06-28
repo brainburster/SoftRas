@@ -190,23 +190,23 @@ namespace core
 			}
 
 			//渲染第一个三角形
-			Rasterize_LineScanning(polygon, polygon + 1, polygon + 2);
+			RasterizeTriangle_LineScanning(polygon, polygon + 1, polygon + 2);
 			//Rasterize_AABB(polygon, polygon + 1, polygon + 2);
 
 			//渲染后面的三角形
 			for (size_t i = 3; i < len; ++i)
 			{
 				//Rasterize_AABB(polygon, polygon + i - 1, polygon + i);
-				Rasterize_LineScanning(polygon, polygon + i - 1, polygon + i);
+				RasterizeTriangle_LineScanning(polygon, polygon + i - 1, polygon + i);
 			}
 		}
 	protected:
 
 		//使用AABB包围盒进行光栅化
-		void Rasterize_AABB(VS_OUT* p1, VS_OUT* p2, VS_OUT* p3)
+		void RasterizeTriangle_AABB(VS_OUT* p1, VS_OUT* p2, VS_OUT* p3)
 		{
 			//获得三角形三个顶点
-			Vec2 p[3] = {
+			Vec2 triangle[3] = {
 				p1->position,
 				p2->position,
 				p3->position,
@@ -215,23 +215,23 @@ namespace core
 			//生成AABB包围盒
 			int left = INT_MAX, right = -INT_MAX, top = -INT_MAX, bottom = INT_MAX;
 
-			for (int i = 0; i < 3; ++i) {
-				if (left > p[i].x)
+			for (const auto& p : triangle) {
+				if (left > p.x)
 				{
-					left = (int)p[i].x - 1;
+					left = (int)p.x - 1;
 				}
-				if (right < p[i].x)
+				if (right < p.x)
 				{
-					right = (int)p[i].x + 1;
+					right = (int)p.x + 1;
 				}
 
-				if (top < p[i].y)
+				if (top < p.y)
 				{
-					top = (int)p[i].y + 1;
+					top = (int)p.y + 1;
 				}
-				if (bottom > p[i].y)
+				if (bottom > p.y)
 				{
-					bottom = (int)p[i].y - 1;
+					bottom = (int)p.y - 1;
 				}
 			}
 
@@ -250,13 +250,13 @@ namespace core
 			{
 				for (int x = left; x <= right; ++x)
 				{
-					PixelOperate(x, y, p1, p2, p3);
+					RasterizePixel(x, y, p1, p2, p3);
 				}
 			}
 		}
 
 		//使用线扫描的方法
-		void Rasterize_LineScanning(VS_OUT* p1, VS_OUT* p2, VS_OUT* p3)
+		void RasterizeTriangle_LineScanning(VS_OUT* p1, VS_OUT* p2, VS_OUT* p3)
 		{
 			using gmath::Utility::Clamp;
 			//是否隔行扫描
@@ -321,12 +321,12 @@ namespace core
 
 				for (int x = (int)x1 - 1; x <= (int)x2 + 1; ++x)
 				{
-					PixelOperate(x, (int)y, p1, p2, p3);
+					RasterizePixel(x, (int)y, p1, p2, p3);
 				}
 			}
 		}
 
-		void PixelOperate(int x, int y, VS_OUT* p1, VS_OUT* p2, VS_OUT* p3)
+		void RasterizePixel(int x, int y, VS_OUT* p1, VS_OUT* p2, VS_OUT* p3)
 		{
 			using gmath::Utility::Lerp;
 			using gmath::Utility::BlendColor;

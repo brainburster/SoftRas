@@ -53,7 +53,7 @@ namespace framework
 			core::Vec3 front = camera->GetFront();
 			core::Vec3 right = front.cross({ 0,1,0 }).normalize();
 			core::Vec3 up = right.cross(front).normalize();
-			auto delta = app_state.delta.count();
+			float delta = (float)app_state.delta.count();
 			if (input_state.key['W'])
 			{
 				camera->AddPosition(move_speed * front * delta);
