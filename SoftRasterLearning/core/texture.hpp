@@ -10,8 +10,8 @@ namespace core
 		Vec4 Get(size_t x, size_t y)
 		{
 			using gmath::Utility::Clamp;
-			x = Clamp(x, 0, w);
-			y = Clamp(y, 0, h);
+			x = Clamp(x, 0, w - 1);
+			y = Clamp(y, 0, h - 1);
 
 			size_t i = x * channel + y * w * channel;
 			if (channel == 4)
@@ -23,7 +23,7 @@ namespace core
 			else
 			{
 				return gmath::Vec4<float>{
-					(float)data[i + 2], (float)data[i + 1], (float)data[i], 255
+					(float)data[i], (float)data[i + 1], (float)data[i + 2], 255
 				};
 			}
 		}
@@ -31,7 +31,7 @@ namespace core
 		gmath::Vec4<float> Sampler(gmath::Vec2<float> uv, bool loop = true)
 		{
 			float x = uv.x * w;
-			float y = (1 - uv.y) * h;
+			float y = uv.y * h;
 			auto _x = (int)x;
 			auto _y = (int)y;
 
