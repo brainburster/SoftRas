@@ -7,7 +7,6 @@
 
 namespace wnd
 {
-
 #define $_str(x) #x
 #define $str(x) $_str(x)
 #define $get_location_str() TEXT("\nfile:"$str(__FILE__)"\nfunction:" $str(__FUNCTION__)"\nline:"$str(__LINE__))
@@ -46,7 +45,7 @@ namespace wnd
 		}
 		static MSG& Msg()
 		{
-			static MSG msg = { 0 };
+			static MSG msg = { };
 			return msg;
 		}
 
@@ -99,7 +98,6 @@ namespace wnd
 
 		static void ShowLastError()
 		{
-
 			TCHAR szBuf[128];
 			LPVOID lpMsgBuf;
 			DWORD dw = GetLastError();
@@ -241,7 +239,7 @@ namespace wnd
 			return static_cast<Concrete&>(*this);
 		}
 
-		virtual Concrete& Init()
+		Concrete& Init()
 		{
 			WNDCLASS wc = { 0 };
 			wc.lpfnWndProc = Wnd_Base::WndProc;
@@ -313,5 +311,4 @@ namespace wnd
 	};
 
 	class Wnd_Default : public Wnd<Wnd_Default> {};
-
 }

@@ -31,10 +31,10 @@ namespace wnd
 
 	inline DC_WND::DC_WND(HINSTANCE hinst) :
 		Wnd{ hinst },
-		m_hdc{ NULL },
-		m_hcdc{ NULL },
-		m_bm{ NULL },
-		m_buffer_view{ 0 }
+		m_hdc{ nullptr },
+		m_hcdc{ nullptr },
+		m_bm{ nullptr },
+		m_buffer_view{}
 	{
 	}
 
@@ -93,17 +93,17 @@ namespace wnd
 		if (m_hdc)
 		{
 			::ReleaseDC(m_hwnd, m_hdc);
-			m_hdc = NULL;
+			m_hdc = nullptr;
 		}
 		if (m_hcdc)
 		{
 			::DeleteDC(m_hcdc);
-			m_hcdc = NULL;
+			m_hcdc = nullptr;
 		}
 		if (m_bm)
 		{
 			::DeleteObject(m_bm);
-			m_bm = NULL;
+			m_bm = nullptr;
 		}
 	}
 

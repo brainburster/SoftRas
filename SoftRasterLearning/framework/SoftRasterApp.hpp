@@ -1,7 +1,8 @@
 #pragma once
-#include "core/dc_wnd.hpp"
+#include "../core/dc_wnd.hpp"
+#include "../core/software_renderer.hpp"
 
-class SoftRasterApp : public wnd::DC_WND
+class SoftRasterApp
 {
 private:
 	struct InputState
@@ -17,12 +18,15 @@ private:
 			int scroll;
 		} mouse_state;
 	} input_state;
-
+	wnd::DC_WND dc_wnd;
+	sr::Context ctx;
 	SoftRasterApp(const SoftRasterApp& other) = delete;
 	SoftRasterApp& operator=(const SoftRasterApp& other) = delete;
 public:
-	SoftRasterApp(HINSTANCE hinst) : DC_WND{ hinst }, input_state{} {}
-	SoftRasterApp(SoftRasterApp&& other) noexcept : DC_WND(static_cast<DC_WND&&>(other)), input_state{ other.input_state }
+	SoftRasterApp(HINSTANCE hinst) : dc_wnd{ hinst }, input_state{}
+	{
+	}
+	SoftRasterApp(SoftRasterApp&& other) noexcept : dc_wnd(std::move(other.dc_wnd)), input_state{ other.input_state }
 	{
 	}
 	SoftRasterApp& operator=(SoftRasterApp&& other) noexcept
@@ -39,5 +43,10 @@ public:
 	const InputState& GetInputeState() const
 	{
 		return input_state;
+	}
+
+	void init()
+	{
+		dc_wnd.WndClassName(L"dc_wnd_cls").WndName(L"dc_wnd_wnd").Size(800, 600).AddWndStyle(~WS_MAXIMIZEBOX).Init();
 	}
 };

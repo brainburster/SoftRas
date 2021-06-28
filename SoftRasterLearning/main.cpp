@@ -3,9 +3,9 @@
 #include "loader/bmp_loader.hpp"
 #include "core/buffer_view.hpp"
 #include "core/dc_wnd.hpp"
-#include "software_renderer.hpp"
+#include "core/software_renderer.hpp"
 #include "loader/obj_loader.hpp"
-#include "camera.hpp"
+#include "framework/camera.hpp"
 
 struct Vertex
 {

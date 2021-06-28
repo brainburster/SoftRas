@@ -19,22 +19,19 @@
     <Filter Include="头文件\loader">
       <UniqueIdentifier>{4ad0f507-449b-4c6b-87db-e63cf3aaae5e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\framework">
+      <UniqueIdentifier>{22506bba-1f6a-4d15-92f3-6fb1606e1aa5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="SoftRasterApp.cpp">
-      <Filter>源文件</Filter>
+    <ClCompile Include="framework\SoftRasterApp.cpp">
+      <Filter>头文件\framework</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="camera.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="SoftRasterApp.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="loader\bmp_loader.hpp">
       <Filter>头文件\loader</Filter>
     </ClInclude>
@@ -53,8 +50,14 @@
     <ClInclude Include="core\raw_wnd.hpp">
       <Filter>头文件\core</Filter>
     </ClInclude>
-    <ClInclude Include="software_renderer.hpp">
+    <ClInclude Include="core\software_renderer.hpp">
       <Filter>头文件\core</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\camera.hpp">
+      <Filter>头文件\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\SoftRasterApp.hpp">
+      <Filter>头文件\framework</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
