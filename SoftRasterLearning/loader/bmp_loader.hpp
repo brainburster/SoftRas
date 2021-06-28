@@ -20,7 +20,7 @@ namespace bmp_loader
 	};
 #pragma pack()
 
-	//static_assert(sizeof(BmpHeader) == 14, "the size of bmp header must be 14 bytes");
+	static_assert(sizeof(BmpHeader) == 14, "the size of bmp header must be 14 bytes");
 
 #pragma pack(2)
 	struct BmpInfo
@@ -32,14 +32,14 @@ namespace bmp_loader
 		uint16 bitCount; //1,4,8,16,24,32
 		uint32 compression; //压缩类型
 		uint32 size_image;
-		uint32 xppm; // x分辨率 x pixel per meter
-		uint32 yppm; // y分辨率
+		uint32 xppm; // x 分辨率 x pixel per meter
+		uint32 yppm; // y 分辨率
 		uint32 clrUsed;
 		uint32 clrImportant;
 	};
 #pragma pack()
 
-	//static_assert(sizeof(BmpInfo) == 40, "the size of bmp info must be 40 bytes");
+	static_assert(sizeof(BmpInfo) == 40, "the size of bmp info must be 40 bytes");
 
 	class BmpLoader;
 

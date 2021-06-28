@@ -59,7 +59,7 @@ namespace obj_loader
 				std::vector<Model_Vertex> mesh;
 			};
 
-			Model ParseObj(SV src)
+			Model ParseObjStr(SV src)
 			{
 				IntermediateData data = {};
 
@@ -258,7 +258,7 @@ namespace obj_loader
 
 			if (!obj_file)
 			{
-				throw "can't open obj file";
+				return std::nullopt;
 			}
 
 			obj_file.seekg(0, std::ios::end);
@@ -274,7 +274,7 @@ namespace obj_loader
 
 			ObjParser obj_parser = {};
 
-			return obj_parser.ParseObj(obj_str);
+			return obj_parser.ParseObjStr(obj_str);
 		}
 	}
 };

@@ -27,9 +27,6 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="framework\SoftRasterApp.cpp">
-      <Filter>头文件\framework</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="loader\bmp_loader.hpp">
