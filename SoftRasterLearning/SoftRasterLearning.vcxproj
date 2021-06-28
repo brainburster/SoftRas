@@ -164,7 +164,9 @@
     <ClInclude Include="core\raw_wnd.hpp" />
     <ClInclude Include="core\software_renderer.hpp" />
     <ClInclude Include="framework\camera.hpp" />
+    <ClInclude Include="framework\object.hpp" />
     <ClInclude Include="framework\SoftRasterApp.hpp" />
+    <ClInclude Include="framework\world.hpp" />
     <ClInclude Include="loader\bmp_loader.hpp" />
     <ClInclude Include="loader\obj_loader.hpp" />
   </ItemGroup>

@@ -363,6 +363,16 @@ namespace gmath
 			};
 		}
 
+		static Mat4x4 Translate(const Vec3<T>& v)
+		{
+			return Mat4x4{
+				1.f,0,0,v.x,
+				0,1.f,0,v.y,
+				0,0,1.f,v.z,
+				0,0,0,1.f
+			};
+		}
+
 		//Ðý×ª
 		static Mat4x4 Rotate(T x, T y, T z)
 		{
@@ -384,6 +394,26 @@ namespace gmath
 			};
 		}
 
+		static Mat4x4 Rotate(const Vec3<T>& v)
+		{
+			return Mat4x4{
+			   1.f,0,0,0,
+			   0, cos(v.x), -sin(v.x), 0,
+			   0, sin(v.x), cos(v.x),  0,
+			   0, 0,   0, 1.f
+			} *Mat4x4{
+			   cos(v.y),0,sin(v.y),0,
+			   0,1.f,0,0,
+			   -sin(v.y),0,cos(v.y),0,
+			   0,0,0,1.f
+			} *Mat4x4{
+			   cos(v.z),-sin(v.z),0,0,
+			   sin(v.z),cos(v.z),0,0,
+			   0,0,1.f,0,
+			   0,0,0,1.f
+			};
+		}
+
 		//Ëõ·Å
 		static Mat4x4 Scale(T x, T y, T z)
 		{
@@ -395,7 +425,18 @@ namespace gmath
 			};
 		}
 
-		//view¾ØÕó
+		//Ëõ·Å
+		static Mat4x4 Scale(const Vec3<T>& v)
+		{
+			return Mat4x4{
+				v.x, 0, 0, 0,
+				0, v.y, 0, 0,
+				0, 0, v.z, 0,
+				0, 0, 0, 1
+			};
+		}
+
+		//view ¾ØÕó
 		static Mat4x4 View(const Vec3<T>& position, const Vec3<T>& front, const Vec3<T>& up)
 		{
 			Vec3<T> f = front.normalize();

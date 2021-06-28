@@ -1,15 +1,20 @@
 #pragma once
-
 #include "core/game_math.hpp"
 
-namespace camera
+namespace framework
 {
-	class FPSCamera
+	class ICamera
 	{
 	public:
 		using Vec3 = gmath::Vec3<float>;
 		using Vec2 = gmath::Vec3<float>;
 		using Mat4x4 = gmath::Mat4x4<float>;
+		virtual Mat4x4  GetProjectionViewMatrix() = 0;
+	};
+
+	class FPSCamera : public ICamera
+	{
+	public:
 
 		FPSCamera(Vec3 position = Vec3{ 0,0,0 }, float yaw = -90, float pitch = 0, float aspect = 4.f / 3.f, float fovy = 60, float _near = 0.1, float _far = 1e10) :
 			position{ position },
@@ -22,7 +27,7 @@ namespace camera
 		{
 		}
 
-		Mat4x4 GetProjectionViewMatrix()
+		virtual Mat4x4 GetProjectionViewMatrix() override
 		{
 			using gmath::Utility::radians;
 			Vec3 front = GetFront();

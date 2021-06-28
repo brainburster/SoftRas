@@ -56,5 +56,11 @@
     <ClInclude Include="framework\SoftRasterApp.hpp">
       <Filter>头文件\framework</Filter>
     </ClInclude>
+    <ClInclude Include="framework\world.hpp">
+      <Filter>头文件\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\object.hpp">
+      <Filter>头文件\framework</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
