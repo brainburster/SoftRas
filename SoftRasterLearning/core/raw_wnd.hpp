@@ -99,8 +99,8 @@ namespace core
 
 		static void ShowLastError()
 		{
-			TCHAR szBuf[128];
-			LPVOID lpMsgBuf;
+			TCHAR szBuf[128]{};
+			LPVOID lpMsgBuf = nullptr;
 			DWORD dw = GetLastError();
 			FormatMessage(
 				FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
@@ -137,7 +137,7 @@ namespace core
 
 		Wnd_Base(HINSTANCE hinst) :
 			m_hinst{ hinst },
-			m_hwnd{ 0 },
+			m_hwnd{ NULL },
 			m_width{ 0 },
 			m_height{ 0 },
 			m_wnd_style{ WS_OVERLAPPEDWINDOW & ~WS_THICKFRAME },
@@ -225,17 +225,17 @@ namespace core
 			return m_wnd_style;
 		}
 
-		Concrete& RegisterWndProc(UINT message, const MSG_Handler& wndProc)
+		template<typename callback_t = MSG_Handler>
+		Concrete& RegisterWndProc(UINT message, callback_t&& callback)
 		{
 			const MSG_ID msg_id = { m_hwnd, message };
 			if (MsgMap().find(msg_id) == MsgMap().end())
 			{
-				MsgMap()[msg_id] = wndProc;
+				MsgMap()[msg_id] = std::forward<callback_t>(callback);
 			}
 			else
 			{
-				auto previous = std::move(MsgMap()[msg_id]);
-				MsgMap()[msg_id] = [previous, wndProc](auto a, auto b) {return previous(a, b) && wndProc(a, b); };
+				MsgMap()[msg_id] = [prev{ std::move(MsgMap()[msg_id]) }, curr{ std::forward<callback_t>(callback) }](auto a, auto b)->bool {return prev(a, b) && curr(a, b); };
 			}
 			return static_cast<Concrete&>(*this);
 		}

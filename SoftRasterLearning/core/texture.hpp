@@ -28,14 +28,15 @@ namespace core
 			}
 		}
 
-		gmath::Vec4<float> Sampler(gmath::Vec2<float> uv, bool loop = true)
+		static gmath::Vec4<float> Sampler(Texture* tex, gmath::Vec2<float> uv)
 		{
-			float x = uv.x * w;
-			float y = uv.y * h;
+			if (!tex) return { 0,0,0,1.f };
+			float x = uv.x * tex->w;
+			float y = uv.y * tex->h;
 			auto _x = (int)x;
 			auto _y = (int)y;
 
-			auto color = Get(_x, _y);
+			auto color = tex->Get(_x, _y);
 
 			return gmath::Vec4<float> {
 				color.b / 255.f, color.g / 255.f, color.r / 255.f, color.a / 255.f
