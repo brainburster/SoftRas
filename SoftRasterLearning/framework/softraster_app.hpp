@@ -139,6 +139,13 @@ namespace framework
 			//render_thread.join();
 		}
 
+		//获取组合键信息
+		template<char... VK>
+		static bool IsKeyPressed()
+		{
+			return ((GetKeyState(VK) & 0xF0000000)&&...);
+		}
+
 	protected:
 		//为windwos消息添加回调函数，调用一次
 		void HookInput() override
