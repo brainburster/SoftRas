@@ -191,13 +191,6 @@ namespace loader::obj
 			{
 				auto ret1 = match_4_token(src0);
 
-				if (!ret1.has_value())
-				{
-					return;
-				}
-
-				auto&& [token1, token2, token3, token4, src1] = std::move(ret1.value());
-
 				const char* start = nullptr;
 				char* end = nullptr;
 				auto match_int = [&](const char* p = nullptr) mutable {
@@ -207,17 +200,40 @@ namespace loader::obj
 					return (size_t)strtol(start, &end, 10);
 				};
 
-				size_t a[3] = { match_int(token1.data()),match_int(), match_int() };
-				size_t b[3] = { match_int(token2.data()),match_int(), match_int() };
-				size_t c[3] = { match_int(token3.data()),match_int(), match_int() };
-				size_t d[3] = { match_int(token4.data()),match_int(), match_int() };
+				if (ret1.has_value())
+				{
+					auto&& [token1, token2, token3, token4, src1] = std::move(ret1.value());
 
-				data.mesh.emplace_back(data.position_buffer[a[0] - 1], data.uv_buffer[a[1] - 1], data.normal_buffer[a[2] - 1]);
-				data.mesh.emplace_back(data.position_buffer[b[0] - 1], data.uv_buffer[b[1] - 1], data.normal_buffer[b[2] - 1]);
-				data.mesh.emplace_back(data.position_buffer[c[0] - 1], data.uv_buffer[c[1] - 1], data.normal_buffer[c[2] - 1]);
-				data.mesh.emplace_back(data.position_buffer[d[0] - 1], data.uv_buffer[d[1] - 1], data.normal_buffer[d[2] - 1]);
-				data.mesh.emplace_back(data.position_buffer[a[0] - 1], data.uv_buffer[a[1] - 1], data.normal_buffer[a[2] - 1]);
-				data.mesh.emplace_back(data.position_buffer[c[0] - 1], data.uv_buffer[c[1] - 1], data.normal_buffer[c[2] - 1]);
+					size_t a[3] = { match_int(token1.data()),match_int(), match_int() };
+					size_t b[3] = { match_int(token2.data()),match_int(), match_int() };
+					size_t c[3] = { match_int(token3.data()),match_int(), match_int() };
+					size_t d[3] = { match_int(token4.data()),match_int(), match_int() };
+
+					data.mesh.emplace_back(data.position_buffer[a[0] - 1], data.uv_buffer[a[1] - 1], data.normal_buffer[a[2] - 1]);
+					data.mesh.emplace_back(data.position_buffer[b[0] - 1], data.uv_buffer[b[1] - 1], data.normal_buffer[b[2] - 1]);
+					data.mesh.emplace_back(data.position_buffer[c[0] - 1], data.uv_buffer[c[1] - 1], data.normal_buffer[c[2] - 1]);
+					data.mesh.emplace_back(data.position_buffer[d[0] - 1], data.uv_buffer[d[1] - 1], data.normal_buffer[d[2] - 1]);
+					data.mesh.emplace_back(data.position_buffer[a[0] - 1], data.uv_buffer[a[1] - 1], data.normal_buffer[a[2] - 1]);
+					data.mesh.emplace_back(data.position_buffer[c[0] - 1], data.uv_buffer[c[1] - 1], data.normal_buffer[c[2] - 1]);
+					return;
+				}
+
+				auto ret2 = match_3_token(src0);
+
+				if (ret2.has_value())
+				{
+					auto&& [token1, token2, token3, src1] = std::move(ret2.value());
+
+					size_t a[3] = { match_int(token1.data()),match_int(), match_int() };
+					size_t b[3] = { match_int(token2.data()),match_int(), match_int() };
+					size_t c[3] = { match_int(token3.data()),match_int(), match_int() };
+
+					data.mesh.emplace_back(data.position_buffer[a[0] - 1], data.uv_buffer[a[1] - 1], data.normal_buffer[a[2] - 1]);
+					data.mesh.emplace_back(data.position_buffer[b[0] - 1], data.uv_buffer[b[1] - 1], data.normal_buffer[b[2] - 1]);
+					data.mesh.emplace_back(data.position_buffer[c[0] - 1], data.uv_buffer[c[1] - 1], data.normal_buffer[c[2] - 1]);
+
+					return;
+				}
 			}
 		}
 	};
