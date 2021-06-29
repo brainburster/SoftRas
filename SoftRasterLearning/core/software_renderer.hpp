@@ -54,7 +54,7 @@ namespace core
 
 		void Viewport(size_t w, size_t h, Color color = { 0,0,0,1 })
 		{
-			depth_buffer.resize(w * h, 0);
+			depth_buffer.resize(w * h, -1e40);
 			fragment_buffer.resize(w * h, color);
 
 			fragment_buffer_view = { &fragment_buffer[0],w , h };
@@ -69,7 +69,7 @@ namespace core
 			}
 			for (auto& depth : depth_buffer)
 			{
-				depth = 0;
+				depth = -1e40;
 			}
 		}
 
@@ -91,7 +91,7 @@ namespace core
 	};
 
 	//默认材质
-	class Material_Default
+	class Shader_Default
 	{
 	public:
 		using VS_IN = Vertex_Default;
@@ -108,7 +108,7 @@ namespace core
 	};
 
 	//渲染器类
-	template<typename Material = Material_Default>
+	template<typename Shader = Shader_Default>
 	class Renderer
 	{
 	private:
@@ -123,10 +123,10 @@ namespace core
 		static In get_in_type(R(T::* f)(In)) {}
 
 	public:
-		using VS_IN = std::decay_t<decltype(get_in_type<Material>(std::declval<decltype(&Material::VS)>()))>;
-		using VS_OUT = std::decay_t<decltype(get_in_type<Material>(std::declval<decltype(&Material::FS)>()))>;
+		using VS_IN = std::decay_t<decltype(get_in_type<Shader>(std::declval<decltype(&Shader::VS)>()))>;
+		using VS_OUT = std::decay_t<decltype(get_in_type<Shader>(std::declval<decltype(&Shader::FS)>()))>;
 
-		Renderer(Context& ctx, const Material& m) :
+		Renderer(Context& ctx, const Shader& m) :
 			context{ ctx },
 			material{ m }
 		{
@@ -191,12 +191,12 @@ namespace core
 
 			//渲染第一个三角形
 			RasterizeTriangle_LineScanning(polygon, polygon + 1, polygon + 2);
-			//Rasterize_AABB(polygon, polygon + 1, polygon + 2);
+			//RasterizeTriangle_AABB(polygon, polygon + 1, polygon + 2);
 
 			//渲染后面的三角形
 			for (size_t i = 3; i < len; ++i)
 			{
-				//Rasterize_AABB(polygon, polygon + i - 1, polygon + i);
+				//RasterizeTriangle_AABB(polygon, polygon + i - 1, polygon + i);
 				RasterizeTriangle_LineScanning(polygon, polygon + i - 1, polygon + i);
 			}
 		}
@@ -269,6 +269,29 @@ namespace core
 				p3->position,
 			};
 
+			//生成AABB包围盒
+			int left = INT_MAX, right = -INT_MAX, top = -INT_MAX, bottom = INT_MAX;
+
+			for (const auto& q : p) {
+				if (left > q.x)
+				{
+					left = (int)q.x;
+				}
+				if (right < q.x)
+				{
+					right = (int)q.x;
+				}
+
+				if (top < q.y)
+				{
+					top = (int)q.y;
+				}
+				if (bottom > q.y)
+				{
+					bottom = (int)q.y;
+				}
+			}
+
 			//对三个顶点按y坐标从高到底进行排序
 
 			for (int i = 0; i < 2; ++i)
@@ -288,7 +311,7 @@ namespace core
 			float y2 = Clamp(p[0].y, 0.6f, context.fragment_buffer_view.h - 0.6f);
 
 			//从上到下扫描
-			for (float y = y2 + 0.5f; y >= y1 - 0.5f; --y)
+			for (float y = y2 + 1.f; y >= y1 - 1.f; --y)
 			{
 				//计算出直线 y = y 与 三角形相交2点的x坐标
 
@@ -296,18 +319,20 @@ namespace core
 				//float b = p[0].y - k * p[0].x;
 				//float x1 = ((float)y - b) / k;
 
-				float x1 = (y + 0.5f - p[0].y) * (p[2].x - p[0].x) / (p[2].y - p[0].y) + p[0].x;
+				float x1 = (y + 0.5 - p[0].y) * (p[2].x - p[0].x) / (p[2].y - p[0].y) + p[0].x;
 				float x2 = 0;
 
-				if (y >= p[1].y)
+				if (y + 0.5 > p[1].y)
 				{
-					//y减0.5f是为了矫正斜率
-					x2 = (y - 0.5f - p[0].y) * (p[1].x - p[0].x) / (p[1].y - p[0].y) + p[0].x;
+					x2 = (y + 0.5 - p[0].y) * (p[1].x - p[0].x) / (p[1].y - p[0].y + epsilon) + p[0].x;
 				}
 				else
 				{
-					x2 = (y + 0.5f - p[1].y) * (p[2].x - p[1].x) / (p[2].y - p[1].y) + p[1].x;
+					x2 = (y + 0.5 - p[1].y) * (p[2].x - p[1].x) / (p[2].y - p[1].y + epsilon) + p[1].x;
 				}
+
+				x1 = Clamp(x1, 1, (float)context.fragment_buffer_view.w - 1);
+				x2 = Clamp(x2, 1, (float)context.fragment_buffer_view.w - 1);
 
 				if (x1 > x2)
 				{
@@ -315,9 +340,11 @@ namespace core
 					x1 = x2;
 					x2 = temp;
 				}
-
-				x1 = Clamp(x1, 0, (float)context.fragment_buffer_view.w - 1);
-				x2 = Clamp(x2, 0, (float)context.fragment_buffer_view.w - 1);
+				if (x1 - x2 < epsilon)
+				{
+					x1 = left;
+					x2 = right;
+				}
 
 				for (int x = (int)x1 - 1; x <= (int)x2 + 1; ++x)
 				{
@@ -331,18 +358,20 @@ namespace core
 			using gmath::Utility::Lerp;
 			using gmath::Utility::BlendColor;
 
-			//简单MSAA，不想建simpler
+			//简单MSAA，不想建simpler, 由于没让depth_bufferx4所以覆盖测试不会考虑到相邻三角面，因此会导致出现缝隙
 			float cover_count = 0;
-			float Mn = 2;
+			size_t Mn = 2;
 
-			for (float i = 0; i < Mn; ++i)
+			const Vec2 simpler[4] = { Vec2{-0.35,0.15},Vec2{0.15,-0.35} ,Vec2{0.35,0.15},Vec2{-0.15,-0.35} };
+
+			for (size_t i = 0; i < Mn; ++i)
 			{
-				for (float j = 0; j < Mn; ++j)
+				for (size_t j = 0; j < Mn; ++j)
 				{
 					//对插值系数进行多次采样，而不是多次插值
 					Vec3 weight = GetInterpolationWeight(
-						x + (i + 0.5f) / (Mn + 1),
-						y + (j + 0.5f) / (Mn + 1),
+						x + simpler[i * Mn + j].x,
+						y + simpler[i * Mn + j].y,
 						p1, p2, p3);
 
 					//三个系数也刚好可以判断点是不是在三角形内
@@ -369,11 +398,16 @@ namespace core
 
 			//求插值
 			VS_OUT interp = *p1 * weight.x + *p2 * weight.y + *p3 * weight.z;
-			float depth = 1 / (interp.position.w * interp.position.w);
+			float depth = interp.position.z;
 			float depth0 = context.depth_buffer_view.Get(x, y);
 
 			//深度测试
-			if (!(depth > depth0 - 1e-8f))
+
+			if (fabs(depth - depth0) < 1e-2f)
+			{
+				cover_count = Mn * Mn;
+			}
+			else if (depth < depth0)
 			{
 				return;
 			}
@@ -382,7 +416,7 @@ namespace core
 			Color color0 = context.fragment_buffer_view.Get(x, y);
 
 			//AA上色
-			if ((cover_count < Mn * Mn) && (fabs(depth - depth0) > 1e-8f)) {
+			if ((cover_count < Mn * Mn)) {
 				float a = color.a;
 				color = Lerp(color, color0, cover_count / (Mn * Mn));
 				color.a = a;
@@ -521,7 +555,7 @@ namespace core
 				{
 					VS_OUT q = GetClipIntersection(p1, p2, plane);
 					polygon_out[len_out++] = q;
-					break; //调试了一宿，才发现是忘了break;
+					break;
 				}
 				case 2:
 				{
@@ -604,6 +638,6 @@ namespace core
 
 	protected:
 		Context& context;
-		const Material& material;
+		const Shader& material;
 	};
 }
