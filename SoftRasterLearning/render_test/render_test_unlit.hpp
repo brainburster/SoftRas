@@ -18,14 +18,15 @@ struct Material_Unlit
 
 	Vertex VS(const core::Model_Vertex& v) const
 	{
-		return {
-			mat * core::Vec4{v.position,1.0},
-			core::Vec4(v.normal,1),
-			v.uv
+		return Vertex{
+		   mat * core::Vec4{v.position,1.0f},
+		   core::Vec4(v.normal,1),
+		   v.uv,
+		   v.normal
 		};
 	}
 
-	gmath::Vec4<float> FS(const Vertex& v) const
+	core::Vec4 FS(const Vertex& v) const
 	{
 		return /*v.color +*/ core::Texture::Sampler(tex0, v.uv);
 	}

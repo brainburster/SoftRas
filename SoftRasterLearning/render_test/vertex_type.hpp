@@ -7,13 +7,15 @@ struct Vertex
 	core::Position position;
 	core::Color color;
 	core::Vec2 uv;
+	core::Vec3 normal;
 
 	Vertex operator+(const Vertex& rhs) const
 	{
 		return {
 			position + rhs.position,
 			color + rhs.color,
-			uv + rhs.uv
+			uv + rhs.uv,
+			normal + rhs.normal
 		};
 	}
 
@@ -22,7 +24,8 @@ struct Vertex
 		return {
 			lhs.position * rhs,
 			lhs.color * rhs,
-			lhs.uv * rhs
+			lhs.uv * rhs,
+			lhs.normal * rhs
 		};
 	}
 };

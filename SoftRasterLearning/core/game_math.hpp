@@ -179,6 +179,11 @@ namespace gmath
 			return { lhs.x / rhs,lhs.y / rhs,lhs.z / rhs };
 		}
 
+		friend Vec3 operator*(const Vec3& lhs, const Vec3& rhs)
+		{
+			return { lhs.x * rhs.x,lhs.y * rhs.y,lhs.z * rhs.z };
+		}
+
 		Vec3& operator+=(const Vec3& rhs)
 		{
 			x += rhs.x;
@@ -262,6 +267,11 @@ namespace gmath
 		friend Vec2 operator/(const Vec2& lhs, T rhs)
 		{
 			return { lhs.x / rhs, lhs.y / rhs };
+		}
+
+		friend Vec2 operator*(const Vec2& lhs, const Vec2& rhs)
+		{
+			return { lhs.x * rhs.x,lhs.y * rhs.y };
 		}
 
 		Vec2& operator+=(const Vec2& rhs)
