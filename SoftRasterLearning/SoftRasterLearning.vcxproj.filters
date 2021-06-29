@@ -89,8 +89,8 @@
     <ClInclude Include="render_test\vertex_type.hpp">
       <Filter>头文件\render_test</Filter>
     </ClInclude>
-    <ClInclude Include="render_test\models.hpp">
-      <Filter>头文件\render_test</Filter>
+    <ClInclude Include="framework\material.hpp">
+      <Filter>头文件\framework</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

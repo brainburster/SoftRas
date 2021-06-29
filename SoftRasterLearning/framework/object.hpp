@@ -2,6 +2,7 @@
 
 #include "../core/software_renderer.hpp"
 #include "../core/model.hpp"
+#include "../framework/material.hpp"
 #include <memory>
 
 namespace framework
@@ -12,7 +13,7 @@ namespace framework
 	class IRenderAble
 	{
 	public:
-		virtual void Render(IRenderEngine& engine) = 0;
+		virtual void Render(IRenderEngine* engine) const = 0;
 	};
 
 	//...
@@ -42,5 +43,16 @@ namespace framework
 	{
 	public:
 		std::shared_ptr<core::Model> model;
+	};
+
+	//拥有材质的物体
+	class MaterialEntity : public Entity
+	{
+	public:
+		std::shared_ptr<framework::IMaterial> material;
+		void Render(framework::IRenderEngine* engine) const override
+		{
+			material->Render(this, engine);
+		}
 	};
 };

@@ -90,7 +90,7 @@ namespace core
 		std::vector<float> depth_buffer;
 	};
 
-	//默认材质
+	//默认着色器
 	class Shader_Default
 	{
 	public:
@@ -128,7 +128,7 @@ namespace core
 
 		Renderer(Context& ctx, const Shader& m) :
 			context{ ctx },
-			material{ m }
+			shader{ m }
 		{
 		}
 
@@ -152,9 +152,9 @@ namespace core
 		{
 			//本地空间 => 裁剪空间 clip space
 			VS_OUT triangle[8] = {
-				{ material.VS(*p1) },
-				{ material.VS(*p2) },
-				{ material.VS(*p3) }
+				{ shader.VS(*p1) },
+				{ shader.VS(*p2) },
+				{ shader.VS(*p3) }
 			};
 
 			//简单CVV剔除
@@ -319,20 +319,20 @@ namespace core
 				//float b = p[0].y - k * p[0].x;
 				//float x1 = ((float)y - b) / k;
 
-				float x1 = (y + 0.5 - p[0].y) * (p[2].x - p[0].x) / (p[2].y - p[0].y) + p[0].x;
+				float x1 = (y + 0.5f - p[0].y) * (p[2].x - p[0].x) / (p[2].y - p[0].y) + p[0].x;
 				float x2 = 0;
 
-				if (y + 0.5 > p[1].y)
+				if (y + 0.5f > p[1].y)
 				{
-					x2 = (y + 0.5 - p[0].y) * (p[1].x - p[0].x) / (p[1].y - p[0].y + epsilon) + p[0].x;
+					x2 = (y + 0.5f - p[0].y) * (p[1].x - p[0].x) / (p[1].y - p[0].y + epsilon) + p[0].x;
 				}
 				else
 				{
-					x2 = (y + 0.5 - p[1].y) * (p[2].x - p[1].x) / (p[2].y - p[1].y + epsilon) + p[1].x;
+					x2 = (y + 0.5f - p[1].y) * (p[2].x - p[1].x) / (p[2].y - p[1].y + epsilon) + p[1].x;
 				}
 
-				x1 = Clamp(x1, 1, (float)context.fragment_buffer_view.w - 1);
-				x2 = Clamp(x2, 1, (float)context.fragment_buffer_view.w - 1);
+				x1 = Clamp(x1, 1.f, (float)context.fragment_buffer_view.w - 1.f);
+				x2 = Clamp(x2, 1.f, (float)context.fragment_buffer_view.w - 1.f);
 
 				if (x1 > x2)
 				{
@@ -412,7 +412,7 @@ namespace core
 				return;
 			}
 
-			Color color = material.FS(interp);
+			Color color = shader.FS(interp);
 			Color color0 = context.fragment_buffer_view.Get(x, y);
 
 			//AA上色
@@ -638,6 +638,6 @@ namespace core
 
 	protected:
 		Context& context;
-		const Shader& material;
+		const Shader& shader;
 	};
 }

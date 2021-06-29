@@ -9,7 +9,6 @@
 #include "../framework/fps_renderer_app.hpp"
 #include "../framework/resource_manager.hpp"
 #include "vertex_type.hpp"
-#include "models.hpp"
 
 struct Shader_Unlit
 {
@@ -32,10 +31,24 @@ struct Shader_Unlit
 	}
 };
 
+class Material_Unlit : public framework::IMaterial
+{
+public:
+	std::shared_ptr<core::Texture> tex0;
+	void Render(const framework::Entity* entity, framework::IRenderEngine* engine) override
+	{
+		Shader_Unlit shader{};
+		core::Renderer<Shader_Unlit> renderer = { engine->GetCtx(), shader };
+		shader.tex0 = tex0.get();
+		shader.mat = engine->GetCamera().GetProjectionViewMatrix() * entity->transform.GetModelMatrix();
+		renderer.DrawTriangles(&entity->model->mesh[0], entity->model->mesh.size());
+	}
+};
+
 class RenderTest_Unlit final : public framework::FPSRenderAPP
 {
 private:
-	std::shared_ptr<framework::Object> cube;
+	std::shared_ptr<framework::MaterialEntity> cube;
 public:
 	RenderTest_Unlit(HINSTANCE hinst) : FPSRenderAPP{ hinst } {}
 
@@ -51,7 +64,11 @@ protected:
 		framework::Resource<core::Texture>::Set(L"tex0", std::make_shared<core::Texture>(std::move(tex.value())));
 
 		camera = std::make_shared<framework::FPSCamera>(core::Vec3{ 0,0,5 }, -90.f);
-		cube = world.Spawn<Cube<Shader_Unlit>>();
+		cube = world.Spawn<framework::MaterialEntity>();
+		auto material = std::make_shared <Material_Unlit>();
+		cube->model = framework::GetResource<core::Model>(L"cube").value();
+		cube->material = material;
+		material->tex0 = framework::GetResource<core::Texture>(L"tex0").value();
 		//...
 	}
 

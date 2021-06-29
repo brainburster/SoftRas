@@ -22,7 +22,7 @@ namespace framework
 			return resource;
 		}
 	public:
-		static std::optional<std::shared_ptr<T>> Get(std::wstring name)
+		static std::optional<std::shared_ptr<T>> Get(const std::wstring& name)
 		{
 			auto& data = GetInstance().data;
 			if (data.find(name) == data.end())
@@ -32,10 +32,21 @@ namespace framework
 			return data.at(name);
 		}
 
-		static void Set(std::wstring name, std::shared_ptr<T> resource)
+		static void Set(const std::wstring& name, std::shared_ptr<T> resource)
 		{
 			auto& data = GetInstance().data;
 			data.insert({ name, resource });
 		}
 	};
+	template<typename T>
+	inline void SetResource(const std::wstring& name, std::shared_ptr<T> resource)
+	{
+		Resource<T>::Set(name, resource);
+	}
+
+	template<typename T>
+	inline std::optional<std::shared_ptr<T>> GetResource(const std::wstring& name)
+	{
+		return Resource<T>::Get(name);
+	}
 }

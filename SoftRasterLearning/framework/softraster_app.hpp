@@ -227,7 +227,7 @@ namespace framework
 			ctx.Clear({ 0.4f, 0.6f, 0.2f, 1.f });
 			for (auto& object : world)
 			{
-				object->Render(*this);
+				object->Render(this);
 			}
 		}
 	};
