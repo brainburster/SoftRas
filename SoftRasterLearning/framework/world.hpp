@@ -9,10 +9,12 @@ namespace framework
 	{
 	public:
 		template<typename T>
-		std::shared_ptr<T> Spawn(core::Vec3 t = core::Vec3{ 0,0,0 }, core::Vec3 r = core::Vec3{ 0,0,0 }, core::Vec3 s = core::Vec3{ 1,1 ,1 })
+		std::shared_ptr<T> Spawn(core::Vec3 p = core::Vec3{ 0,0,0 }, core::Vec3 r = core::Vec3{ 0,0,0 }, core::Vec3 s = core::Vec3{ 1, 1 ,1 })
 		{
 			std::shared_ptr<T> object = std::make_shared<T>();
 			everything.push_back(object);
+			object->transform = { p ,r, s };
+
 			return object;
 		}
 

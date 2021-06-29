@@ -9,7 +9,7 @@
 #include "vertex_type.hpp"
 #include "models.hpp"
 
-class Material_Blinn_Phong
+class Shader_Blinn_Phong
 {
 public:
 	core::Mat mat = core::Mat::Unit();
@@ -37,7 +37,7 @@ public:
 		Vec3 N = v.normal.normalize();
 		//Vec3 Ka = Vec3(1, 1, 1);
 		Vec3 Kd = Texture::Sampler(tex0, v.uv);
-		Vec3 Ks = Vec3(1, 1, 1);
+		Vec3 Ks = Vec3(0.5f, 0.6f, 0.6f);
 		Vec3 ambient = Vec3(0.1f, 0.1f, 0.1f);
 		Vec3 diffuse = Kd * light_color * max(N.Dot(L), 0);
 		Vec3 specular = Ks * light_color * (float)pow(max(H.Dot(N), 0), 128);
@@ -49,7 +49,8 @@ public:
 class RenderTest_Blinn_Phong final : public framework::FPSRenderAPP
 {
 private:
-	std::shared_ptr<framework::Object> cube;
+	std::shared_ptr<framework::Object> sphere;
+
 public:
 	RenderTest_Blinn_Phong(HINSTANCE hinst) : FPSRenderAPP{ hinst } {}
 
@@ -59,13 +60,15 @@ protected:
 	{
 		SoftRasterApp::Init();
 
-		auto tex = loader::bmp::LoadFromFile(L".\\resource\\pictures\\tex0.bmp");
-		auto box = loader::obj::LoadFromFile(L".\\resource\\models\\sphere.obj");
-		framework::Resource<core::Model>::Set(L"sphere", std::make_shared<core::Model>(std::move(box.value())));
-		framework::Resource<core::Texture>::Set(L"tex0", std::make_shared<core::Texture>(std::move(tex.value())));
+		auto _tex = loader::bmp::LoadFromFile(L".\\resource\\pictures\\tex0.bmp");
+		auto _sphere = loader::obj::LoadFromFile(L".\\resource\\models\\sphere.obj");
+
+		framework::Resource<core::Model>::Set(L"sphere", std::make_shared<core::Model>(std::move(_sphere.value())));
+		framework::Resource<core::Texture>::Set(L"tex0", std::make_shared<core::Texture>(std::move(_tex.value())));
 
 		camera = std::make_shared<framework::FPSCamera>(core::Vec3{ 0,0,5 }, -90.f);
-		cube = world.Spawn<Sphere<Material_Blinn_Phong>>();
+		sphere = world.Spawn<Sphere<Shader_Blinn_Phong>>();
+
 		//...
 	}
 
@@ -75,7 +78,7 @@ protected:
 
 		if (IsKeyPressed<VK_CONTROL, 'F'>())
 		{
-			cube->transform.rotation += core::Vec3{ 1, 1, 1 }*0.01f;
+			sphere->transform.rotation += core::Vec3{ 1, 1, 1 }*0.01f;
 		}
 	}
 };

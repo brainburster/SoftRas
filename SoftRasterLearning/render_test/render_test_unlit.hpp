@@ -11,7 +11,7 @@
 #include "vertex_type.hpp"
 #include "models.hpp"
 
-struct Material_Unlit
+struct Shader_Unlit
 {
 	core::Mat mat = core::Mat::Unit();
 	core::Texture* tex0 = nullptr;
@@ -51,7 +51,7 @@ protected:
 		framework::Resource<core::Texture>::Set(L"tex0", std::make_shared<core::Texture>(std::move(tex.value())));
 
 		camera = std::make_shared<framework::FPSCamera>(core::Vec3{ 0,0,5 }, -90.f);
-		cube = world.Spawn<Cube<Material_Unlit>>();
+		cube = world.Spawn<Cube<Shader_Unlit>>();
 		//...
 	}
 

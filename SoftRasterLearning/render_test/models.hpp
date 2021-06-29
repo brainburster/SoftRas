@@ -5,7 +5,7 @@
 #include "../framework/resource_manager.hpp"
 #include "../core/texture.hpp"
 
-template<typename Material>
+template<typename Shader>
 class RenderTestModelBase : public framework::Entity
 {
 public:
@@ -13,16 +13,16 @@ public:
 
 	void Render(framework::IRenderEngine& engine) override
 	{
-		Material material{};
-		core::Renderer<Material> renderer = { engine.GetCtx(), material };
+		Shader material{};
+		core::Renderer<Shader> renderer = { engine.GetCtx(), material };
 		material.tex0 = tex0.get();
 		material.mat = engine.GetCamera().GetProjectionViewMatrix() * transform.GetModelMatrix();
 		renderer.DrawTriangles(&model->mesh[0], model->mesh.size());
 	}
 };
 
-template<typename Material>
-class Cube : public RenderTestModelBase<Material>
+template<typename Shader>
+class Cube : public RenderTestModelBase<Shader>
 {
 public:
 	Cube()
@@ -32,8 +32,8 @@ public:
 	}
 };
 
-template<typename Material>
-class  Sphere : public RenderTestModelBase<Material>
+template<typename Shader>
+class  Sphere : public RenderTestModelBase<Shader>
 {
 public:
 	Sphere()
