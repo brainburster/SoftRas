@@ -9,21 +9,11 @@
 
 namespace core
 {
-	//默认的顶点类,只有位置和颜色2个属性
-	struct Vertex_Default
+	//默认的顶点类,只有位置和颜色2个属性, 继承 core::shader_varying_float<T> 则可以作为PS的输入
+	struct Vertex_Default : core::shader_varying_float<Vertex_Default>
 	{
 		Position position;
 		Color color;
-
-		//顶点类需要实现+和*标量, 两个方法
-		Vertex_Default operator+(const Vertex_Default& rhs) const
-		{
-			return { position + rhs.position,color + rhs.color };
-		}
-		friend Vertex_Default operator*(const Vertex_Default& lhs, float rhs)
-		{
-			return { lhs.position * rhs,lhs.color * rhs };
-		}
 	};
 
 	//渲染上下文
@@ -405,7 +395,7 @@ namespace core
 
 			if (fabs(depth - depth0) < 1e-2f)
 			{
-				cover_count = Mn * Mn;
+				cover_count = (float)Mn * Mn;
 			}
 			else if (depth < depth0)
 			{

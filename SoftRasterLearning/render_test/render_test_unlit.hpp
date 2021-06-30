@@ -8,26 +8,26 @@
 #include "../core/software_renderer.hpp"
 #include "../framework/fps_renderer_app.hpp"
 #include "../framework/resource_manager.hpp"
-#include "vertex_type.hpp"
+#include "vs_out_type.hpp"
 
 struct Shader_Unlit
 {
 	core::Mat mat = core::Mat::Unit();
 	core::Texture* tex0 = nullptr;
 
-	Vertex VS(const core::Model_Vertex& v) const
+	VS_OUT_Unlit VS(const core::Model_Vertex& v) const
 	{
-		return Vertex{
-		   mat * core::Vec4{v.position,1.0f},
-		   core::Vec4(v.normal,1),
-		   v.uv,
-		   v.normal
-		};
+		//return VS_OUT_Unlit{ {},
+		//   mat * core::Vec4{v.position,1.0f},
+		//   v.uv,
+		//   v.normal
+		//};
+		return core::CreateVarying<VS_OUT_Unlit>(mat * core::Vec4{ v.position,1.0f }, v.uv, v.normal);
 	}
 
-	core::Vec4 FS(const Vertex& v) const
+	core::Vec4 FS(const VS_OUT_Unlit& v) const
 	{
-		return /*v.color +*/ core::Texture::Sampler(tex0, v.uv);
+		return core::Texture::Sampler(tex0, v.uv);
 	}
 };
 

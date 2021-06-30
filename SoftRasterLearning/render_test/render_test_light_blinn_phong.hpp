@@ -6,7 +6,7 @@
 #include "../framework/resource_manager.hpp"
 #include "../loader/bmp_loader.hpp"
 #include "../loader/obj_loader.hpp"
-#include "vertex_type.hpp"
+#include "vs_out_type.hpp"
 
 class Shader_Blinn_Phong
 {
@@ -17,17 +17,17 @@ public:
 	core::Vec3 light_color = { 1,1,1 };
 	core::Vec3 camera_position = { 0,0,5 };
 
-	Vertex VS(const core::Model_Vertex& v) const
+	VS_OUT_Light VS(const core::Model_Vertex& v) const
 	{
-		return Vertex{
+		return VS_OUT_Light{ {},
 			mat * core::Vec4{v.position,1.0f},
-			core::Vec4(v.normal,1),
+			v.position,
 			v.uv,
 			v.normal
 		};
 	}
 
-	core::Vec4 FS(const Vertex& v) const
+	core::Vec4 FS(const VS_OUT_Light& v) const
 	{
 		using namespace core;
 		Vec3 L = (light_position - v.position).normalize();

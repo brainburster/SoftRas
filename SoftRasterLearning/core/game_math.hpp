@@ -232,7 +232,6 @@ namespace gmath
 
 		Vec2(T v = 0) : x{ v }, y{ v } {}
 		Vec2(T x, T y) : x{ x }, y{ y } {}
-		Vec2() = default;
 		Vec2(const Vec4<T>& vec4) : x{ vec4.x }, y{ vec4.y }{}
 		Vec2(const Vec3<T>& vec3) : x{ vec3.x }, y{ vec3.y }{}
 

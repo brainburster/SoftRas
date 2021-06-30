@@ -177,7 +177,7 @@
     <ClInclude Include="loader\obj_loader.hpp" />
     <ClInclude Include="render_test\render_test_unlit.hpp" />
     <ClInclude Include="render_test\render_test_light_blinn_phong.hpp" />
-    <ClInclude Include="render_test\vertex_type.hpp" />
+    <ClInclude Include="render_test\vs_out_type.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
