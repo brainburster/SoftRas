@@ -102,7 +102,7 @@ namespace core
 	class Renderer
 	{
 	private:
-		//用来萃取顶点着色器的输入类型和输出类型（即像素着色器的输入类型）
+		//用来萃取顶点/像素着色器的输入类型
 		template <typename T, typename R, typename In>
 		static In get_in_type(R(T::* f)(In) const volatile) {}
 		template <typename T, typename R, typename In>
@@ -113,8 +113,8 @@ namespace core
 		static In get_in_type(R(T::* f)(In)) {}
 
 	public:
-		using VS_IN = std::decay_t<decltype(get_in_type<Shader>(std::declval<decltype(&Shader::VS)>()))>;
-		using VS_OUT = std::decay_t<decltype(get_in_type<Shader>(std::declval<decltype(&Shader::FS)>()))>;
+		using attribute_t = std::decay_t<decltype(get_in_type<Shader>(std::declval<decltype(&Shader::VS)>()))>;
+		using varying_t = std::decay_t<decltype(get_in_type<Shader>(std::declval<decltype(&Shader::FS)>()))>;
 
 		Renderer(Context& ctx, const Shader& m) :
 			context{ ctx },
@@ -122,7 +122,7 @@ namespace core
 		{
 		}
 
-		void DrawIndex(VS_IN* data, size_t* index, size_t n)
+		void DrawIndex(attribute_t* data, size_t* index, size_t n)
 		{
 			for (size_t i = 0; i < n; i += 3)
 			{
@@ -130,7 +130,7 @@ namespace core
 			}
 		}
 
-		void DrawTriangles(VS_IN* data, size_t n)
+		void DrawTriangles(attribute_t* data, size_t n)
 		{
 			for (size_t i = 0; i < n; i += 3)
 			{
@@ -138,13 +138,13 @@ namespace core
 			}
 		}
 
-		void DrawTriangle(VS_IN* p1, VS_IN* p2, VS_IN* p3)
+		void DrawTriangle(attribute_t* p0, attribute_t* p1, attribute_t* p2)
 		{
 			//本地空间 => 裁剪空间 clip space
-			VS_OUT triangle[8] = {
+			varying_t triangle[8] = {
+				{ shader.VS(*p0) },
 				{ shader.VS(*p1) },
-				{ shader.VS(*p2) },
-				{ shader.VS(*p3) }
+				{ shader.VS(*p2) }
 			};
 
 			//简单CVV剔除
@@ -152,26 +152,13 @@ namespace core
 			//CVV剔除
 			if (CVVCull(triangle)) return;
 			//CVV裁剪
-			VS_OUT polygon[8] = {};
+			varying_t polygon[8] = {};
 			size_t len = CVVClip(triangle, polygon);
 
 			if (len < 3)
 			{
 				return;
 			}
-
-			//转化为归一化设备坐标ndc
-			for (auto& v : polygon)
-			{
-				//v.position /= v.position.w;
-				v.position.x /= v.position.w;
-				v.position.y /= v.position.w;
-				v.position.z /= v.position.w;
-				//保留w信息
-			}
-
-			//转化为屏幕坐标 screen space
-			TransToScreenSpace(polygon, len);
 
 			//剔除背面(简易剔除)
 			if (IsBackface(polygon))
@@ -180,84 +167,28 @@ namespace core
 			}
 
 			//渲染第一个三角形
-			RasterizeTriangle_LineScanning(polygon, polygon + 1, polygon + 2);
-			//RasterizeTriangle_AABB(polygon, polygon + 1, polygon + 2);
+			RasterizeTriangle(polygon, polygon + 1, polygon + 2);
 
 			//渲染后面的三角形
 			for (size_t i = 3; i < len; ++i)
 			{
-				//RasterizeTriangle_AABB(polygon, polygon + i - 1, polygon + i);
-				RasterizeTriangle_LineScanning(polygon, polygon + i - 1, polygon + i);
+				RasterizeTriangle(polygon, polygon + i - 1, polygon + i);
 			}
 		}
 	protected:
 
-		//使用AABB包围盒进行光栅化
-		void RasterizeTriangle_AABB(VS_OUT* p1, VS_OUT* p2, VS_OUT* p3)
-		{
-			//获得三角形三个顶点
-			Vec2 triangle[3] = {
-				p1->position,
-				p2->position,
-				p3->position,
-			};
-
-			//生成AABB包围盒
-			int left = INT_MAX, right = -INT_MAX, top = -INT_MAX, bottom = INT_MAX;
-
-			for (const auto& p : triangle) {
-				if (left > p.x)
-				{
-					left = (int)p.x - 1;
-				}
-				if (right < p.x)
-				{
-					right = (int)p.x + 1;
-				}
-
-				if (top < p.y)
-				{
-					top = (int)p.y + 1;
-				}
-				if (bottom > p.y)
-				{
-					bottom = (int)p.y - 1;
-				}
-			}
-
-			using gmath::Utility::Clamp;
-			int w = context.fragment_buffer_view.w;
-			int h = context.fragment_buffer_view.h;
-
-			left = Clamp(left, 0, w - 1);
-			right = Clamp(right, 0, w - 1);
-			top = Clamp(top, 0, h - 1);
-			bottom = Clamp(bottom, 0, h - 1);
-
-			//...
-			//光栅化
-			for (int y = bottom; y <= top; ++y)
-			{
-				for (int x = left; x <= right; ++x)
-				{
-					RasterizePixel(x, y, p1, p2, p3);
-				}
-			}
-		}
-
 		//使用线扫描的方法
-		void RasterizeTriangle_LineScanning(VS_OUT* p1, VS_OUT* p2, VS_OUT* p3)
+		void RasterizeTriangle(varying_t* p0, varying_t* p1, varying_t* p2)
 		{
-			using gmath::Utility::Clamp;
-			//是否隔行扫描
-			//float bInterlacing = false;
-
 			//获得三角形三个顶点
 			Vec2 p[3] = {
-				p1->position,
-				p2->position,
-				p3->position,
+				p0->position / p0->position.w,
+				p1->position / p1->position.w,
+				p2->position / p2->position.w,
 			};
+
+			//转化为屏幕坐标 screen space
+			TransToScreenSpace(p, 3);
 
 			//生成AABB包围盒
 			int left = INT_MAX, right = -INT_MAX, top = -INT_MAX, bottom = INT_MAX;
@@ -284,41 +215,43 @@ namespace core
 
 			//对三个顶点按y坐标从高到底进行排序
 
+			Vec2 q[3] = { p[0],p[1],p[2] };
+
 			for (int i = 0; i < 2; ++i)
 			{
 				for (int j = i; j < 3; ++j)
 				{
-					if (p[i].y < p[j].y)
+					if (q[i].y < q[j].y)
 					{
-						Vec2 temp = p[j];
-						p[j] = p[i];
-						p[i] = temp;
+						Vec2 temq = q[j];
+						q[j] = q[i];
+						q[i] = temq;
 					}
 				}
 			}
-
-			float y1 = Clamp(p[2].y, 0.6f, context.fragment_buffer_view.h - 0.6f);
-			float y2 = Clamp(p[0].y, 0.6f, context.fragment_buffer_view.h - 0.6f);
+			using gmath::Utility::Clamp;
+			float y1 = Clamp(q[2].y, 0.6f, context.fragment_buffer_view.h - 0.6f);
+			float y2 = Clamp(q[0].y, 0.6f, context.fragment_buffer_view.h - 0.6f);
 
 			//从上到下扫描
 			for (float y = y2 + 1.f; y >= y1 - 1.f; --y)
 			{
 				//计算出直线 y = y 与 三角形相交2点的x坐标
 
-				//float k = (p[2].y - p[0].y) / (p[2].x - p[0].x);
-				//float b = p[0].y - k * p[0].x;
+				//float k = (q[2].y - q[0].y) / (q[2].x - q[0].x);
+				//float b = q[0].y - k * q[0].x;
 				//float x1 = ((float)y - b) / k;
 
-				float x1 = (y + 0.5f - p[0].y) * (p[2].x - p[0].x) / (p[2].y - p[0].y) + p[0].x;
+				float x1 = (y + 0.5f - q[0].y) * (q[2].x - q[0].x) / (q[2].y - q[0].y) + q[0].x;
 				float x2 = 0;
 
-				if (y + 0.5f > p[1].y)
+				if (y + 0.5f > q[1].y)
 				{
-					x2 = (y + 0.5f - p[0].y) * (p[1].x - p[0].x) / (p[1].y - p[0].y + epsilon) + p[0].x;
+					x2 = (y + 0.5f - q[0].y) * (q[1].x - q[0].x) / (q[1].y - q[0].y) + q[0].x;
 				}
 				else
 				{
-					x2 = (y + 0.5f - p[1].y) * (p[2].x - p[1].x) / (p[2].y - p[1].y + epsilon) + p[1].x;
+					x2 = (y + 0.5f - q[1].y) * (q[2].x - q[1].x) / (q[2].y - q[1].y) + q[1].x;
 				}
 
 				x1 = Clamp(x1, 1.f, (float)context.fragment_buffer_view.w - 1.f);
@@ -326,9 +259,9 @@ namespace core
 
 				if (x1 > x2)
 				{
-					float temp = x1;
+					float temq = x1;
 					x1 = x2;
-					x2 = temp;
+					x2 = temq;
 				}
 				if (x1 - x2 < epsilon)
 				{
@@ -338,16 +271,13 @@ namespace core
 
 				for (int x = (int)x1 - 1; x <= (int)x2 + 1; ++x)
 				{
-					RasterizePixel(x, (int)y, p1, p2, p3);
+					RasterizePixel(x, (int)y, p, p0, p1, p2);
 				}
 			}
 		}
 
-		void RasterizePixel(int x, int y, VS_OUT* p1, VS_OUT* p2, VS_OUT* p3)
+		void RasterizePixel(int x, int y, Vec2* triangle, varying_t* p0, varying_t* p1, varying_t* p2)
 		{
-			using gmath::Utility::Lerp;
-			using gmath::Utility::BlendColor;
-
 			//简单MSAA，不想建simpler, 由于没让depth_bufferx4所以覆盖测试不会考虑到相邻三角面，因此会导致出现缝隙
 			float cover_count = 0;
 			size_t Mn = 2;
@@ -360,9 +290,9 @@ namespace core
 				{
 					//对插值系数进行多次采样，而不是多次插值
 					Vec3 weight = GetInterpolationWeight(
-						x + simpler[i * Mn + j].x,
-						y + simpler[i * Mn + j].y,
-						p1, p2, p3);
+						(float)x + simpler[i * Mn + j].x,
+						(float)y + simpler[i * Mn + j].y,
+						triangle);
 
 					//三个系数也刚好可以判断点是不是在三角形内
 					if (weight.x > epsilon && weight.y > epsilon && weight.z > epsilon)
@@ -379,15 +309,15 @@ namespace core
 			}
 
 			//取中心像素的重心坐标
-			Vec3 weight = GetInterpolationWeight(x + 0.5f, y + 0.5f, p1, p2, p3);
+			Vec3 weight = GetInterpolationWeight(x + 0.5f, y + 0.5f, triangle);
 			//对插值进行透视修复
-			weight.x /= p1->position.w;
-			weight.y /= p2->position.w;
-			weight.z /= p3->position.w;
+			weight.x /= p0->position.w;
+			weight.y /= p1->position.w;
+			weight.z /= p2->position.w;
 			weight /= (weight.x + weight.y + weight.z);
 
 			//求插值
-			VS_OUT interp = *p1 * weight.x + *p2 * weight.y + *p3 * weight.z;
+			varying_t interp = *p0 * weight.x + *p1 * weight.y + *p2 * weight.z;
 			float depth = interp.position.z;
 			float depth0 = context.depth_buffer_view.Get(x, y);
 
@@ -405,6 +335,8 @@ namespace core
 			Color color = shader.FS(interp);
 			Color color0 = context.fragment_buffer_view.Get(x, y);
 
+			using gmath::Utility::Lerp;
+			using gmath::Utility::BlendColor;
 			//AA上色
 			if ((cover_count < Mn * Mn)) {
 				float a = color.a;
@@ -424,7 +356,7 @@ namespace core
 			context.depth_buffer_view.Set(x, y, depth);
 		}
 
-		bool SimpleCull(VS_OUT triangle[3])
+		bool SimpleCull(varying_t triangle[3])
 		{
 			for (size_t i = 0; i < 3; ++i)
 			{
@@ -445,7 +377,7 @@ namespace core
 		}
 
 		//如果三个点都在CVV之外,直接剔除
-		bool CVVCull(VS_OUT triangle[3])
+		bool CVVCull(varying_t triangle[3])
 		{
 			float w0 = triangle[0].position.w;
 			float w1 = triangle[1].position.w;
@@ -474,7 +406,7 @@ namespace core
 			return false;
 		}
 
-		bool IsInside(VS_OUT* p, int plane)
+		bool IsInside(varying_t* p, int plane)
 		{
 			float x = p->position.x;
 			float y = p->position.y;
@@ -494,18 +426,18 @@ namespace core
 			return false;
 		}
 
-		VS_OUT GetClipIntersection(VS_OUT* p1, VS_OUT* p2, int plane)
+		varying_t GetClipIntersection(varying_t* p0, varying_t* p1, int plane)
 		{
 			//Q[x,y,z,w] = P1[x1,y1,z1,w1] + (P2[x2,y2,z2,w2] - P1[x1,y1,z1,w1]) * t
 			float t = 0;
-			float x1 = p1->position.x;
-			float x2 = p2->position.x;
-			float y1 = p1->position.y;
-			float y2 = p2->position.y;
-			float z1 = p1->position.z;
-			float z2 = p2->position.z;
-			float w1 = p1->position.w;
-			float w2 = p2->position.w;
+			float x1 = p0->position.x;
+			float x2 = p1->position.x;
+			float y1 = p0->position.y;
+			float y2 = p1->position.y;
+			float z1 = p0->position.z;
+			float z2 = p1->position.z;
+			float w1 = p0->position.w;
+			float w2 = p1->position.w;
 
 			switch (plane)
 			{
@@ -518,45 +450,45 @@ namespace core
 			case 'y>-w': t = -(w1 + y1) / ((y2 - y1) + (w2 - w1)); break;
 			}
 
-			return (*p1) * (1 - t) + (*p2) * t;
+			return (*p0) * (1 - t) + (*p1) * t;
 		}
 
-		size_t ClipAgainstPlane(VS_OUT* polygon_in, size_t len, VS_OUT* polygon_out, int plane)
+		size_t ClipAgainstPlane(varying_t* polygon_in, size_t len, varying_t* polygon_out, int plane)
 		{
 			size_t len_out = 0;
 			for (size_t i = 0; i < len; ++i)
 			{
-				VS_OUT* p1 = polygon_in + i;
-				VS_OUT* p2 = polygon_in + ((i + 1) % len);
+				varying_t* p0 = polygon_in + i;
+				varying_t* p1 = polygon_in + ((i + 1) % len);
 				//sutherland_hodgman算法
-				//检查p1, p2 是否在内侧,
+				//检查p0, p1 是否在内侧,
+				int b_p0_inside = IsInside(p0, plane);
 				int b_p1_inside = IsInside(p1, plane);
-				int b_p2_inside = IsInside(p2, plane);
-				int sh_flag = b_p2_inside << 1 | b_p1_inside;
+				int sh_flag = b_p1_inside << 1 | b_p0_inside;
 
-				//0: 如果, p1在外侧, p2在外侧, 什么都不做
-				//1: 如果, p1在内侧, p2在外侧, 求交点q,  add q
-				//2: 如果, p1在外侧, p2在内侧, 求交点q， add q, p2
-				//3: 如果, p1、p2都在内测, add p2
+				//0: 如果, p0在外侧, p1在外侧, 什么都不做
+				//1: 如果, p0在内侧, p1在外侧, 求交点q,  add q
+				//2: 如果, p0在外侧, p1在内侧, 求交点q， add q, p1
+				//3: 如果, p0、p1都在内测, add p1
 
 				switch (sh_flag)
 				{
 				case 1:
 				{
-					VS_OUT q = GetClipIntersection(p1, p2, plane);
+					varying_t q = GetClipIntersection(p0, p1, plane);
 					polygon_out[len_out++] = q;
 					break;
 				}
 				case 2:
 				{
-					VS_OUT q = GetClipIntersection(p1, p2, plane);
+					varying_t q = GetClipIntersection(p0, p1, plane);
 					polygon_out[len_out++] = q;
-					polygon_out[len_out++] = *p2;
+					polygon_out[len_out++] = *p1;
 					break;
 				}
 				case 3:
 				{
-					polygon_out[len_out++] = *p2;
+					polygon_out[len_out++] = *p1;
 					break;
 				}
 				};
@@ -565,7 +497,7 @@ namespace core
 		}
 
 		//三角形与CVV相交, 裁剪并计算插值
-		size_t CVVClip(VS_OUT* polygon_in, VS_OUT* polygon_out)
+		size_t CVVClip(varying_t* polygon_in, varying_t* polygon_out)
 		{
 			size_t len = 3;
 			len = ClipAgainstPlane(polygon_in, len, polygon_out, 'z>0');
@@ -578,7 +510,7 @@ namespace core
 			return len;
 		}
 
-		void TransToScreenSpace(VS_OUT* polygon, size_t len) const
+		void TransToScreenSpace(varying_t* polygon, size_t len) const
 		{
 			for (int i = 0; i < len; ++i)
 			{
@@ -592,7 +524,21 @@ namespace core
 			}
 		}
 
-		bool IsBackface(VS_OUT* triangle) const
+		void TransToScreenSpace(Vec2* triangle, size_t len) const
+		{
+			for (int i = 0; i < len; ++i)
+			{
+				auto& p = triangle[i];
+				p.x /= 2.f;
+				p.y /= 2.f;
+				p.x += 0.5f;
+				p.y += 0.5f;
+				p.x *= context.fragment_buffer_view.w;
+				p.y *= context.fragment_buffer_view.h;
+			}
+		}
+
+		bool IsBackface(varying_t* triangle) const
 		{
 			Vec2 a = triangle[1].position - triangle[0].position;
 			Vec2 b = triangle[2].position - triangle[1].position;
@@ -600,7 +546,7 @@ namespace core
 			return a.cross(b) < 0;//&& b.cross(c) > 0 && c.cross(a) > 0;
 		}
 
-		bool IsPointInTriangle2D(float x, float y, VS_OUT* triangle) const
+		bool IsPointInTriangle2D(float x, float y, varying_t* triangle) const
 		{
 			Vec2 p = { x,y };
 			Vec2 pa = (Vec2)triangle[0].position - p;
@@ -611,15 +557,15 @@ namespace core
 		}
 
 		//获取插值
-		Vec3 GetInterpolationWeight(float x, float y, VS_OUT* p1, VS_OUT* p2, VS_OUT* p3) const
+		Vec3 GetInterpolationWeight(float x, float y, Vec2* triangle) const
 		{
-			//t*p0+u*p1+v*p2=p, t=1-u-v;
-			float a1 = p2->position.x - p1->position.x;
-			float b1 = p3->position.x - p1->position.x;
-			float c1 = x - p1->position.x;
-			float a2 = p2->position.y - p1->position.y;
-			float b2 = p3->position.y - p1->position.y;
-			float c2 = y - p1->position.y;
+			//t*p0+u*p0+v*p1=p, t=1-u-v;
+			float a1 = triangle[1].x - triangle[0].x;
+			float b1 = triangle[2].x - triangle[0].x;
+			float c1 = x - triangle[0].x;
+			float a2 = triangle[1].y - triangle[0].y;
+			float b2 = triangle[2].y - triangle[0].y;
+			float c2 = y - triangle[0].y;
 			float v = (a1 * c2 - a2 * c1) / (b2 * a1 - a2 * b1);
 			float u = (b2 * c1 - b1 * c2) / (b2 * a1 - a2 * b1);
 			float t = 1 - u - v;
