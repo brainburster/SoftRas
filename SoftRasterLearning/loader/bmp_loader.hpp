@@ -3,6 +3,7 @@
 #include <fstream>
 #include <optional>
 #include "core/texture.hpp"
+#include <algorithm>
 
 namespace loader::bmp
 {
@@ -57,16 +58,34 @@ namespace loader::bmp
 			return std::nullopt;
 		}
 
-		core::Texture bitmap;
+		core::Texture texture;
 
-		bitmap.w = bmp_info.width;
-		bitmap.h = bmp_info.height;
-		bitmap.channel = bmp_info.bitCount == 32 ? 4 : 3;
+		texture.w = bmp_info.width;
+		texture.h = bmp_info.height;
+		size_t channel = bmp_info.bitCount == 32 ? 4 : 3;
+		size_t size = texture.w * texture.h;
+		size_t size_of_byte = size * channel;
+		texture.data.resize(size, 0);
 
-		bitmap.data.resize(bitmap.w * bitmap.h * bitmap.channel);
+		std::vector<core::uint8> buffer{};
+		buffer.resize(size_of_byte, 0);
+		bmp_file.read((char*)&buffer[0], buffer.size());
 
-		bmp_file.read((char*)&bitmap.data[0], bitmap.data.size());
+		//std::transform(buffer.begin(), buffer.end(), bitmap.data.begin(), [](core::uint8 color)->float {
+		//	return (float)color / 255.f;
+		//	}
+		//);
 
-		return bitmap;
+		for (size_t i = 0; i < size; ++i)
+		{
+			texture.data[i] = core::Vec4{
+				(float)buffer[i * channel] / 255,
+				(float)buffer[i * channel + 1] / 255,
+				(float)buffer[i * channel + 2] / 255,
+				(channel < 4) ? (1.f) : ((float)buffer[i * channel + 3] / 255)
+			};
+		}
+
+		return texture;
 	}
 }
