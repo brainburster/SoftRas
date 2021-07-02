@@ -10,10 +10,15 @@ namespace framework
 		using Vec3 = gmath::Vec3<float>;
 		using Vec2 = gmath::Vec3<float>;
 		using Mat4x4 = gmath::Mat4x4<float>;
-		virtual Mat4x4  GetProjectionViewMatrix() const = 0;
+
+		virtual Mat4x4 GetProjectionViewMatrix() const = 0;
+		virtual Mat4x4 GetProjectionwMatrix() const = 0;
+		virtual Mat4x4 GetViewMatrix() const = 0;
+
 		virtual Vec3 GetFront() const = 0;
 		virtual void SetPosition(Vec3) = 0;
 		virtual void AddPosition(Vec3) = 0;
+		virtual Vec3 GetPosition() const = 0;
 		virtual void SetYawPitch(float, float) = 0;
 		virtual void AddYaw(float) = 0;
 		virtual void AddPitch(float) = 0;
@@ -85,6 +90,25 @@ namespace framework
 		{
 			this->fovy += fovy;
 			this->fovy = gmath::Utility::Clamp(this->fovy, 1.f, 179.f);
+		}
+
+		Mat4x4 GetProjectionwMatrix() const override
+		{
+			using gmath::Utility::radians;
+			return Mat4x4::Projection(radians(fovy), aspect, _near, _far);
+		}
+
+		Mat4x4 GetViewMatrix() const override
+		{
+			Vec3 front = GetFront();
+			Vec3 right = front.cross({ 0,1,0 });
+			Vec3 up = right.cross(front);
+			return Mat4x4::View(position, front, up);
+		}
+
+		Vec3 GetPosition() const override
+		{
+			return position;
 		}
 
 	private:

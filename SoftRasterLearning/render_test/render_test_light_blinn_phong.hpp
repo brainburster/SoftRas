@@ -6,40 +6,44 @@
 #include "../framework/resource_manager.hpp"
 #include "../loader/bmp_loader.hpp"
 #include "../loader/obj_loader.hpp"
-#include "vs_out_type.hpp"
+#include "varying_type.hpp"
 
+//世界空间 blinn_phong 着色器
 class Shader_Blinn_Phong
 {
 public:
-	core::Mat mat = core::Mat::Unit();
+	core::Mat mvp = core::Mat::Unit();
+	core::Mat m = core::Mat::Unit();
 	core::Texture* tex0 = nullptr;
-	core::Vec3 light_position = { 0,10,0 };
+	core::Vec3 light_position_ws = { 0,10,0 };
 	core::Vec3 light_color = { 1,1,1 };
-	core::Vec3 camera_position = { 0,0,5 };
+	core::Vec3 camera_position_ws = { 0,0,5 };
 
-	VS_OUT_Light VS(const core::Model_Vertex& v) const
+	Varying_Light VS(const core::Model_Vertex& v) const
 	{
-		return VS_OUT_Light{ {},
-			mat * core::Vec4{v.position,1.0f},
+		return core::CreateVarying<Varying_Light>(
+			mvp * v.position,
 			v.position,
+			m * v.position,
 			v.uv,
-			v.normal
-		};
+			v.normal,
+			m * core::Vec4(v.normal, 0.0f)
+			);
 	}
 
-	core::Vec4 FS(const VS_OUT_Light& v) const
+	core::Vec4 FS(const Varying_Light& v) const
 	{
 		using namespace core;
-		Vec3 L = (light_position - v.position).normalize();
-		Vec3 V = (camera_position - v.position).normalize();
+		Vec3 L = (light_position_ws - v.position_ws).normalize();
+		Vec3 V = (camera_position_ws - v.position_ws).normalize();
 		Vec3 H = (L + V).normalize();
-		Vec3 N = v.normal.normalize();
+		Vec3 N = v.normal_ws.normalize();
 		//Vec3 Ka = Vec3(1, 1, 1);
 		Vec3 Kd = Texture::Sampler(tex0, v.uv);
 		Vec3 Ks = Vec3(0.5f, 0.6f, 0.6f);
-		Vec3 ambient = Vec3(0.1f, 0.1f, 0.1f);
+		Vec3 ambient = Vec3(0.2f, 0.2f, 0.2f);
 		Vec3 diffuse = Kd * light_color * max(N.Dot(L), 0);
-		Vec3 specular = Ks * light_color * (float)pow(max(H.Dot(N), 0), 128);
+		Vec3 specular = Ks * light_color * (float)pow(max(N.Dot(H), 0), 64);
 		Vec3 color = ambient + diffuse + specular;
 		return Vec4{ color, 1.f };
 	}
@@ -54,7 +58,11 @@ public:
 		Shader_Blinn_Phong shader{};
 		core::Renderer<Shader_Blinn_Phong> renderer = { engine->GetCtx(), shader };
 		shader.tex0 = tex0.get();
-		shader.mat = engine->GetCamera().GetProjectionViewMatrix() * entity->transform.GetModelMatrix();
+		shader.mvp = engine->GetCamera().GetProjectionViewMatrix() * entity->transform.GetModelMatrix();
+		shader.m = entity->transform.GetModelMatrix();
+		shader.light_position_ws = core::Vec3{ -1.f,2.f,3.f };//engine->GetCamera().GetPosition();
+		shader.camera_position_ws = engine->GetCamera().GetPosition();
+
 		renderer.DrawTriangles(&entity->model->mesh[0], entity->model->mesh.size());
 	}
 };
@@ -78,7 +86,7 @@ protected:
 		framework::SetResource(L"sphere", std::make_shared<core::Model>(std::move(_sphere.value())));
 		framework::SetResource(L"tex0", std::make_shared<core::Texture>(std::move(_tex.value())));
 
-		camera = std::make_shared<framework::FPSCamera>(core::Vec3{ 0,0,5 }, -90.f);
+		camera = std::make_shared<framework::FPSCamera>(core::Vec3{ 0,0,5.f }, -90.f);
 		sphere = world.Spawn<framework::MaterialEntity>();
 		sphere->model = framework::GetResource<core::Model>(L"sphere").value();
 		auto material_blinn_phong = std::make_shared<Material_Blinn_Phong>();
@@ -91,9 +99,15 @@ protected:
 	{
 		FPSRenderAPP::HandleInput();
 
+		if (IsKeyPressed<VK_CONTROL, 'R'>())
+		{
+			sphere->transform.rotation += core::Vec3{ 0, 0, 1 }*0.05f;
+		}
 		if (IsKeyPressed<VK_CONTROL, 'F'>())
 		{
-			sphere->transform.rotation += core::Vec3{ 1, 1, 1 }*0.01f;
+			static size_t count = 0;
+			sphere->transform.position = core::Vec3{ (cos(count / 500.f) - 1) * 2,0,  (sin(count / 500.f) - 1) * 2 };
+			count += app_state.delta_count;
 		}
 	}
 };

@@ -50,6 +50,8 @@ namespace framework
 		struct APPState {
 			std::chrono::system_clock::time_point time;
 			std::chrono::milliseconds delta;
+			size_t delta_count;
+			size_t frame_count;
 		} app_state;
 		core::DC_WND dc_wnd;
 		core::Context ctx;
@@ -127,6 +129,8 @@ namespace framework
 				auto last = app_state.time;
 				app_state.time = std::chrono::system_clock::now();
 				app_state.delta = std::chrono::duration_cast<std::chrono::milliseconds>(app_state.time - last);
+				app_state.delta_count = app_state.delta.count();
+				app_state.frame_count++;
 
 				HandleInput();
 				Update();

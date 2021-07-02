@@ -160,12 +160,6 @@ namespace core
 				return;
 			}
 
-			//剔除背面(简易剔除)
-			if (IsBackface(polygon))
-			{
-				return;
-			}
-
 			//渲染第一个三角形
 			RasterizeTriangle(polygon, polygon + 1, polygon + 2);
 
@@ -180,7 +174,7 @@ namespace core
 		//使用线扫描的方法
 		void RasterizeTriangle(varying_t* p0, varying_t* p1, varying_t* p2)
 		{
-			//获得三角形三个顶点
+			//获得ndc下的三角形三个顶点 (clip space => ndc)
 			Vec2 p[3] = {
 				p0->position / p0->position.w,
 				p1->position / p1->position.w,
@@ -189,6 +183,12 @@ namespace core
 
 			//转化为屏幕坐标 screen space
 			TransToScreenSpace(p, 3);
+
+			//剔除
+			if (IsBackface(p))
+			{
+				return;
+			}
 
 			//生成AABB包围盒
 			int left = INT_MAX, right = -INT_MAX, top = -INT_MAX, bottom = INT_MAX;
@@ -278,38 +278,45 @@ namespace core
 
 		void RasterizePixel(int x, int y, Vec2* triangle, varying_t* p0, varying_t* p1, varying_t* p2)
 		{
-			//简单MSAA，不想建simpler, 由于没让depth_bufferx4所以覆盖测试不会考虑到相邻三角面，因此会导致出现缝隙
-			float cover_count = 0;
-			size_t Mn = 2;
+			////简单MSAA，不想建simpler, 由于没让depth_bufferx4所以覆盖测试不会考虑到相邻三角面，因此会导致出现缝隙
+			//float cover_count = 0;
+			//size_t Mn = 1;
 
-			const Vec2 simpler[4] = { Vec2{-0.35,0.15},Vec2{0.15,-0.35} ,Vec2{0.35,0.15},Vec2{-0.15,-0.35} };
+			//const Vec2 simpler[4] = { Vec2{-0.35f,0.15f},Vec2{0.15f,-0.35f} ,Vec2{0.35f,0.15f},Vec2{-0.15f,-0.35f} };
 
-			for (size_t i = 0; i < Mn; ++i)
-			{
-				for (size_t j = 0; j < Mn; ++j)
-				{
-					//对插值系数进行多次采样，而不是多次插值
-					Vec3 weight = GetInterpolationWeight(
-						(float)x + simpler[i * Mn + j].x,
-						(float)y + simpler[i * Mn + j].y,
-						triangle);
+			//for (size_t i = 0; i < Mn; ++i)
+			//{
+			//	for (size_t j = 0; j < Mn; ++j)
+			//	{
+			//		//对插值系数进行多次采样，而不是多次插值
+			//		Vec3 weight = GetInterpolationWeight(
+			//			(float)x + simpler[i * Mn + j].x,
+			//			(float)y + simpler[i * Mn + j].y,
+			//			triangle);
 
-					//三个系数也刚好可以判断点是不是在三角形内
-					if (weight.x > epsilon && weight.y > epsilon && weight.z > epsilon)
-					{
-						++cover_count;
-					}
-				}
-			}
+			//		//三个系数也刚好可以判断点是不是在三角形内
+			//		if (weight.x > epsilon && weight.y > epsilon && weight.z > epsilon)
+			//		{
+			//			++cover_count;
+			//		}
+			//	}
+			//}
 
-			//覆盖测试
-			if (!cover_count)
+			////覆盖测试
+			//if (!cover_count)
+			//{
+			//	return;
+			//}
+
+			//取中心像素的重心坐标
+			Vec3 weight = GetInterpolationWeight(x + 0.5f, y + 0.5f, triangle);
+
+			//判断是否在三角形内
+			if (weight.x < epsilon || weight.y < epsilon || weight.z < epsilon)
 			{
 				return;
 			}
 
-			//取中心像素的重心坐标
-			Vec3 weight = GetInterpolationWeight(x + 0.5f, y + 0.5f, triangle);
 			//对插值进行透视修复
 			weight.x /= p0->position.w;
 			weight.y /= p1->position.w;
@@ -323,11 +330,12 @@ namespace core
 
 			//深度测试
 
-			if (fabs(depth - depth0) < 1e-2f)
-			{
-				cover_count = (float)Mn * Mn;
-			}
-			else if (depth < depth0)
+			//if (fabs(depth - depth0) < 1e-2f)
+			//{
+			//	cover_count = (float)Mn * Mn;
+			//}
+			//else
+			if (depth < depth0)
 			{
 				return;
 			}
@@ -337,15 +345,16 @@ namespace core
 
 			using gmath::Utility::Lerp;
 			using gmath::Utility::BlendColor;
-			//AA上色
-			if ((cover_count < Mn * Mn)) {
-				float a = color.a;
-				color = Lerp(color, color0, cover_count / (Mn * Mn));
-				color.a = a;
-			}
+
+			////AA上色
+			//if ((cover_count < Mn * Mn)) {
+			//	float a = color.a;
+			//	color = Lerp(color, color0, cover_count / (Mn * Mn));
+			//	color.a = a;
+			//}
 
 			//颜色混合
-			if (color.a < 0.99999f)
+			if (color.a < 1.f - epsilon)
 			{
 				color = BlendColor(color0, color);
 			}
@@ -538,10 +547,10 @@ namespace core
 			}
 		}
 
-		bool IsBackface(varying_t* triangle) const
+		bool IsBackface(Vec2* triangle) const
 		{
-			Vec2 a = triangle[1].position - triangle[0].position;
-			Vec2 b = triangle[2].position - triangle[1].position;
+			Vec2 a = triangle[1] - triangle[0];
+			Vec2 b = triangle[2] - triangle[1];
 			//Vec2 c = triangle[0].position - triangle[2].position;
 			return a.cross(b) < 0;//&& b.cross(c) > 0 && c.cross(a) > 0;
 		}

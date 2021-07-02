@@ -93,7 +93,7 @@ namespace gmath
 			return x * rhs.x + y * rhs.y + z * rhs.z + w * rhs.w;
 		}
 
-		Vec4 normalize()
+		Vec4 normalize() const
 		{
 			return { x / w,y / w,z / w, 1 };
 		}
@@ -348,6 +348,17 @@ namespace gmath
 					data[4] * rhs.x + data[5] * rhs.y + data[6] * rhs.z + data[7] * rhs.w,
 					data[8] * rhs.x + data[9] * rhs.y + data[10] * rhs.z + data[11] * rhs.w,
 					data[12] * rhs.x + data[13] * rhs.y + data[14] * rhs.z + data[15] * rhs.w,
+			};
+		}
+
+		//³ËÏòÁ¿
+		Vec4<T> operator*(const Vec3<T>& rhs) const
+		{
+			return Vec4<T>{
+				data[0] * rhs.x + data[1] * rhs.y + data[2] * rhs.z + data[3],
+					data[4] * rhs.x + data[5] * rhs.y + data[6] * rhs.z + data[7],
+					data[8] * rhs.x + data[9] * rhs.y + data[10] * rhs.z + data[11],
+					data[12] * rhs.x + data[13] * rhs.y + data[14] * rhs.z + data[15],
 			};
 		}
 
