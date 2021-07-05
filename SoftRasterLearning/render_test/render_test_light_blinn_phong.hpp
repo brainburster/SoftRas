@@ -16,7 +16,7 @@ public:
 	core::Mat m = core::Mat::Unit();
 	core::Texture* tex0 = nullptr;
 	core::Vec3 light_position_ws = { 0,10,0 };
-	core::Vec3 light_color = { 1,1,1 };
+	core::Vec3 light_color = { 2,2,2 };
 	core::Vec3 camera_position_ws = { 0,0,5 };
 
 	Varying_Light VS(const core::Model_Vertex& v) const
@@ -40,11 +40,11 @@ public:
 		Vec3 N = v.normal_ws.normalize();
 		//Vec3 Ka = Vec3(1, 1, 1);
 		Vec3 Kd = Texture::Sampler(tex0, v.uv);
-		Vec3 Ks = Vec3(0.5f, 0.6f, 0.6f);
-		Vec3 ambient = Vec3(0.2f, 0.2f, 0.2f);
+		Vec3 Ks = Vec3(0.3f, 0.3f, 0.3f);
+		Vec3 ambient = Vec3(0.01f, 0.01f, 0.01f);
 		Vec3 diffuse = Kd * light_color * max(N.Dot(L), 0);
-		Vec3 specular = Ks * light_color * (float)pow(max(N.Dot(H), 0), 64);
-		Vec3 color = ambient + diffuse + specular;
+		Vec3 specular = Ks * light_color * (float)pow(max(N.Dot(H), 0), 32);
+		Vec3 color = ambient + diffuse / core::pi + ((32 + 8) / (8 * core::pi)) * specular;
 		return Vec4{ color, 1.f };
 	}
 };

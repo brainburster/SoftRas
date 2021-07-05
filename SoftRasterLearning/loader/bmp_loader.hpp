@@ -38,7 +38,7 @@ namespace loader::bmp
 
 	static_assert(sizeof(BmpInfo) == 40, "the size of bmp info must be 40 bytes");
 
-	std::optional<core::Texture> LoadFromFile(const wchar_t* file_path)
+	std::optional<core::Texture> LoadFromFile(const wchar_t* file_path, bool b_gamma_conrrection = true)
 	{
 		std::ifstream bmp_file;
 		bmp_file.open(file_path, std::ios::binary | std::ios::in);
@@ -86,6 +86,17 @@ namespace loader::bmp
 			};
 		}
 
+		if (b_gamma_conrrection) {
+			std::transform(texture.data.begin(), texture.data.end(), texture.data.begin(),
+				[](core::Vec4 color) {
+					return core::Vec4{
+					   pow(color.r, 2.2f),  //从伽马空间映射到线性空间
+					   pow(color.g, 2.2f),
+					   pow(color.b, 2.2f),
+					   pow(color.a, 2.2f),
+					};
+				});
+		}
 		return texture;
 	}
 }

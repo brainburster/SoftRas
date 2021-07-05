@@ -37,7 +37,7 @@ namespace core
 			{
 				for (size_t x = 0; x < w; ++x)
 				{
-					screen_buffer_view.Set(x, y, TransFloat4colorToUint32color(fragment_buffer_view.Get(x, y)).bgra);
+					screen_buffer_view.Set(x, y, TransFloat4colorToUint32color(fragment_buffer_view.Get(x, y)).color);
 				}
 			}
 		}
@@ -66,12 +66,11 @@ namespace core
 		static Color32 TransFloat4colorToUint32color(const Color& color)
 		{
 			using gmath::Utility::Clamp;
-			//交换r通道和b通道
 			return Color32{
-				(unsigned char)(Clamp(color.z) * 255),
-				(unsigned char)(Clamp(color.y) * 255),
-				(unsigned char)(Clamp(color.x) * 255),
-				(unsigned char)(Clamp(color.w) * 255)
+				(unsigned char)(Clamp(color.r) * 255),
+				(unsigned char)(Clamp(color.g) * 255),
+				(unsigned char)(Clamp(color.b) * 255),
+				(unsigned char)(Clamp(color.a) * 255)
 			};
 		}
 		Context() : fragment_buffer{}, depth_buffer{}, fragment_buffer_view{ nullptr }, depth_buffer_view{ nullptr }{};
@@ -358,6 +357,14 @@ namespace core
 			{
 				color = BlendColor(color0, color);
 			}
+
+			//把颜色映射到gamma空间（假设像素着色器返回的是线性空间的颜色）
+			color = Vec4{
+				pow(color.r,1 / 2.2f),
+				pow(color.g,1 / 2.2f),
+				pow(color.b,1 / 2.2f),
+				pow(color.a,1 / 2.2f),
+			};
 
 			//写入fragment_buffer
 			context.fragment_buffer_view.Set(x, y, color);

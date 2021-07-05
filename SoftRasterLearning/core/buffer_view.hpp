@@ -100,13 +100,12 @@ namespace core
 		{
 			struct
 			{
-				unsigned char b;
-				unsigned char g;
 				unsigned char r;
+				unsigned char g;
+				unsigned char b;
 				unsigned char a;
 			};
 			uint32 color;
-			uint32 bgra;
 		};
 	};
 };
