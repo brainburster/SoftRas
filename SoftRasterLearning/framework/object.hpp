@@ -2,7 +2,7 @@
 
 #include "../core/software_renderer.hpp"
 #include "../core/model.hpp"
-#include "../framework/material.hpp"
+#include "material.hpp"
 #include <memory>
 
 namespace framework

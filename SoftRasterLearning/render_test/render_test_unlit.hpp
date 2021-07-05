@@ -1,13 +1,9 @@
 #pragma once
 
-#include "../core/texture.hpp"
-#include "../core/model.hpp"
+#include "../core/core_api.hpp"
+#include "../framework/framework.hpp"
 #include "../loader/bmp_loader.hpp"
 #include "../loader/obj_loader.hpp"
-#include "../core/buffer_view.hpp"
-#include "../core/software_renderer.hpp"
-#include "../framework/fps_renderer_app.hpp"
-#include "../framework/resource_manager.hpp"
 #include "varying_type.hpp"
 
 struct Shader_Unlit

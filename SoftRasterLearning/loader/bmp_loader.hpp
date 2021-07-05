@@ -90,13 +90,14 @@ namespace loader::bmp
 			std::transform(texture.data.begin(), texture.data.end(), texture.data.begin(),
 				[](core::Vec4 color) {
 					return core::Vec4{
-					   pow(color.r, 2.2f),  //从伽马空间映射到线性空间
-					   pow(color.g, 2.2f),
-					   pow(color.b, 2.2f),
-					   pow(color.a, 2.2f),
+					   pow(color.r, core::gamma),  //从伽马空间映射到线性空间
+					   pow(color.g, core::gamma),
+					   pow(color.b, core::gamma),
+					   pow(color.a, core::gamma),
 					};
 				});
 		}
+
 		return texture;
 	}
 }

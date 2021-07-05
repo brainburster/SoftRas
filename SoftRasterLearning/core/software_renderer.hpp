@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-#include <map>
 #include "dc_wnd.hpp"
 #include "buffer_view.hpp"
 #include "game_math.hpp"
@@ -9,13 +7,6 @@
 
 namespace core
 {
-	//默认的顶点类,只有位置和颜色2个属性, 继承 core::shader_varying_float<T> 则可以作为PS的输入
-	struct Vertex_Default : core::shader_varying_float<Vertex_Default>
-	{
-		Position position;
-		Color color;
-	};
-
 	//渲染上下文
 	class Context
 	{
@@ -44,7 +35,7 @@ namespace core
 
 		void Viewport(size_t w, size_t h, Color color = { 0,0,0,1 })
 		{
-			depth_buffer.resize(w * h, -1e40);
+			depth_buffer.resize(w * h, -inf);
 			fragment_buffer.resize(w * h, color);
 
 			fragment_buffer_view = { &fragment_buffer[0],w , h };
@@ -59,7 +50,7 @@ namespace core
 			}
 			for (auto& depth : depth_buffer)
 			{
-				depth = -1e40;
+				depth = -inf;
 			}
 		}
 
@@ -190,7 +181,7 @@ namespace core
 			}
 
 			//生成AABB包围盒
-			int left = INT_MAX, right = -INT_MAX, top = -INT_MAX, bottom = INT_MAX;
+			long long left = INT_MAX, right = -INT_MAX, top = -INT_MAX, bottom = INT_MAX;
 
 			for (const auto& q : p) {
 				if (left > q.x)
@@ -360,10 +351,10 @@ namespace core
 
 			//把颜色映射到gamma空间（假设像素着色器返回的是线性空间的颜色）
 			color = Vec4{
-				pow(color.r,1 / 2.2f),
-				pow(color.g,1 / 2.2f),
-				pow(color.b,1 / 2.2f),
-				pow(color.a,1 / 2.2f),
+				pow(color.r,1 / gamma),
+				pow(color.g,1 / gamma),
+				pow(color.b,1 / gamma),
+				pow(color.a,1 / gamma),
 			};
 
 			//写入fragment_buffer
