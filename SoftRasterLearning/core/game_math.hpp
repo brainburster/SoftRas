@@ -309,6 +309,68 @@ namespace gmath
 	};
 
 	template<typename T = float>
+	struct Mat3x3
+	{
+		T data[9];
+
+		//乘矩阵
+		Mat3x3 operator*(const Mat3x3& rhs) const
+		{
+			return Mat3x3{
+				//第一行
+				data[0] * rhs.data[0] + data[1] * rhs.data[3] + data[2] * rhs.data[6],
+				data[0] * rhs.data[1] + data[1] * rhs.data[4] + data[2] * rhs.data[7],
+				data[0] * rhs.data[2] + data[1] * rhs.data[5] + data[2] * rhs.data[8],
+				//第二行
+				data[3] * rhs.data[0] + data[4] * rhs.data[3] + data[5] * rhs.data[6],
+				data[3] * rhs.data[1] + data[4] * rhs.data[4] + data[5] * rhs.data[7],
+				data[3] * rhs.data[2] + data[4] * rhs.data[5] + data[5] * rhs.data[8],
+				//第三行
+				data[6] * rhs.data[0] + data[7] * rhs.data[3] + data[8] * rhs.data[6],
+				data[6] * rhs.data[1] + data[7] * rhs.data[4] + data[8] * rhs.data[7],
+				data[6] * rhs.data[2] + data[7] * rhs.data[5] + data[8] * rhs.data[8],
+			};
+		}
+
+		//乘向量
+		Vec3<T> operator*(const Vec3<T>& rhs) const
+		{
+			return Vec3<T>{
+				data[0] * rhs.x + data[1] * rhs.y + data[2] * rhs.z,
+					data[3] * rhs.x + data[4] * rhs.y + data[5] * rhs.z,
+					data[6] * rhs.x + data[7] * rhs.y + data[8] * rhs.z
+			};
+		}
+
+		//乘向量
+		Vec4<T> operator*(const Vec4<T>& rhs) const
+		{
+			return Vec3<T>{
+				data[0] * rhs.x + data[1] * rhs.y + data[2] * rhs.z,
+					data[3] * rhs.x + data[4] * rhs.y + data[5] * rhs.z,
+					data[6] * rhs.x + data[7] * rhs.y + data[8] * rhs.z,
+					1.f
+			};
+		}
+
+		//转置
+		Mat3x3 inverse() const
+		{
+			return Mat3x3{
+				data[0],data[3],data[6],
+				data[1],data[4],data[7],
+				data[2],data[5],data[8]
+			};
+		}
+
+		//求逆
+		//Mat3x3 transpose() const
+		//{
+		//	//...
+		//}
+	};
+
+	template<typename T = float>
 	struct Mat4x4
 	{
 		T data[16];
@@ -340,7 +402,7 @@ namespace gmath
 			};
 		}
 
-		//乘向量
+		//乘向量 4分量
 		Vec4<T> operator*(const Vec4<T>& rhs) const
 		{
 			return Vec4<T>{
@@ -351,14 +413,13 @@ namespace gmath
 			};
 		}
 
-		//乘向量
-		Vec4<T> operator*(const Vec3<T>& rhs) const
+		//乘向量 3分量
+		Vec3<T> operator*(const Vec3<T>& rhs) const
 		{
 			return Vec4<T>{
-				data[0] * rhs.x + data[1] * rhs.y + data[2] * rhs.z + data[3],
-					data[4] * rhs.x + data[5] * rhs.y + data[6] * rhs.z + data[7],
-					data[8] * rhs.x + data[9] * rhs.y + data[10] * rhs.z + data[11],
-					data[12] * rhs.x + data[13] * rhs.y + data[14] * rhs.z + data[15],
+				data[0] * rhs.x + data[1] * rhs.y + data[2] * rhs.z,
+					data[4] * rhs.x + data[5] * rhs.y + data[6] * rhs.z,
+					data[8] * rhs.x + data[9] * rhs.y + data[10] * rhs.z,
 			};
 		}
 
