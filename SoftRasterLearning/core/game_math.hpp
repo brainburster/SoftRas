@@ -95,7 +95,13 @@ namespace gmath
 
 		Vec4 normalize() const
 		{
-			return { x / w,y / w,z / w, 1 };
+			T len = pow(x * x + y * y + z * z, 0.5f);
+			return {
+				x / len,
+				y / len,
+				z / len,
+				1
+			};
 		}
 
 		friend Vec4 operator*(const Vec4& lhs, T rhs)
@@ -404,6 +410,46 @@ namespace gmath
 				data[1],data[4],data[7],
 				data[2],data[5],data[8]
 			};
+		}
+
+		//求逆
+		Mat3x3 inverse() const
+		{
+			// A^-1 =  A*/|A|
+			//A* : A的伴随矩阵
+			//|A| : A的行列式
+
+			//手算 |A|
+			float det = data[0] * data[4] * data[8] + data[1] * data[5] * data[6] + data[2] * data[3] * data[7] -
+				data[6] * data[4] * data[2] - data[7] * data[5] * data[0] - data[8] * data[3] * data[1];
+
+			if (fabs(det) <= 1e-20)
+			{
+				//不可求逆,返回自身
+				return *this;
+			}
+
+			//手算 A* / |A|（的转置）
+			Mat3x3<T> _inverse = Mat3x3<T>{
+				//第一行
+				 (data[4] * data[8] - data[5] * data[7]) / det,
+				-(data[3] * data[8] - data[5] * data[6]) / det,
+				(data[3] * data[7] - data[4] * data[6]) / det,
+				//第二行
+				-(data[1] * data[8] - data[2] * data[7]) / det,
+				(data[0] * data[8] - data[2] * data[6]) / det,
+				-(data[0] * data[7] - data[1] * data[6]) / det,
+				//第三行
+				(data[1] * data[5] - data[2] * data[4]) / det,
+				-(data[0] * data[5] - data[2] * data[3]) / det,
+				(data[0] * data[4] - data[1] * data[3]) / det,
+			};
+
+			//转置
+			_inverse = _inverse.transpose();
+
+			//矩阵中可能出现-0.0f，但不重要, 因为矩阵中的元素不会被除
+			return _inverse;
 		}
 	};
 
