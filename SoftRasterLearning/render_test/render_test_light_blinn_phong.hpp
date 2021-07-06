@@ -20,12 +20,12 @@ public:
 	Varying_Light VS(const core::Model_Vertex& v) const
 	{
 		return core::CreateVarying<Varying_Light>(
-			mvp * v.position,
-			v.position,
-			m * v.position,
+			mvp * v.position.ToHomoCoord(),
+			v.position.ToHomoCoord(),
+			m * v.position.ToHomoCoord(),
 			v.uv,
 			v.normal,
-			m * core::Vec4(v.normal, 0.0f)
+			m.ToMat3x3() * v.normal
 			);
 	}
 

@@ -146,6 +146,12 @@ namespace gmath
 		}
 
 		Vec3(const Vec3& vec3) = default;
+
+		Vec4<T> ToHomoCoord() const
+		{
+			return Vec4<T>{ x, y, z, 1.f };
+		}
+
 		Vec3 operator+(const Vec3& rhs) const
 		{
 			return { x + rhs.x,y + rhs.y,z + rhs.z };
@@ -413,13 +419,12 @@ namespace gmath
 			};
 		}
 
-		//乘向量 3分量
-		Vec3<T> operator*(const Vec3<T>& rhs) const
+		Mat3x3<T> ToMat3x3() const
 		{
-			return Vec4<T>{
-				data[0] * rhs.x + data[1] * rhs.y + data[2] * rhs.z,
-					data[4] * rhs.x + data[5] * rhs.y + data[6] * rhs.z,
-					data[8] * rhs.x + data[9] * rhs.y + data[10] * rhs.z,
+			return Mat3x3 <T>{
+				data[0], data[1], data[2],
+					data[4], data[5], data[6],
+					data[8], data[9], data[10],
 			};
 		}
 
