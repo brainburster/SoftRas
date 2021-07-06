@@ -13,7 +13,7 @@ namespace core
 			x = Clamp(x, 0, w - 1);
 			y = Clamp(y, 0, h - 1);
 
-			size_t i = x + y * w;
+			size_t i = x + (h - y) * w;
 			return data[i];
 		}
 
