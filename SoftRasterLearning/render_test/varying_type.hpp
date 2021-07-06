@@ -25,5 +25,6 @@ struct Varying_Light_ts : core::shader_varying_float<Varying_Light_ts>
 	core::Position position; //clip space
 	core::Vec3 light_dir_ts; // tangent space
 	core::Vec3 view_dir_ts; // tangent space
+	core::Vec3 half_dir_ts;
 	core::Vec2 uv;
 };
