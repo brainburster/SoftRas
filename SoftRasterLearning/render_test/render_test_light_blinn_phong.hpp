@@ -40,13 +40,15 @@ public:
 		Vec3 V = (camera_position_ws - v.position_ws).normalize();
 		Vec3 H = (L + V).normalize();
 		Vec3 N = v.normal_ws.normalize();
-		//Vec3 Ka = Vec3(1, 1, 1);
-		Vec3 Kd = Texture::Sampler(tex0, v.uv);
+
+		Vec3 base_color = Texture::Sampler(tex0, v.uv);
 		Vec3 Ks = Vec3(0.3f, 0.3f, 0.3f);
 		Vec3 ambient = Vec3(0.01f, 0.01f, 0.01f);
-		Vec3 diffuse = Kd * light_color * max(N.Dot(L), 0);
+
+		Vec3 diffuse = base_color * light_color * max(N.Dot(L), 0);
 		Vec3 specular = Ks * light_color * pow(max(N.Dot(H), 0), 32.f);
 		Vec3 color = ambient + diffuse / pi + ((32 + 8) / (8 * pi)) * specular;
+
 		return Vec4{ color, 1.f };
 	}
 };
