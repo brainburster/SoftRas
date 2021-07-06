@@ -101,5 +101,8 @@
     <ClInclude Include="framework\framework.hpp">
       <Filter>头文件\framework</Filter>
     </ClInclude>
+    <ClInclude Include="render_test\render_test_normal_mapping.hpp">
+      <Filter>头文件\render_test</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -55,7 +55,39 @@ namespace loader::obj
 				i = tail + 1;
 			}
 
+			CreateTriangle(data);
+
 			return std::move(*reinterpret_cast<Model*>(&data.mesh));
+		}
+
+		void CreateTriangle(IntermediateData& data)
+		{
+			size_t len = data.mesh.size();
+			for (size_t i = 0; i < len; i += 3)
+			{
+				auto& v0 = data.mesh[i];
+				auto& v1 = data.mesh[i + 1];
+				auto& v2 = data.mesh[i + 2];
+
+				Vec3 e0 = v1.position - v0.position;
+				Vec3 e1 = v2.position - v0.position;
+				Vec2 duv0 = v1.uv - v0.uv;
+				Vec2 duv1 = v2.uv - v0.uv;
+
+				float f = 1.0f / (duv0.x * duv1.y - duv1.x * duv0.y);
+
+				float tx = f * (duv1.y * e0.x - duv0.y * e1.x);
+				float ty = f * (duv1.y * e0.y - duv0.y * e1.y);
+				float tz = f * (duv1.y * e0.z - duv0.y * e1.z);
+
+				//求出平面的切线
+				Vec3 tangent = Vec3{ tx,ty,tz }.normalize();
+
+				//求出每个顶点的切线（因为可能有自定义法线）
+				v0.tangent = (tangent - (tangent.Dot(v0.normal) * v0.normal)).normalize();
+				v1.tangent = (tangent - (tangent.Dot(v1.normal) * v1.normal)).normalize();
+				v2.tangent = (tangent - (tangent.Dot(v2.normal) * v2.normal)).normalize();
+			}
 		}
 
 		static Opt<std::tuple<SV, SV>> MatchToken(SV src)

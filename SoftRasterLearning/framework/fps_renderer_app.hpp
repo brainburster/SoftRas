@@ -7,8 +7,8 @@ namespace framework
 	class FPSRenderAPP : public framework::SoftRasterApp
 	{
 	private:
-		float move_speed = 0.05f;
-		float camera_speed = 1.f;
+		float move_speed = 0.02f;
+		float camera_speed = 0.4f;
 		float scroll_speed = 0.1f;
 	public:
 		FPSRenderAPP(HINSTANCE hinst) : SoftRasterApp{ hinst } {}

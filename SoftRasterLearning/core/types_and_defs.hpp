@@ -12,6 +12,8 @@ namespace core
 	using Vec3 = gmath::Vec3<float>;
 	using Vec2 = gmath::Vec2<float>;
 	using Mat = gmath::Mat4x4<float>;
+	using Mat3 = gmath::Mat3x3<float>;
+
 	using uint8 = unsigned char;
 	using uint16 = unsigned short;
 	using uint32 = unsigned int;
@@ -20,7 +22,7 @@ namespace core
 	static constexpr float gamma = 2.2f;
 	static constexpr float inf = 1e20f;
 
-	//默认的顶点类,只有位置和颜色2个属性, 继承 core::shader_varying_float<T> 则可以作为PS的输入
+	//默认的顶点类,只有位置和颜色2个属性, 继承 core::shader_varying_float<T> 可作为PS的输入
 	struct Vertex_Default : core::shader_varying_float<Vertex_Default>
 	{
 		Position position;

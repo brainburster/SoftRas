@@ -319,6 +319,43 @@ namespace gmath
 	{
 		T data[9];
 
+		Mat3x3() = default;
+
+		static Mat3x3 Unit()
+		{
+			return Mat3x3{
+				1.f,0,0,
+				0,1.f,0,
+				0,0,1.f,
+			};
+		}
+
+		Mat3x3(Vec3<T> a, Vec3<T> b, Vec3<T> c)
+		{
+			data[0] = a.x;
+			data[1] = a.y;
+			data[2] = a.z;
+			data[3] = b.x;
+			data[4] = b.y;
+			data[5] = b.z;
+			data[6] = c.x;
+			data[7] = c.y;
+			data[8] = c.z;
+		}
+
+		Mat3x3(T a, T b, T c, T d, T e, T f, T g, T h, T i)
+		{
+			data[0] = a;
+			data[1] = b;
+			data[2] = c;
+			data[3] = d;
+			data[4] = e;
+			data[5] = f;
+			data[6] = g;
+			data[7] = h;
+			data[8] = i;
+		}
+
 		//³Ë¾ØÕó
 		Mat3x3 operator*(const Mat3x3& rhs) const
 		{
@@ -351,7 +388,7 @@ namespace gmath
 		//³ËÏòÁ¿
 		Vec4<T> operator*(const Vec4<T>& rhs) const
 		{
-			return Vec3<T>{
+			return Vec4<T>{
 				data[0] * rhs.x + data[1] * rhs.y + data[2] * rhs.z,
 					data[3] * rhs.x + data[4] * rhs.y + data[5] * rhs.z,
 					data[6] * rhs.x + data[7] * rhs.y + data[8] * rhs.z,
@@ -360,7 +397,7 @@ namespace gmath
 		}
 
 		//×ªÖÃ
-		Mat3x3 inverse() const
+		Mat3x3 transpose() const
 		{
 			return Mat3x3{
 				data[0],data[3],data[6],
@@ -368,12 +405,6 @@ namespace gmath
 				data[2],data[5],data[8]
 			};
 		}
-
-		//ÇóÄæ
-		//Mat3x3 transpose() const
-		//{
-		//	//...
-		//}
 	};
 
 	template<typename T = float>

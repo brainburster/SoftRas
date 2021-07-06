@@ -181,25 +181,25 @@ namespace core
 			}
 
 			//Éú³ÉAABB°üÎ§ºÐ
-			long long left = INT_MAX, right = -INT_MAX, top = -INT_MAX, bottom = INT_MAX;
+			float left = inf, right = -inf, top = -inf, bottom = inf;
 
 			for (const auto& q : p) {
 				if (left > q.x)
 				{
-					left = (int)q.x;
+					left = q.x;
 				}
 				if (right < q.x)
 				{
-					right = (int)q.x;
+					right = q.x;
 				}
 
 				if (top < q.y)
 				{
-					top = (int)q.y;
+					top = q.y;
 				}
 				if (bottom > q.y)
 				{
-					bottom = (int)q.y;
+					bottom = q.y;
 				}
 			}
 

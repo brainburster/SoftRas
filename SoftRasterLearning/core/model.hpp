@@ -9,6 +9,7 @@ namespace core
 		Vec3 position;
 		Vec2 uv;
 		Vec3 normal;
+		Vec3 tangent;
 
 		Model_Vertex() = default;
 		Model_Vertex(Vec3 p, Vec2 t, Vec3 n) :
@@ -29,6 +30,10 @@ namespace core
 		{}
 		Model& operator=(Model&& other) noexcept
 		{
+			if (&other == this)
+			{
+				return *this;
+			}
 			this->mesh = std::move(other.mesh);
 		}
 		//...
