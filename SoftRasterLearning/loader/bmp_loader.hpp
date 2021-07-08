@@ -93,7 +93,7 @@ namespace loader::bmp
 					   pow(color.r, core::gamma),  //从伽马空间映射到线性空间
 					   pow(color.g, core::gamma),
 					   pow(color.b, core::gamma),
-					   pow(color.a, core::gamma),
+					   color.a
 					};
 				});
 		}

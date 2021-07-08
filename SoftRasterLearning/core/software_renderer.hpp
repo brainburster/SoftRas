@@ -354,7 +354,7 @@ namespace core
 				pow(color.r,1 / gamma),
 				pow(color.g,1 / gamma),
 				pow(color.b,1 / gamma),
-				pow(color.a,1 / gamma),
+				color.a
 			};
 
 			//–¥»Îfragment_buffer
