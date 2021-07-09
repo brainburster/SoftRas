@@ -58,10 +58,10 @@ protected:
 		auto _sphere = loader::obj::LoadFromFile(L".\\resource\\models\\sphere.obj");
 		auto _box = loader::obj::LoadFromFile(L".\\resource\\models\\box.obj");
 
-		framework::SetResource(L"sphere", std::make_shared<core::Model>(std::move(_sphere.value())));
-		framework::SetResource(L"box", std::make_shared<core::Model>(std::move(_box.value())));
-		framework::SetResource(L"tex0", std::make_shared<core::Texture>(std::move(_tex.value())));
-		framework::SetResource(L"normal_map", std::make_shared<core::Texture>(std::move(_normal_map.value())));
+		framework::SetResource(L"sphere", _sphere);
+		framework::SetResource(L"box", _box);
+		framework::SetResource(L"tex0", _tex);
+		framework::SetResource(L"normal_map", _normal_map);
 
 		//...
 		scene = std::make_shared<RenderTestScene>();

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <fstream>
-#include <optional>
 #include "core/texture.hpp"
 #include <algorithm>
 
@@ -38,13 +37,13 @@ namespace loader::bmp
 
 	static_assert(sizeof(BmpInfo) == 40, "the size of bmp info must be 40 bytes");
 
-	std::optional<core::Texture> LoadFromFile(const wchar_t* file_path, bool b_gamma_conrrection = true)
+	std::shared_ptr<core::Texture> LoadFromFile(const wchar_t* file_path, bool b_gamma_conrrection = true)
 	{
 		std::ifstream bmp_file;
 		bmp_file.open(file_path, std::ios::binary | std::ios::in);
 		if (!bmp_file)
 		{
-			return std::nullopt;
+			return nullptr;
 		}
 
 		BmpHeader bmp_header{};
@@ -55,7 +54,7 @@ namespace loader::bmp
 
 		if (bmp_info.bitCount != 32 && bmp_info.bitCount != 24)
 		{
-			return std::nullopt;
+			return nullptr;
 		}
 
 		core::Texture texture;
@@ -70,11 +69,6 @@ namespace loader::bmp
 		std::vector<core::uint8> buffer{};
 		buffer.resize(size_of_byte, 0);
 		bmp_file.read((char*)&buffer[0], buffer.size());
-
-		//std::transform(buffer.begin(), buffer.end(), bitmap.data.begin(), [](core::uint8 color)->float {
-		//	return (float)color / 255.f;
-		//	}
-		//);
 
 		for (size_t i = 0; i < size; ++i)
 		{
@@ -98,6 +92,6 @@ namespace loader::bmp
 				});
 		}
 
-		return texture;
+		return std::make_shared<core::Texture>(std::move(texture));
 	}
 }

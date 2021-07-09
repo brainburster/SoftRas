@@ -270,14 +270,14 @@ namespace loader::obj
 		}
 	};
 
-	inline Opt<Model> LoadFromFile(const std::wstring& path)
+	inline std::shared_ptr<Model> LoadFromFile(const std::wstring& path)
 	{
 		std::ifstream obj_file;
 		obj_file.open(path, std::ios::in);
 
 		if (!obj_file)
 		{
-			return std::nullopt;
+			return nullptr;
 		}
 
 		obj_file.seekg(0, std::ios::end);
@@ -293,6 +293,6 @@ namespace loader::obj
 
 		ObjParser obj_parser = {};
 
-		return obj_parser.ParseObjStr(obj_str);
+		return std::make_shared<Model>(obj_parser.ParseObjStr(obj_str));
 	}
 }
