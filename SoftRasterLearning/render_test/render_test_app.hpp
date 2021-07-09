@@ -53,11 +53,20 @@ protected:
 	void Init() override
 	{
 		SoftRasterApp::Init();
+
 		auto _tex = loader::bmp::LoadFromFile(L".\\resource\\pictures\\tex0.bmp");
 		auto _normal_map = loader::bmp::LoadFromFile(L".\\resource\\pictures\\normal.bmp", false);
 		auto _sphere = loader::obj::LoadFromFile(L".\\resource\\models\\sphere.obj");
 		auto _box = loader::obj::LoadFromFile(L".\\resource\\models\\box.obj");
 
+		auto _front = loader::bmp::LoadFromFile(L".\\resource\\pictures\\cubemap\\front.bmp");
+		auto _back = loader::bmp::LoadFromFile(L".\\resource\\pictures\\cubemap\\back.bmp");
+		auto _left = loader::bmp::LoadFromFile(L".\\resource\\pictures\\cubemap\\left.bmp");
+		auto _right = loader::bmp::LoadFromFile(L".\\resource\\pictures\\cubemap\\right.bmp");
+		auto _top = loader::bmp::LoadFromFile(L".\\resource\\pictures\\cubemap\\top.bmp");
+		auto _bottom = loader::bmp::LoadFromFile(L".\\resource\\pictures\\cubemap\\bottom.bmp");
+
+		framework::SetResource(L"cube_map", std::make_shared<framework::CubeMap>(_front, _back, _top, _bottom, _left, _right));
 		framework::SetResource(L"sphere", _sphere);
 		framework::SetResource(L"box", _box);
 		framework::SetResource(L"tex0", _tex);

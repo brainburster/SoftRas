@@ -24,7 +24,7 @@ namespace framework
 		{
 		}
 
-		virtual core::Color Sample(core::Vec3 dir)
+		core::Vec4 Sample(core::Vec3 dir)
 		{
 			//3个分量中绝对值最大的,决定采样哪个面
 			//对剩下的两个分量"归一化"，决定uv
@@ -71,6 +71,7 @@ namespace framework
 					return core::Texture::Sample(back.get(), { (-dir.x / abs_z + 1) / 2,(-dir.y / abs_z + 1) / 2 });
 				}
 			}
+			return { 0,0,0,1.f };
 		}
 
 		////必须在渲染队列最前
