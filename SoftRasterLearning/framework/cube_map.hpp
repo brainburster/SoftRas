@@ -31,52 +31,44 @@ namespace framework
 			float abs_x = fabs(dir.x);
 			float abs_y = fabs(dir.y);
 			float abs_z = fabs(dir.z);
+
 			if (abs_x > abs_y && abs_x > abs_z)
 			{
-				float u = (dir.z / abs_x + 1) / 2;
-				float v = (dir.y / abs_x + 1) / 2;
-
 				if (dir.x > 0)
 				{
 					//采样右面
-					return core::Texture::Sample(right.get(), { u,v });
+					return core::Texture::Sample(right.get(), { (-dir.z / abs_x + 1) / 2,(-dir.y / abs_x + 1) / 2 });
 				}
 				else
 				{
 					//采样左面
-					return core::Texture::Sample(left.get(), { u,v });
+					return core::Texture::Sample(left.get(), { (dir.z / abs_x + 1) / 2,(-dir.y / abs_x + 1) / 2 });
 				}
 			}
 			else if (abs_y > abs_x && abs_y > abs_z)
 			{
-				float u = (dir.x / abs_y + 1) / 2;
-				float v = (dir.z / abs_y + 1) / 2;
-
 				if (dir.y > 0)
 				{
 					//采样顶面
-					return core::Texture::Sample(top.get(), { u,v });
+					return core::Texture::Sample(top.get(), { (dir.x / abs_y + 1) / 2,(dir.z / abs_y + 1) / 2 });
 				}
 				else
 				{
 					//采样底面
-					return core::Texture::Sample(bottom.get(), { u,v });
+					return core::Texture::Sample(bottom.get(), { (dir.x / abs_y + 1) / 2,(-dir.z / abs_y + 1) / 2 });
 				}
 			}
 			else if (abs_z > abs_x && abs_z > abs_y)
 			{
-				float u = (dir.x / abs_z + 1) / 2;
-				float v = (dir.y / abs_z + 1) / 2;
-
 				if (dir.z > 0)
 				{
 					//采样前面
-					return core::Texture::Sample(front.get(), { u,v });
+					return core::Texture::Sample(front.get(), { (dir.x / abs_z + 1) / 2,(-dir.y / abs_z + 1) / 2 });
 				}
 				else
 				{
 					//采样后面
-					return core::Texture::Sample(back.get(), { u,v });
+					return core::Texture::Sample(back.get(), { (-dir.x / abs_z + 1) / 2,(-dir.y / abs_z + 1) / 2 });
 				}
 			}
 		}
