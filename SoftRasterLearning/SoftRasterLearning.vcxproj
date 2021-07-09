@@ -174,6 +174,7 @@
     <ClInclude Include="framework\object.hpp" />
     <ClInclude Include="framework\render_engine.hpp" />
     <ClInclude Include="framework\resource_manager.hpp" />
+    <ClInclude Include="framework\cube_map.hpp" />
     <ClInclude Include="framework\softraster_app.hpp" />
     <ClInclude Include="framework\scene.hpp" />
     <ClInclude Include="loader\bmp_loader.hpp" />

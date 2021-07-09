@@ -17,7 +17,7 @@ namespace core
 			return data[i];
 		}
 
-		static Vec4 Sampler(Texture* tex, Vec2 uv)
+		static Vec4 Sample(Texture* tex, Vec2 uv)
 		{
 			if (!tex) return { 0,0,0,1.f };
 			float x = uv.x * tex->w;

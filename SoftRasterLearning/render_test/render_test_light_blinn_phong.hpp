@@ -35,7 +35,7 @@ public:
 		Vec3 H = (L + V).normalize();
 		Vec3 N = v.normal_ws.normalize();
 
-		Vec3 base_color = Texture::Sampler(tex0, v.uv);
+		Vec3 base_color = Texture::Sample(tex0, v.uv);
 		Vec3 Ks = Vec3(0.3f, 0.3f, 0.3f);
 		Vec3 ambient = Vec3(0.01f, 0.01f, 0.01f);
 

@@ -107,5 +107,8 @@
     <ClInclude Include="render_test\render_test_app.hpp">
       <Filter>头文件\render_test</Filter>
     </ClInclude>
+    <ClInclude Include="framework\cube_map.hpp">
+      <Filter>头文件\framework</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

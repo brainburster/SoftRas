@@ -18,7 +18,7 @@ struct Shader_Unlit
 
 	core::Vec4 FS(const Varying_Unlit& v) const
 	{
-		return core::Texture::Sampler(tex0, v.uv);
+		return core::Texture::Sample(tex0, v.uv);
 	}
 };
 
