@@ -94,11 +94,13 @@ namespace framework
 		{
 			dc_wnd.RegisterWndProc(WM_KEYDOWN, [&](auto wParam, auto lParam) {
 				input_state.key[wParam] = true;
+				input_state.keydown[wParam] = true;
 				return true;
 				});
 
 			dc_wnd.RegisterWndProc(WM_KEYUP, [&](auto wParam, auto lParam) {
 				input_state.key[wParam] = false;
+				input_state.keyup[wParam] = true;
 				return true;
 				});
 
@@ -195,6 +197,8 @@ namespace framework
 			input_state.mouse_state.dx = 0;
 			input_state.mouse_state.dy = 0;
 			input_state.mouse_state.scroll = 0;
+			memset(&input_state.keydown, 0, sizeof(input_state.keydown));
+			memset(&input_state.keyup, 0, sizeof(input_state.keyup));
 		}
 	};
 }

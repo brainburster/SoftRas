@@ -7,6 +7,8 @@ namespace framework
 	struct InputState
 	{
 		bool key[256];
+		bool keydown[256];
+		bool keyup[256];
 		struct MouseState
 		{
 			bool button[3];
