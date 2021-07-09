@@ -2,77 +2,35 @@
 
 #include "../core/dc_wnd.hpp"
 #include "../core/software_renderer.hpp"
-#include "world.hpp"
-#include "camera.hpp"
-#include <thread>
-#include <chrono>
+#include "scene.hpp"
+#include "render_engine.hpp"
 
 namespace framework
 {
-	class IRenderEngine
-	{
-	public:
-		virtual void Run() = 0;
-		//获取ctx
-		virtual core::Context& GetCtx() = 0;
-		virtual const ICamera& GetCamera() const = 0;
-	protected:
-		//为windwos消息添加回调函数，调用一次
-		virtual void HookInput() = 0;
-		//初始化
-		virtual void Init() = 0;
-		//更新
-		virtual void Update() = 0;
-		//每帧调用, 通过获取输入信息处理逻辑
-		virtual void HandleInput() = 0;
-		//渲染每帧
-		virtual void RenderFrame() = 0;
-		virtual std::chrono::milliseconds GetDeltaTime() const = 0;
-		virtual ~IRenderEngine() = default;
-	};
-
 	class SoftRasterApp : public IRenderEngine
 	{
 	protected:
-		struct InputState
-		{
-			bool key[256];
-			struct MouseState
-			{
-				bool button[3];
-				int x;
-				int y;
-				int dx;
-				int dy;
-				int scroll;
-			} mouse_state;
-		} input_state;
-		struct APPState {
-			std::chrono::system_clock::time_point time;
-			std::chrono::milliseconds delta;
-			size_t delta_count;
-			size_t frame_count;
-		} app_state;
+		InputState input_state;
+		EngineState engine_state;
+
 		core::DC_WND dc_wnd;
 		core::Context ctx;
-		std::shared_ptr<ICamera> camera;
-		World world;
+		std::shared_ptr<IScene> scene;
 
 		SoftRasterApp(const SoftRasterApp& other) = delete;
 		SoftRasterApp& operator=(const SoftRasterApp& other) = delete;
 
 	public:
-		SoftRasterApp(HINSTANCE hinst) : dc_wnd{ hinst }, input_state{}, app_state{}, ctx{}, camera{}, world{}
+		SoftRasterApp(HINSTANCE hinst) : dc_wnd{ hinst }, input_state{}, engine_state{}, ctx{}, scene{}
 		{
 		}
 
 		SoftRasterApp(SoftRasterApp&& other) noexcept :
 			input_state{ std::move(other.input_state) },
-			app_state{ std::move(other.app_state) },
+			engine_state{ std::move(other.engine_state) },
 			dc_wnd(std::move(other.dc_wnd)),
 			ctx{ std::move(other.ctx) },
-			camera{ std::move(other.camera) },
-			world{ std::move(other.world) }
+			scene{ std::move(other.scene) }
 		{
 		}
 
@@ -87,50 +45,38 @@ namespace framework
 			return *this;
 		}
 
-		const ICamera& GetCamera() const override
-		{
-			return *camera.get();
-		}
-
-		core::Context& GetCtx() override
+		virtual core::Context& GetCtx() noexcept override
 		{
 			return ctx;
 		}
 
-		std::chrono::milliseconds GetDeltaTime() const override
-		{
-			return app_state.delta;
-		}
-
-		const InputState& GetInputeState() const
+		virtual const InputState& GetInputState() const noexcept override
 		{
 			return input_state;
+		}
+
+		virtual const EngineState& GetEngineState() const noexcept override
+		{
+			return engine_state;
 		}
 
 		void Run() override
 		{
 			Init();
+			AfterInit();
 			HookInput();
-
-			//std::thread render_thread{ [&]() {
-			//	while (!dc_wnd.app_should_close())
-			//	{
-			//		RenderFrame();
-			//		ctx.CopyToBuffer(dc_wnd.GetFrameBufferView());
-			//		dc_wnd.BitBltBuffer();
-			//	}
-			//} };
 
 			while (!dc_wnd.app_should_close())
 			{
+				auto last = engine_state.time;
+				engine_state.time = std::chrono::system_clock::now();
+				engine_state.delta = std::chrono::duration_cast<std::chrono::milliseconds>(engine_state.time - last);
+				engine_state.delta_count = engine_state.delta.count();
+				engine_state.frame_count++;
+
 				dc_wnd.PeekMsg();
 				//dc_wnd.GetMsg();
 				//...
-				auto last = app_state.time;
-				app_state.time = std::chrono::system_clock::now();
-				app_state.delta = std::chrono::duration_cast<std::chrono::milliseconds>(app_state.time - last);
-				app_state.delta_count = app_state.delta.count();
-				app_state.frame_count++;
 
 				HandleInput();
 				Update();
@@ -138,21 +84,13 @@ namespace framework
 				RenderFrame();
 				ctx.CopyToBuffer(dc_wnd.GetFrameBufferView());
 				dc_wnd.BitBltBuffer();
+				EndFrame();
 			}
-
-			//render_thread.join();
-		}
-
-		//获取组合键信息
-		template<char... VK>
-		static bool IsKeyPressed()
-		{
-			return ((GetKeyState(VK) & 0xF0000000)&&...);
 		}
 
 	protected:
 		//为windwos消息添加回调函数，调用一次
-		void HookInput() override
+		virtual void HookInput() override
 		{
 			dc_wnd.RegisterWndProc(WM_KEYDOWN, [&](auto wParam, auto lParam) {
 				input_state.key[wParam] = true;
@@ -169,6 +107,18 @@ namespace framework
 				input_state.mouse_state.dy = (short)HIWORD(lParam) - input_state.mouse_state.y;
 				input_state.mouse_state.x = (short)LOWORD(lParam);
 				input_state.mouse_state.y = (short)HIWORD(lParam);
+
+				TRACKMOUSEEVENT track_mouse_event{};
+				track_mouse_event.cbSize = sizeof(TRACKMOUSEEVENT);
+				track_mouse_event.dwFlags = TME_LEAVE;
+				track_mouse_event.dwHoverTime = HOVER_DEFAULT;
+				track_mouse_event.hwndTrack = dc_wnd.Hwnd();
+				TrackMouseEvent(&track_mouse_event);
+				return true;
+				});
+
+			dc_wnd.RegisterWndProc(WM_MOUSELEAVE, [&](auto wParam, auto lParam) {
+				input_state.mouse_state = { 0 };
 				return true;
 				});
 
@@ -209,30 +159,42 @@ namespace framework
 		}
 
 		//初始化
-		void Init() override
+		virtual void Init() override
 		{
-			dc_wnd.WndClassName(L"dc_wnd_cls").WndName(L"dc_wnd_wnd").Size(800, 600).AddWndStyle(~WS_MAXIMIZEBOX).Init();
+			dc_wnd.WndClassName(L"softraster_wnd_cls").WndName(L"软光栅测试").Size(800, 600).AddWndStyle(~WS_MAXIMIZEBOX).Init();
 			ctx.Viewport(800, 600);
+		}
+		//
+		virtual void AfterInit()
+		{
+			scene->Init(*this);
 		}
 
 		//更新
-		void Update() override
+		virtual void Update() override
 		{
+			scene->Update(*this);
 		}
 
 		//每帧调用
-		void HandleInput() override
+		virtual void HandleInput() override
 		{
+			scene->HandleInput(*this);
 		}
 
 		//渲染每帧
-		void RenderFrame() override
+		virtual void RenderFrame() override
 		{
 			ctx.Clear({ 0.2f, 0.6f, 0.4f, 1.f });
-			for (auto& object : world)
-			{
-				object->Render(this);
-			}
+			scene->RenderFrame(*this);
+		}
+
+		//每帧结束后的清理工作
+		virtual void EndFrame() override
+		{
+			input_state.mouse_state.dx = 0;
+			input_state.mouse_state.dy = 0;
+			input_state.mouse_state.scroll = 0;
 		}
 	};
 }

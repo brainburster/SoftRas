@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../core/game_math.hpp"
+#include "render_engine.hpp"
+#include <commctrl.h>
 
 namespace framework
 {
@@ -23,6 +25,8 @@ namespace framework
 		virtual void AddYaw(float) = 0;
 		virtual void AddPitch(float) = 0;
 		virtual void AddFovy(float) = 0;
+
+		virtual void HandleInput(const IRenderEngine& engine) = 0;
 	};
 
 	class FPSCamera : public ICamera
@@ -111,6 +115,53 @@ namespace framework
 			return position;
 		}
 
+		void HandleInput(const IRenderEngine& engine) override
+		{
+			const auto& _input_state = engine.GetInputState();
+			const auto& _mouse_state = _input_state.mouse_state;
+			float delta = (float)engine.GetEngineState().delta_count;
+
+			using gmath::Utility::Clamp;
+
+			if (_mouse_state.button[0] && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
+			{
+				using gmath::Utility::Clamp;
+				AddYaw(_mouse_state.dx * delta * camera_speed);
+				AddPitch(Clamp(-_mouse_state.dy * delta * camera_speed, -89.f, 89.f));
+			}
+
+			AddFovy((float)_input_state.mouse_state.scroll * delta * scroll_speed);
+
+			core::Vec3 front = GetFront();
+			core::Vec3 right = front.cross({ 0,1,0 }).normalize();
+			core::Vec3 up = right.cross(front).normalize();
+
+			if (_input_state.key['W'])
+			{
+				AddPosition(move_speed * front * delta);
+			}
+			if (_input_state.key['S'])
+			{
+				AddPosition(-move_speed * front * delta);
+			}
+			if (_input_state.key['A'])
+			{
+				AddPosition(-move_speed * right * delta);
+			}
+			if (_input_state.key['D'])
+			{
+				AddPosition(move_speed * right * delta);
+			}
+			if (_input_state.key['Q'])
+			{
+				AddPosition(-move_speed * up * delta);
+			}
+			if (_input_state.key['E'])
+			{
+				AddPosition(move_speed * up * delta);
+			}
+		}
+
 	private:
 		//view
 		Vec3 position;
@@ -122,5 +173,10 @@ namespace framework
 		float fovy;
 		float _near;
 		float _far;
+
+		//speed
+		float camera_speed = 0.015f;
+		float move_speed = 0.02f;
+		float scroll_speed = 0.005f;
 	};
 }

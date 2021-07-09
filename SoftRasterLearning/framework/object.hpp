@@ -13,7 +13,7 @@ namespace framework
 	class IRenderAble
 	{
 	public:
-		virtual void Render(IRenderEngine* engine) const = 0;
+		virtual void Render(IRenderEngine& engine) const = 0;
 	};
 
 	//...
@@ -50,9 +50,9 @@ namespace framework
 	{
 	public:
 		std::shared_ptr<framework::IMaterial> material;
-		void Render(framework::IRenderEngine* engine) const override
+		void Render(framework::IRenderEngine& engine) const override
 		{
-			material->Render(this, engine);
+			material->Render(*this, engine);
 		}
 	};
 };

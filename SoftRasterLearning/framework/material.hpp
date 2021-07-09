@@ -9,7 +9,7 @@ namespace framework
 	class IMaterial
 	{
 	public:
-		virtual void Render(const Entity*, IRenderEngine*) = 0;
+		virtual void Render(const Entity&, IRenderEngine&) = 0;
 		virtual ~IMaterial() = default;
 	};
 }

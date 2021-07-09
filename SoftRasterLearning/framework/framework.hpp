@@ -1,4 +1,5 @@
 #pragma once
 
-#include "fps_renderer_app.hpp"
+#include "softraster_app.hpp"
 #include "resource_manager.hpp"
+#include "camera.hpp"

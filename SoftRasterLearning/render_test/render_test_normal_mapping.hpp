@@ -13,16 +13,16 @@ public:
 	core::Mat m = core::Mat::Unit();
 	core::Texture* tex0 = nullptr;
 	core::Texture* normal_map = nullptr;
-	core::Vec3 light_position_ws = { 0,10,0 };
+	core::Vec3 light_position_ws = { 0,10.f,0 };
 	core::Vec3 light_color = { 2.f,2.f,2.f };
-	core::Vec3 camera_position_ws = { 0,0,5 };
+	core::Vec3 camera_position_ws = { 0,0,5.f };
 
 	Varying_Light_ts VS(const core::Model_Vertex& v) const
 	{
 		using namespace core;
 
 		//求法线矩阵
-		Mat3 normal_mat = m.ToMat3x3().inverse().transpose();
+		Mat3 normal_mat = m.ToMat3x3();//m.ToMat3x3().inverse().transpose();
 		//求tbn
 		Vec3 tangent = (normal_mat * v.tangent).normalize();
 		Vec3 normal = (normal_mat * v.normal).normalize();
@@ -77,66 +77,54 @@ class Material_Normal : public framework::IMaterial
 public:
 	std::shared_ptr<core::Texture> tex0;
 	std::shared_ptr<core::Texture> normal_map;
+	std::shared_ptr<framework::ICamera> camera;
 
-	void Render(const framework::Entity* entity, framework::IRenderEngine* engine) override
+	void Render(const framework::Entity& entity, framework::IRenderEngine& engine) override
 	{
 		Shader_Normal shader{};
-		core::Renderer<Shader_Normal> renderer = { engine->GetCtx(), shader };
+		core::Renderer<Shader_Normal> renderer = { engine.GetCtx(), shader };
 		shader.tex0 = tex0.get();
 		shader.normal_map = normal_map.get();
-		shader.mvp = engine->GetCamera().GetProjectionViewMatrix() * entity->transform.GetModelMatrix();
-		shader.m = entity->transform.GetModelMatrix();
+		shader.mvp = camera->GetProjectionViewMatrix() * entity.transform.GetModelMatrix();
+		shader.m = entity.transform.GetModelMatrix();
 		shader.light_position_ws = core::Vec3{ -1.f,2.f,3.f };//engine->GetCamera().GetPosition();
-		shader.camera_position_ws = engine->GetCamera().GetPosition();
+		shader.camera_position_ws = camera->GetPosition();
 
-		renderer.DrawTriangles(&entity->model->mesh[0], entity->model->mesh.size());
+		renderer.DrawTriangles(&entity.model->mesh[0], entity.model->mesh.size());
 	}
 };
 
-class RenderTest_Normal final : public framework::FPSRenderAPP
+class Scene_Render_Test_Normal : public framework::Scene
 {
 private:
 	std::shared_ptr<framework::MaterialEntity> sphere;
-
+	std::shared_ptr<framework::FPSCamera> fps_camera;
 public:
-	RenderTest_Normal(HINSTANCE hinst) : FPSRenderAPP{ hinst } {}
-
-protected:
-
-	void Init() override
+	void Init(framework::IRenderEngine& engine) override
 	{
-		SoftRasterApp::Init();
-		//auto _tex = loader::bmp::LoadFromFile(L".\\resource\\pictures\\tex0.bmp");
-		auto _normal_map = loader::bmp::LoadFromFile(L".\\resource\\pictures\\normal.bmp", false);
-		auto _sphere = loader::obj::LoadFromFile(L".\\resource\\models\\sphere.obj");
-
-		framework::SetResource(L"sphere", std::make_shared<core::Model>(std::move(_sphere.value())));
-		//framework::SetResource(L"tex0", std::make_shared<core::Texture>(std::move(_tex.value())));
-		framework::SetResource(L"normal_map", std::make_shared<core::Texture>(std::move(_normal_map.value())));
-
-		camera = std::make_shared<framework::FPSCamera>(core::Vec3{ 0,0,5.f }, -90.f);
-		sphere = world.Spawn<framework::MaterialEntity>();
+		fps_camera = std::make_shared<framework::FPSCamera>(core::Vec3{ 0,0,5.f }, -90.f);
+		auto material_normal = std::make_shared<Material_Normal>();
+		material_normal->tex0 = framework::GetResource<core::Texture>(L"normal_map").value();
+		material_normal->camera = fps_camera;
+		material_normal->normal_map = framework::GetResource<core::Texture>(L"normal_map").value();
+		sphere = Spawn<framework::MaterialEntity>();
 		sphere->model = framework::GetResource<core::Model>(L"sphere").value();
-		auto material_blinn_phong = std::make_shared<Material_Normal>();
-		material_blinn_phong->tex0 = framework::GetResource<core::Texture>(L"normal_map").value();
-		material_blinn_phong->normal_map = framework::GetResource<core::Texture>(L"normal_map").value();
-		sphere->material = material_blinn_phong;
+		sphere->material = material_normal;
 		//...
 	}
 
-	void HandleInput() override
+	void HandleInput(const framework::IRenderEngine& engine) override
 	{
-		FPSRenderAPP::HandleInput();
-
-		if (IsKeyPressed<VK_CONTROL, 'R'>())
+		fps_camera->HandleInput(engine);
+		if (framework::IsKeyPressed<VK_CONTROL, 'R'>())
 		{
 			sphere->transform.rotation += core::Vec3{ 0, 1, 0 }*0.05f;
 		}
-		if (IsKeyPressed<VK_CONTROL, 'F'>())
+		if (framework::IsKeyPressed<VK_CONTROL, 'F'>())
 		{
 			static size_t count = 0;
 			sphere->transform.position = core::Vec3{ (cos(count / 500.f) - 1) * 2,0,  (sin(count / 500.f) - 1) * 2 };
-			count += app_state.delta_count;
+			count += engine.GetEngineState().delta_count;
 		}
 	}
 };

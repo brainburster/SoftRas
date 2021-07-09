@@ -59,7 +59,7 @@
     <ClInclude Include="framework\softraster_app.hpp">
       <Filter>头文件\framework</Filter>
     </ClInclude>
-    <ClInclude Include="framework\world.hpp">
+    <ClInclude Include="framework\scene.hpp">
       <Filter>头文件\framework</Filter>
     </ClInclude>
     <ClInclude Include="framework\object.hpp">
@@ -80,9 +80,6 @@
     <ClInclude Include="render_test\render_test_unlit.hpp">
       <Filter>头文件\render_test</Filter>
     </ClInclude>
-    <ClInclude Include="framework\fps_renderer_app.hpp">
-      <Filter>头文件\framework</Filter>
-    </ClInclude>
     <ClInclude Include="render_test\render_test_light_blinn_phong.hpp">
       <Filter>头文件\render_test</Filter>
     </ClInclude>
@@ -102,6 +99,12 @@
       <Filter>头文件\framework</Filter>
     </ClInclude>
     <ClInclude Include="render_test\render_test_normal_mapping.hpp">
+      <Filter>头文件\render_test</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\render_engine.hpp">
+      <Filter>头文件\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="render_test\render_test_app.hpp">
       <Filter>头文件\render_test</Filter>
     </ClInclude>
   </ItemGroup>

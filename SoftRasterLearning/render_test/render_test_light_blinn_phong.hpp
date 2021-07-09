@@ -19,12 +19,6 @@ public:
 
 	Varying_Light_ws VS(const core::Model_Vertex& v) const
 	{
-		//return core::CreateVarying<Varying_Light_ws>(
-		//	mvp * v.position.ToHomoCoord(),
-		//	m * v.position.ToHomoCoord(),
-		//	v.uv,
-		//	m.ToMat3x3() * v.normal
-		//	);
 		Varying_Light_ws varying{};
 		varying.position = mvp * v.position.ToHomoCoord();
 		varying.position_ws = m * v.position.ToHomoCoord();
@@ -57,61 +51,52 @@ class Material_Blinn_Phong : public framework::IMaterial
 {
 public:
 	std::shared_ptr<core::Texture> tex0;
-	void Render(const framework::Entity* entity, framework::IRenderEngine* engine) override
+	std::shared_ptr<framework::ICamera> camera;
+
+	void Render(const framework::Entity& entity, framework::IRenderEngine& engine) override
 	{
 		Shader_Blinn_Phong shader{};
-		core::Renderer<Shader_Blinn_Phong> renderer = { engine->GetCtx(), shader };
+		core::Renderer<Shader_Blinn_Phong> renderer = { engine.GetCtx(), shader };
 		shader.tex0 = tex0.get();
-		shader.mvp = engine->GetCamera().GetProjectionViewMatrix() * entity->transform.GetModelMatrix();
-		shader.m = entity->transform.GetModelMatrix();
+		shader.mvp = camera->GetProjectionViewMatrix() * entity.transform.GetModelMatrix();
+		shader.m = entity.transform.GetModelMatrix();
 		shader.light_position_ws = core::Vec3{ -1.f,2.f,3.f };//engine->GetCamera().GetPosition();
-		shader.camera_position_ws = engine->GetCamera().GetPosition();
+		shader.camera_position_ws = camera->GetPosition();
 
-		renderer.DrawTriangles(&entity->model->mesh[0], entity->model->mesh.size());
+		renderer.DrawTriangles(&entity.model->mesh[0], entity.model->mesh.size());
 	}
 };
 
-class RenderTest_Blinn_Phong final : public framework::FPSRenderAPP
+class Scene_Render_Test_Blinn_Phong : public framework::Scene
 {
 private:
 	std::shared_ptr<framework::MaterialEntity> sphere;
-
+	std::shared_ptr<framework::FPSCamera> fps_camera;
 public:
-	RenderTest_Blinn_Phong(HINSTANCE hinst) : FPSRenderAPP{ hinst } {}
-
-protected:
-
-	void Init() override
+	void Init(framework::IRenderEngine& engine) override
 	{
-		SoftRasterApp::Init();
-		auto _tex = loader::bmp::LoadFromFile(L".\\resource\\pictures\\tex0.bmp");
-		auto _sphere = loader::obj::LoadFromFile(L".\\resource\\models\\sphere.obj");
-
-		framework::SetResource(L"sphere", std::make_shared<core::Model>(std::move(_sphere.value())));
-		framework::SetResource(L"tex0", std::make_shared<core::Texture>(std::move(_tex.value())));
-
-		camera = std::make_shared<framework::FPSCamera>(core::Vec3{ 0,0,5.f }, -90.f);
-		sphere = world.Spawn<framework::MaterialEntity>();
-		sphere->model = framework::GetResource<core::Model>(L"sphere").value();
+		fps_camera = std::make_shared<framework::FPSCamera>(core::Vec3{ 0,0,5.f }, -90.f);
 		auto material_blinn_phong = std::make_shared<Material_Blinn_Phong>();
 		material_blinn_phong->tex0 = framework::GetResource<core::Texture>(L"tex0").value();
+		material_blinn_phong->camera = fps_camera;
+		sphere = Spawn<framework::MaterialEntity>();
+		sphere->model = framework::GetResource<core::Model>(L"sphere").value();
 		sphere->material = material_blinn_phong;
-		//...
+		//..
 	}
 
-	void HandleInput() override
+	void HandleInput(const framework::IRenderEngine& engine) override
 	{
-		FPSRenderAPP::HandleInput();
-
-		if (IsKeyPressed<VK_CONTROL, 'R'>())
+		fps_camera->HandleInput(engine);
+		if (framework::IsKeyPressed<VK_CONTROL, 'R'>())
 		{
 			sphere->transform.rotation += core::Vec3{ 0, 0, 1 }*0.05f;
 		}
-		if (IsKeyPressed<VK_CONTROL, 'F'>())
+		if (framework::IsKeyPressed<VK_CONTROL, 'F'>())
 		{
 			static size_t count = 0;
 			sphere->transform.position = core::Vec3{ (cos(count / 500.f) - 1) * 2,0,  (sin(count / 500.f) - 1) * 2 };
-			count += app_state.delta_count;
+			count += engine.GetEngineState().delta_count;
 		}
 	}
 };
