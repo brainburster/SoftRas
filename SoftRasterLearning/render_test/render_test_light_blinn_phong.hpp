@@ -13,7 +13,7 @@ public:
 	core::Mat mvp = core::Mat::Unit();
 	core::Mat m = core::Mat::Unit();
 	core::Texture* tex0 = nullptr;
-	framework::CubeMap* cube_map = nullptr;
+	core::CubeMap* cube_map = nullptr;
 	core::Vec3 light_position_ws = { 0,10,0 };
 	//core::Vec3 light_color = { 2,2,2 };
 	core::Vec3 camera_position_ws = { 0,0,5 };
@@ -53,8 +53,8 @@ class Material_Blinn_Phong : public framework::IMaterial
 {
 public:
 	std::shared_ptr<core::Texture> tex0;
+	std::shared_ptr<core::CubeMap> cube_map;
 	std::shared_ptr<framework::ICamera> camera;
-	std::shared_ptr<framework::CubeMap> cube_map;
 
 	void Render(const framework::Entity& entity, framework::IRenderEngine& engine) override
 	{
@@ -76,7 +76,7 @@ class Scene_Render_Test_Blinn_Phong : public framework::Scene
 private:
 	std::shared_ptr<framework::MaterialEntity> sphere;
 	std::shared_ptr<framework::FPSCamera> fps_camera;
-	std::shared_ptr<framework::CubeMap> cube_map;
+	std::shared_ptr<core::CubeMap> cube_map;
 
 public:
 	void Init(framework::IRenderEngine& engine) override
@@ -85,7 +85,7 @@ public:
 		auto material_blinn_phong = std::make_shared<Material_Blinn_Phong>();
 		material_blinn_phong->tex0 = framework::GetResource<core::Texture>(L"tex0").value();
 		material_blinn_phong->camera = fps_camera;
-		material_blinn_phong->cube_map = framework::GetResource<framework::CubeMap>(L"cube_map").value();
+		material_blinn_phong->cube_map = framework::GetResource<core::CubeMap>(L"cube_map").value();
 		sphere = Spawn<framework::MaterialEntity>();
 		sphere->model = framework::GetResource<core::Model>(L"sphere").value();
 		sphere->material = material_blinn_phong;

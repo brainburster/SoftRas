@@ -66,7 +66,7 @@ protected:
 		auto _top = loader::bmp::LoadFromFile(L".\\resource\\pictures\\cubemap\\top.bmp");
 		auto _bottom = loader::bmp::LoadFromFile(L".\\resource\\pictures\\cubemap\\bottom.bmp");
 
-		framework::SetResource(L"cube_map", std::make_shared<framework::CubeMap>(_front, _back, _top, _bottom, _left, _right));
+		framework::SetResource(L"cube_map", std::make_shared<core::CubeMap>(_front, _back, _top, _bottom, _left, _right));
 		framework::SetResource(L"sphere", _sphere);
 		framework::SetResource(L"box", _box);
 		framework::SetResource(L"tex0", _tex);

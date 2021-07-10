@@ -1,11 +1,9 @@
 #pragma once
 
-#include "object.hpp"
-#include "../core/texture.hpp"
-#include "render_engine.hpp"
+#include "texture.hpp"
 #include <memory>
 
-namespace framework
+namespace core
 {
 	class CubeMap
 	{

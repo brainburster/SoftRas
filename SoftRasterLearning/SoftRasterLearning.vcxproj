@@ -160,6 +160,7 @@
   <ItemGroup>
     <ClInclude Include="core\buffer_view.hpp" />
     <ClInclude Include="core\core_api.hpp" />
+    <ClInclude Include="core\cube_map.hpp" />
     <ClInclude Include="core\dc_wnd.hpp" />
     <ClInclude Include="core\game_math.hpp" />
     <ClInclude Include="core\model.hpp" />
@@ -174,7 +175,6 @@
     <ClInclude Include="framework\object.hpp" />
     <ClInclude Include="framework\render_engine.hpp" />
     <ClInclude Include="framework\resource_manager.hpp" />
-    <ClInclude Include="framework\cube_map.hpp" />
     <ClInclude Include="framework\softraster_app.hpp" />
     <ClInclude Include="framework\scene.hpp" />
     <ClInclude Include="loader\bmp_loader.hpp" />
