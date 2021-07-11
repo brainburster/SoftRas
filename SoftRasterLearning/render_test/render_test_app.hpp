@@ -3,6 +3,7 @@
 #include "render_test_unlit.hpp"
 #include "render_test_light_blinn_phong.hpp"
 #include "render_test_normal_mapping.hpp"
+#include "render_test_skybox.hpp"
 
 class RenderTestScene final : public framework::IScene
 {
@@ -12,9 +13,10 @@ private:
 public:
 	void Init(framework::IRenderEngine& engine) override
 	{
-		sub_scenes.push_back(std::make_shared<Scene_Render_Test_Normal>());
-		sub_scenes.push_back(std::make_shared<Scene_Render_Test_Blinn_Phong>());
-		sub_scenes.push_back(std::make_shared<Scene_Render_Unlit>());
+		sub_scenes.push_back(std::make_shared<Scene_Render_Test_Test_Normal>());
+		sub_scenes.push_back(std::make_shared<Scene_Render_Test_Test_Blinn_Phong>());
+		sub_scenes.push_back(std::make_shared<Scene_Render_Test_Unlit>());
+		sub_scenes.push_back(std::make_shared<Scene_Render_Test_Skybox>());
 
 		for (auto& sub_scene : sub_scenes)
 		{
@@ -37,6 +39,11 @@ public:
 	virtual void RenderFrame(framework::IRenderEngine& engine) override
 	{
 		sub_scenes[sub_scene_id]->RenderFrame(engine);
+	}
+
+	virtual const framework::ICamera* GetMainCamera() const override
+	{
+		return sub_scenes[sub_scene_id]->GetMainCamera();
 	}
 };
 

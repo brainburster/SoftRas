@@ -73,9 +73,9 @@ namespace loader::bmp
 		for (size_t i = 0; i < size; ++i)
 		{
 			texture.data[i] = core::Vec4{
-				(float)buffer[i * channel] / 255,
-				(float)buffer[i * channel + 1] / 255,
 				(float)buffer[i * channel + 2] / 255,
+				(float)buffer[i * channel + 1] / 255,
+				(float)buffer[i * channel] / 255,
 				(channel < 4) ? (1.f) : ((float)buffer[i * channel + 3] / 255)
 			};
 		}

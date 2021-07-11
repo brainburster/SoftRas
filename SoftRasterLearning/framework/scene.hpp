@@ -13,6 +13,7 @@ namespace framework
 		virtual void Update(const IRenderEngine&) = 0;
 		virtual void HandleInput(const IRenderEngine&) = 0;
 		virtual void RenderFrame(IRenderEngine&) = 0;
+		virtual const ICamera* GetMainCamera() const = 0;
 	};
 
 	class Scene : public IScene
@@ -21,11 +22,15 @@ namespace framework
 		template<typename T>
 		std::shared_ptr<T> Spawn(core::Vec3 p = core::Vec3{ 0,0,0 }, core::Vec3 r = core::Vec3{ 0,0,0 }, core::Vec3 s = core::Vec3{ 1, 1 ,1 })
 		{
-			std::shared_ptr<T> object = std::make_shared<T>();
-			objects.push_back(object);
-			object->transform = { p ,r, s };
+			std::shared_ptr<T> o = std::make_shared<T>();
+			objects.push_back(o);
 
-			return object;
+			if constexpr (std::is_base_of_v<Object, T>)
+			{
+				o->transform = { p ,r, s };
+			}
+
+			return o;
 		}
 
 		auto begin() const
@@ -37,7 +42,10 @@ namespace framework
 		{
 			return objects.end();
 		}
-
+		virtual const ICamera* GetMainCamera() const override
+		{
+			return nullptr;
+		}
 		virtual void Init(IRenderEngine& engine) override {};
 		virtual void Update(const IRenderEngine&) override {};
 		virtual void HandleInput(const IRenderEngine&) override {};
@@ -52,6 +60,6 @@ namespace framework
 		virtual ~Scene() = default;
 
 	protected:
-		std::vector<std::shared_ptr<Object>> objects;
+		std::vector<std::shared_ptr<IRenderAble>> objects;
 	};
 }

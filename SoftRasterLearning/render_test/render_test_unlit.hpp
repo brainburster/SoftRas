@@ -26,19 +26,18 @@ class Material_Unlit : public framework::IMaterial
 {
 public:
 	std::shared_ptr<core::Texture> tex0;
-	std::shared_ptr<framework::ICamera> camera;
 
 	void Render(const framework::Entity& entity, framework::IRenderEngine& engine) override
 	{
 		Shader_Unlit shader{};
 		core::Renderer<Shader_Unlit> renderer = { engine.GetCtx(), shader };
 		shader.tex0 = tex0.get();
-		shader.mat = camera->GetProjectionViewMatrix() * entity.transform.GetModelMatrix();
+		shader.mat = engine.GetMainCamera()->GetProjectionViewMatrix() * entity.transform.GetModelMatrix();
 		renderer.DrawTriangles(&entity.model->mesh[0], entity.model->mesh.size());
 	}
 };
 
-class Scene_Render_Unlit : public framework::Scene
+class Scene_Render_Test_Unlit : public framework::Scene
 {
 private:
 	std::shared_ptr<framework::MaterialEntity> cube;
@@ -50,10 +49,13 @@ public:
 		fps_camera = std::make_shared<framework::FPSCamera>(core::Vec3{ 0,0,5.f }, -90.f);
 		auto material_normal = std::make_shared<Material_Unlit>();
 		material_normal->tex0 = framework::GetResource<core::Texture>(L"tex0").value();
-		material_normal->camera = fps_camera;
 		cube = Spawn<framework::MaterialEntity>();
 		cube->model = framework::GetResource<core::Model>(L"box").value();
+		auto cube2 = Spawn<framework::MaterialEntity>();
+		cube2->model = framework::GetResource<core::Model>(L"box").value();
+		cube2->transform.position = core::Vec4{ -0.5f,0.5f,-2.f };
 		cube->material = material_normal;
+		cube2->material = material_normal;
 		//...
 	}
 
@@ -61,9 +63,14 @@ public:
 	{
 		fps_camera->HandleInput(engine);
 
-		if (framework::IsKeyPressed<VK_CONTROL, ' '>())
+		if (framework::IsKeyPressed<VK_CONTROL, 'R'>())
 		{
 			cube->transform.rotation += core::Vec3{ 1, 1, 1 }*0.01f;
 		}
+	}
+
+	virtual const framework::ICamera* GetMainCamera() const override
+	{
+		return fps_camera.get();
 	}
 };

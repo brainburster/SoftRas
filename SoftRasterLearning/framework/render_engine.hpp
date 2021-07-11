@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include "camera.hpp"
 
 namespace framework
 {
@@ -37,6 +38,7 @@ namespace framework
 		virtual core::Context& GetCtx() noexcept = 0;
 		virtual const InputState& GetInputState() const noexcept = 0;
 		virtual const EngineState& GetEngineState() const noexcept = 0;
+		virtual const ICamera* GetMainCamera() const = 0;
 
 		virtual ~IRenderEngine() = default;
 	protected:

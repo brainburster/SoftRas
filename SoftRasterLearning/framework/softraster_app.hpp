@@ -45,6 +45,11 @@ namespace framework
 			return *this;
 		}
 
+		virtual const ICamera* GetMainCamera() const override
+		{
+			return scene->GetMainCamera();
+		}
+
 		virtual core::Context& GetCtx() noexcept override
 		{
 			return ctx;
@@ -187,7 +192,7 @@ namespace framework
 		//äÖÈ¾Ã¿Ö¡
 		virtual void RenderFrame() override
 		{
-			ctx.Clear({ 0.2f, 0.6f, 0.4f, 1.f });
+			ctx.Clear({ 0.4f, 0.6f, 0.2f, 1.f });
 			scene->RenderFrame(*this);
 		}
 

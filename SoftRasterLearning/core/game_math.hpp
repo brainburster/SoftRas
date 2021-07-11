@@ -339,15 +339,28 @@ namespace gmath
 		Mat3x3(Vec3<T> a, Vec3<T> b, Vec3<T> c)
 		{
 			data[0] = a.x;
-			data[1] = a.y;
-			data[2] = a.z;
-			data[3] = b.x;
+			data[1] = b.x;
+			data[2] = c.x;
+			data[3] = a.y;
 			data[4] = b.y;
-			data[5] = b.z;
-			data[6] = c.x;
-			data[7] = c.y;
+			data[5] = c.y;
+			data[6] = a.z;
+			data[7] = b.z;
 			data[8] = c.z;
 		}
+
+		//Mat3x3(Vec3<T> a, Vec3<T> b, Vec3<T> c)
+		//{
+		//	data[0] = a.x;
+		//	data[1] = a.y;
+		//	data[2] = a.z;
+		//	data[3] = b.x;
+		//	data[4] = b.y;
+		//	data[5] = b.z;
+		//	data[6] = c.x;
+		//	data[7] = c.y;
+		//	data[8] = c.z;
+		//}
 
 		Mat3x3(T a, T b, T c, T d, T e, T f, T g, T h, T i)
 		{

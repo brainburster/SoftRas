@@ -57,10 +57,11 @@ namespace core
 		static Color32 TransFloat4colorToUint32color(const Color& color)
 		{
 			using gmath::Utility::Clamp;
+			//交换r,b通道
 			return Color32{
-				(unsigned char)(Clamp(color.r) * 255),
-				(unsigned char)(Clamp(color.g) * 255),
 				(unsigned char)(Clamp(color.b) * 255),
+				(unsigned char)(Clamp(color.g) * 255),
+				(unsigned char)(Clamp(color.r) * 255),
 				(unsigned char)(Clamp(color.a) * 255)
 			};
 		}
@@ -315,7 +316,7 @@ namespace core
 
 			//求插值
 			varying_t interp = *p0 * weight.x + *p1 * weight.y + *p2 * weight.z;
-			float depth = interp.position.z;
+			float depth = -interp.position.z / interp.position.w;
 			float depth0 = context.depth_buffer_view.Get(x, y);
 
 			//深度测试
@@ -351,11 +352,35 @@ namespace core
 
 			//把颜色映射到gamma空间（假设像素着色器返回的是线性空间的颜色）
 			color = Vec4{
-				pow(color.r,1 / gamma),
-				pow(color.g,1 / gamma),
-				pow(color.b,1 / gamma),
+				(color.r > 0) ? pow(color.r,1 / gamma) : 0,
+				(color.g > 0) ? pow(color.g,1 / gamma) : 0,
+				(color.b > 0) ? pow(color.b,1 / gamma) : 0,
 				color.a
 			};
+
+			////卡马克算法
+			//auto sqrt_by_carmack = [](float number)
+			//{
+			//	int i;
+			//	float x2, y;
+			//	const float threehalfs = 1.5f;
+			//	x2 = number * 0.5f;
+			//	y = number;
+			//	i = *(int*)&y;
+			//	i = 0x5f375a86 - (i >> 1);
+			//	y = *(float*)&i;
+			//	y = y * (threehalfs - (x2 * y * y));
+			////	y = y * (threehalfs - (x2 * y * y));
+			////	y = y * (threehalfs - (x2 * y * y));
+			//	return number * y;
+			//};
+
+			//color = Vec4{
+			//	sqrt_by_carmack(color.r),
+			//	sqrt_by_carmack(color.g),
+			//	sqrt_by_carmack(color.b),
+			//	color.a
+			//};
 
 			//写入fragment_buffer
 			context.fragment_buffer_view.Set(x, y, color);
@@ -399,7 +424,7 @@ namespace core
 			float y1 = triangle[1].position.y;
 			float y2 = triangle[2].position.y;
 
-			if (w0 < epsilon || w1 < epsilon || w2 < epsilon ||
+			if (w0 < epsilon && w1 < epsilon && w2 < epsilon ||
 				z0 < 0 && z1 < 0 && z2 < 0 ||
 				z0 > w0 && z1 > w1 && z2 > w2 ||
 				x0 > w0 && x1 > w1 && x2 > w2 ||

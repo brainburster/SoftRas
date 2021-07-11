@@ -110,5 +110,14 @@
     <ClInclude Include="core\cube_map.hpp">
       <Filter>头文件\core</Filter>
     </ClInclude>
+    <ClInclude Include="framework\skybox.h">
+      <Filter>头文件\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\fps_camera.hpp">
+      <Filter>头文件\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="render_test\render_test_skybox.hpp">
+      <Filter>头文件\render_test</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
