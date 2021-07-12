@@ -1,13 +1,15 @@
 #pragma once
 
+#include "../core/types_and_defs.hpp"
+
 namespace framework
 {
 	class ICamera
 	{
 	public:
-		using Vec3 = gmath::Vec3<float>;
-		using Vec2 = gmath::Vec3<float>;
-		using Mat4x4 = gmath::Mat4x4<float>;
+		using Vec3 = core::Vec3;
+		using Vec2 = core::Vec2;
+		using Mat4x4 = core::Mat;
 
 		virtual Mat4x4 GetProjectionViewMatrix() const = 0;
 		virtual Mat4x4 GetProjectionwMatrix() const = 0;
