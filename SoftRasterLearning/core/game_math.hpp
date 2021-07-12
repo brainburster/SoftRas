@@ -1,6 +1,82 @@
 #pragma once
 
 #include <cmath>
+#include <immintrin.h>
+#include <DirectXMath.h>
+
+//__forceinline __m128 _vectorcall operator+(__m128 lhs, __m128 rhs)
+//{
+//	return _mm_add_ps(lhs, rhs);
+//}
+//
+//__forceinline __m128 _vectorcall operator+(float lhs, __m128 rhs)
+//{
+//	__m128 _lhs = _mm_set1_ps(lhs);
+//	return _mm_add_ps(_lhs, rhs);
+//}
+//
+//__forceinline __m128 _vectorcall operator+(__m128 lhs, float rhs)
+//{
+//	__m128 _rhs = _mm_set1_ps(rhs);
+//	return _mm_add_ps(lhs, _rhs);
+//}
+//
+//__forceinline __m128 _vectorcall operator-(__m128 lhs, __m128 rhs)
+//{
+//	return _mm_sub_ps(lhs, rhs);
+//}
+//
+//__forceinline __m128 _vectorcall operator-(float lhs, __m128 rhs)
+//{
+//	__m128 _lhs = _mm_set1_ps(lhs);
+//	return _mm_sub_ps(_lhs, rhs);
+//}
+//
+//__forceinline __m128 _vectorcall operator-(__m128 lhs, float rhs)
+//{
+//	__m128 _rhs = _mm_set1_ps(rhs);
+//	return _mm_sub_ps(lhs, _rhs);
+//}
+//
+//__forceinline __m128 _vectorcall operator*(__m128 lhs, __m128 rhs)
+//{
+//	return _mm_mul_ps(lhs, rhs);
+//}
+//
+//__forceinline __m128 _vectorcall operator*(float lhs, __m128 rhs)
+//{
+//	__m128 _lhs = _mm_set1_ps(lhs);
+//	return _mm_mul_ps(_lhs, rhs);
+//}
+//
+//__forceinline __m128 _vectorcall operator*(__m128 lhs, float rhs)
+//{
+//	__m128 _rhs = _mm_set1_ps(rhs);
+//	return _mm_mul_ps(lhs, _rhs);
+//}
+//
+//__forceinline __m128 _vectorcall operator/(__m128 lhs, __m128 rhs)
+//{
+//	return _mm_div_ps(lhs, rhs);
+//}
+//
+//__forceinline __m128 _vectorcall operator/(float lhs, __m128 rhs)
+//{
+//	__m128 _lhs = _mm_set1_ps(lhs);
+//	return _mm_div_ps(_lhs, rhs);
+//}
+//
+//__forceinline __m128 _vectorcall operator/(__m128 lhs, float rhs)
+//{
+//	__m128 _rhs = _mm_set1_ps(rhs);
+//	return _mm_div_ps(lhs, _rhs);
+//}
+//
+//__forceinline __m128 _vectorcall Pow(__m128 lhs, float rhs)
+//{
+//	__m128 _rhs = _mm_set1_ps(rhs);
+//	return _mm_div_ps(lhs, _rhs);
+//}
 
 namespace gmath
 {
@@ -10,7 +86,8 @@ namespace gmath
 	template<typename T = float>
 	struct Vec4
 	{
-		union {
+		union
+		{
 			struct
 			{
 				T x;
@@ -31,7 +108,7 @@ namespace gmath
 		{
 		}
 
-		Vec4(T x, T y, T z, T w = 1) : x{ x }, y{ y }, z{ z }, w{ w }
+		Vec4(T x, T y, T z, T w = 0) : x{ x }, y{ y }, z{ z }, w{ w }
 		{
 		}
 
@@ -43,7 +120,7 @@ namespace gmath
 		{
 		}
 
-		Vec4(const Vec4& vec4_hc) = default;
+		Vec4(const Vec4& vec4) = default;
 
 		Vec4 operator+(const Vec4& rhs) const
 		{
@@ -749,6 +826,198 @@ namespace gmath
 		inline float degrees(float radian)
 		{
 			return radian * 180.f / pi;
+		}
+	};
+
+	template<>
+	struct alignas(16) Vec4<float>
+	{
+		union
+		{
+			struct
+			{
+				float x;
+				float y;
+				float z;
+				float w;
+			};
+			struct
+			{
+				float r;
+				float g;
+				float b;
+				float a;
+			};
+			__m128 data_m128;
+		};
+
+		Vec4(float v = 0) : x{ v }, y{ v }, z{ v }, w{ v }
+		{
+		}
+
+		Vec4(float x, float y, float z, float w = 1) : x{ x }, y{ y }, z{ z }, w{ w }
+		{
+		}
+
+		Vec4(const Vec2<float>& vec2, float z = 0, float w = 0) : x{ vec2.x }, y{ vec2.y }, z{ z }, w{ w }
+		{
+		}
+
+		Vec4(const Vec3<float>& vec3, float w = 0) : x{ vec3.x }, y{ vec3.y }, z{ vec3.z }, w{ w }
+		{
+		}
+
+		Vec4(const Vec4& vec4) = default;
+
+		Vec4(__m128 data)
+		{
+			data_m128 = data;
+		}
+
+		operator __m128()
+		{
+			return data_m128;
+		}
+
+		__forceinline Vec4 _vectorcall Pow(float rhs) const noexcept
+		{
+			__m128 rhs4 = _mm_set1_ps(rhs);
+			return _mm_pow_ps(data_m128, rhs4); //¼ÙµÄintrinsic,
+			//return _mm_exp10_ps(_mm_mul_ps(_mm_log10_ps(data_m128), rhs4));
+			//return _mm_sqrt_ps(data_m128);
+		}
+
+		__forceinline Vec4 _vectorcall Sqrt() const noexcept
+		{
+			return _mm_sqrt_ps(data_m128);
+		}
+
+		__forceinline Vec4& _vectorcall operator+=(Vec4 rhs) noexcept
+		{
+			data_m128 = _mm_add_ps(data_m128, rhs.data_m128);
+			return *this;
+		}
+
+		__forceinline Vec4& _vectorcall operator+=(float rhs) noexcept
+		{
+			__m128 rhs4 = _mm_set_ps1(rhs);
+			data_m128 = _mm_add_ps(data_m128, rhs4);
+			return *this;
+		}
+
+		__forceinline Vec4& _vectorcall operator-=(const Vec4& rhs) noexcept
+		{
+			data_m128 = _mm_sub_ps(data_m128, rhs.data_m128);
+			return *this;
+		}
+
+		__forceinline Vec4& _vectorcall operator-=(float rhs) noexcept
+		{
+			__m128 rhs4 = _mm_set_ps1(rhs);
+			data_m128 = _mm_sub_ps(data_m128, rhs4);
+			return *this;
+		}
+
+		__forceinline Vec4& _vectorcall operator*=(const Vec4& rhs) noexcept
+		{
+			data_m128 = _mm_mul_ps(data_m128, rhs.data_m128);
+			return *this;
+		}
+
+		__forceinline Vec4& _vectorcall operator*=(float rhs) noexcept
+		{
+			__m128 rhs4 = _mm_set_ps1(rhs);
+			data_m128 = _mm_mul_ps(data_m128, rhs4);
+			return *this;
+		}
+
+		__forceinline Vec4& _vectorcall operator/=(const Vec4& rhs) noexcept
+		{
+			data_m128 = _mm_div_ps(data_m128, rhs.data_m128);
+			return *this;
+		}
+
+		__forceinline Vec4& _vectorcall operator/=(float rhs) noexcept
+		{
+			__m128 rhs4 = _mm_set_ps1(rhs);
+			data_m128 = _mm_div_ps(data_m128, rhs4);
+			return *this;
+		}
+
+		__forceinline float _vectorcall Dot(Vec4 rhs) const noexcept
+		{
+			__m128 ret = _mm_mul_ps(data_m128, rhs.data_m128);
+			ret = _mm_hadd_ps(ret, ret);
+			ret = _mm_hadd_ps(ret, ret);
+			return ret.m128_f32[0];
+		}
+
+		friend __forceinline Vec4 _vectorcall operator+(Vec4 lhs, Vec4 rhs) noexcept
+		{
+			return _mm_add_ps(lhs, rhs);
+		}
+
+		friend __forceinline Vec4 _vectorcall operator+(float lhs, Vec4 rhs) noexcept
+		{
+			__m128 lhs4 = _mm_set1_ps(lhs);
+			return _mm_add_ps(lhs4, rhs);
+		}
+
+		friend __forceinline Vec4 _vectorcall operator+(Vec4 lhs, float rhs) noexcept
+		{
+			__m128 rhs4 = _mm_set1_ps(rhs);
+			return _mm_add_ps(lhs, rhs4);
+		}
+
+		friend __forceinline Vec4 _vectorcall operator-(Vec4 lhs, Vec4 rhs) noexcept
+		{
+			return _mm_sub_ps(lhs, rhs);
+		}
+
+		friend __forceinline Vec4 _vectorcall operator-(float lhs, Vec4 rhs) noexcept
+		{
+			__m128 lhs4 = _mm_set1_ps(lhs);
+			return _mm_sub_ps(lhs4, rhs);
+		}
+
+		friend __forceinline Vec4 _vectorcall operator-(Vec4 lhs, float rhs) noexcept
+		{
+			__m128 rhs4 = _mm_set1_ps(rhs);
+			return _mm_sub_ps(lhs, rhs4);
+		}
+
+		friend __forceinline Vec4 _vectorcall operator*(Vec4 lhs, Vec4 rhs) noexcept
+		{
+			return _mm_mul_ps(lhs, rhs);
+		}
+
+		friend __forceinline Vec4 _vectorcall operator*(float lhs, Vec4 rhs) noexcept
+		{
+			__m128 lhs4 = _mm_set1_ps(lhs);
+			return _mm_mul_ps(lhs4, rhs);
+		}
+
+		friend __forceinline Vec4 _vectorcall operator*(Vec4 lhs, float rhs) noexcept
+		{
+			__m128 rhs4 = _mm_set1_ps(rhs);
+			return _mm_mul_ps(lhs, rhs4);
+		}
+
+		friend __forceinline Vec4 _vectorcall operator/(Vec4 lhs, Vec4 rhs) noexcept
+		{
+			return _mm_div_ps(lhs, rhs);
+		}
+
+		friend __forceinline Vec4 _vectorcall operator/(float lhs, Vec4 rhs) noexcept
+		{
+			__m128 lhs4 = _mm_set1_ps(lhs);
+			return _mm_div_ps(lhs4, rhs);
+		}
+
+		friend __forceinline Vec4 _vectorcall operator/(Vec4 lhs, float rhs) noexcept
+		{
+			__m128 rhs4 = _mm_set1_ps(rhs);
+			return _mm_div_ps(lhs, rhs4);
 		}
 	};
 };

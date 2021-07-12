@@ -351,36 +351,15 @@ namespace core
 			}
 
 			//把颜色映射到gamma空间（假设像素着色器返回的是线性空间的颜色）
-			color = Vec4{
-				(color.r > 0) ? pow(color.r,1 / gamma) : 0,
-				(color.g > 0) ? pow(color.g,1 / gamma) : 0,
-				(color.b > 0) ? pow(color.b,1 / gamma) : 0,
-				color.a
-			};
-
-			////卡马克算法
-			//auto sqrt_by_carmack = [](float number)
-			//{
-			//	int i;
-			//	float x2, y;
-			//	const float threehalfs = 1.5f;
-			//	x2 = number * 0.5f;
-			//	y = number;
-			//	i = *(int*)&y;
-			//	i = 0x5f375a86 - (i >> 1);
-			//	y = *(float*)&i;
-			//	y = y * (threehalfs - (x2 * y * y));
-			////	y = y * (threehalfs - (x2 * y * y));
-			////	y = y * (threehalfs - (x2 * y * y));
-			//	return number * y;
-			//};
-
 			//color = Vec4{
-			//	sqrt_by_carmack(color.r),
-			//	sqrt_by_carmack(color.g),
-			//	sqrt_by_carmack(color.b),
+			//	(color.r > 0) ? pow(color.r,1 / gamma) : 0,
+			//	(color.g > 0) ? pow(color.g,1 / gamma) : 0,
+			//	(color.b > 0) ? pow(color.b,1 / gamma) : 0,
 			//	color.a
 			//};
+
+			//color = color.Pow(1 / gamma);
+			color = color.Sqrt();
 
 			//写入fragment_buffer
 			context.fragment_buffer_view.Set(x, y, color);

@@ -53,7 +53,7 @@ public:
 	{
 		using namespace core;
 
-		Vec3 N = (Texture::Sample(normal_map, v.uv) * 2 - 1.f).normalize(); //切线空间法线
+		Vec3 N = Vec3(Texture::Sample(normal_map, v.uv) * 2 - 1.f).normalize(); //切线空间法线
 		Vec3 base_color = Vec3{ 0.8f };//Texture::Sample(tex0, v.uv);
 
 		Vec3 L = v.light_dir_ts;

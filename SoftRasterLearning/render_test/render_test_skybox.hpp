@@ -40,8 +40,8 @@ public:
 	core::Vec4 FS(const Varying_Light_ws& v) const
 	{
 		using namespace core;
-		Vec3 V = (camera_position_ws - v.position_ws).normalize();
-		Vec3 N = (Texture::Sample(normal_map, v.uv) * 2 - 1.f);
+		Vec3 V = Vec3(camera_position_ws - v.position_ws).normalize();
+		Vec3 N = Vec3(Texture::Sample(normal_map, v.uv) * 2 - 1.f);
 		N = (v.TBN * N).normalize();
 		Vec3 R = V * -1 - 2 * (V * -1).Dot(N) * N;
 
