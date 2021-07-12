@@ -228,7 +228,7 @@ namespace gmath
 		};
 
 		Vec4(float v = 0);
-		Vec4(float x, float y, float z, float w = 1);
+		Vec4(float x, float y, float z, float w = 1.f);
 		Vec4(const Vec2<float>& vec2, float z = 0, float w = 0);
 		Vec4(const Vec3<float>& vec3, float w = 0);
 		Vec4(const Vec4& vec4) = default;
@@ -261,6 +261,75 @@ namespace gmath
 		friend __forceinline Vec4 _vectorcall operator/(Vec4 lhs, Vec4 rhs) noexcept;
 		friend __forceinline Vec4 _vectorcall operator/(float lhs, Vec4 rhs) noexcept;
 		friend __forceinline Vec4 _vectorcall operator/(Vec4 lhs, float rhs) noexcept;
+	};
+
+	template<>
+	struct alignas(16) Vec3<float>
+	{
+		union
+		{
+			struct
+			{
+				float x;
+				float y;
+				float z;
+				float _w;
+			};
+			struct
+			{
+				float r;
+				float g;
+				float b;
+				float _a;
+			};
+			__m128 data_m128;
+		};
+
+		static constexpr union {
+			struct
+			{
+				unsigned int x;
+				unsigned int y;
+				unsigned int z;
+				unsigned int w;
+			};
+			__m128 mask;
+		} mask3 = { {  0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000  } };
+
+		Vec3(float v = 0);
+		Vec3(float x, float y, float z);
+		Vec3(Vec4<float> vec4);
+		Vec3(Vec2<float> vec2, float z = 0);
+		Vec3(const Vec3<float>&) = default;
+		Vec3(__m128 data);
+		operator __m128();
+
+		__forceinline Vec4<float> ToHomoCoord() const;
+		__forceinline Vec3 normalize() const;
+		__forceinline Vec3 _vectorcall cross(Vec3 rhs) const;
+		__forceinline float _vectorcall Dot(Vec3 rhs) const noexcept;
+
+		__forceinline Vec3& _vectorcall operator+=(Vec3 rhs) noexcept;
+		__forceinline Vec3& _vectorcall operator+=(float rhs) noexcept;
+		__forceinline Vec3& _vectorcall operator-=(Vec3 rhs) noexcept;
+		__forceinline Vec3& _vectorcall operator-=(float rhs) noexcept;
+		__forceinline Vec3& _vectorcall operator*=(Vec3 rhs) noexcept;
+		__forceinline Vec3& _vectorcall operator*=(float rhs) noexcept;
+		__forceinline Vec3& _vectorcall operator/=(Vec3 rhs) noexcept;
+		__forceinline Vec3& _vectorcall operator/=(float rhs) noexcept;
+
+		friend __forceinline Vec3 _vectorcall operator+(Vec3 lhs, Vec3 rhs) noexcept;
+		friend __forceinline Vec3 _vectorcall operator+(float lhs, Vec3 rhs) noexcept;
+		friend __forceinline Vec3 _vectorcall operator+(Vec3 lhs, float rhs) noexcept;
+		friend __forceinline Vec3 _vectorcall operator-(Vec3 lhs, Vec3 rhs) noexcept;
+		friend __forceinline Vec3 _vectorcall operator-(float lhs, Vec3 rhs) noexcept;
+		friend __forceinline Vec3 _vectorcall operator-(Vec3 lhs, float rhs) noexcept;
+		friend __forceinline Vec3 _vectorcall operator*(Vec3 lhs, Vec3 rhs) noexcept;
+		friend __forceinline Vec3 _vectorcall operator*(float lhs, Vec3 rhs) noexcept;
+		friend __forceinline Vec3 _vectorcall operator*(Vec3 lhs, float rhs) noexcept;
+		friend __forceinline Vec3 _vectorcall operator/(Vec3 lhs, Vec3 rhs) noexcept;
+		friend __forceinline Vec3 _vectorcall operator/(float lhs, Vec3 rhs) noexcept;
+		friend __forceinline Vec3 _vectorcall operator/(Vec3 lhs, float rhs) noexcept;
 	};
 };
 

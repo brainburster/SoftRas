@@ -2,26 +2,15 @@
 
 namespace gmath
 {
-	inline Vec4<float>::Vec4(float v) : x{ v }, y{ v }, z{ v }, w{ v }
-	{
-	}
+	inline Vec4<float>::Vec4(float v) : x{ v }, y{ v }, z{ v }, w{ v }{}
 
-	inline Vec4<float>::Vec4(float x, float y, float z, float w) : x{ x }, y{ y }, z{ z }, w{ w }
-	{
-	}
+	inline Vec4<float>::Vec4(float x, float y, float z, float w) : x{ x }, y{ y }, z{ z }, w{ w }{}
 
-	inline Vec4<float>::Vec4(const Vec2<float>& vec2, float z, float w) : x{ vec2.x }, y{ vec2.y }, z{ z }, w{ w }
-	{
-	}
+	inline Vec4<float>::Vec4(const Vec2<float>& vec2, float z, float w) : x{ vec2.x }, y{ vec2.y }, z{ z }, w{ w }{}
 
-	inline Vec4<float>::Vec4(const Vec3<float>& vec3, float w) : x{ vec3.x }, y{ vec3.y }, z{ vec3.z }, w{ w }
-	{
-	}
+	inline Vec4<float>::Vec4(const Vec3<float>& vec3, float w) : x{ vec3.x }, y{ vec3.y }, z{ vec3.z }, w{ w }{}
 
-	inline Vec4<float>::Vec4(__m128 data)
-	{
-		data_m128 = data;
-	}
+	inline Vec4<float>::Vec4(__m128 data) : data_m128{ data } {}
 
 	inline Vec4<float>::operator __m128()
 	{
@@ -108,13 +97,13 @@ namespace gmath
 
 	__forceinline Vec4<float> _vectorcall operator+(float lhs, Vec4<float> rhs) noexcept
 	{
-		__m128 lhs4 = _mm_set1_ps(lhs);
+		__m128 lhs4 = _mm_set_ps1(lhs);
 		return _mm_add_ps(lhs4, rhs);
 	}
 
 	__forceinline Vec4<float> _vectorcall operator+(Vec4<float> lhs, float rhs) noexcept
 	{
-		__m128 rhs4 = _mm_set1_ps(rhs);
+		__m128 rhs4 = _mm_set_ps1(rhs);
 		return _mm_add_ps(lhs, rhs4);
 	}
 
@@ -125,13 +114,13 @@ namespace gmath
 
 	__forceinline Vec4<float> _vectorcall operator-(float lhs, Vec4<float> rhs) noexcept
 	{
-		__m128 lhs4 = _mm_set1_ps(lhs);
+		__m128 lhs4 = _mm_set_ps1(lhs);
 		return _mm_sub_ps(lhs4, rhs);
 	}
 
 	__forceinline Vec4<float> _vectorcall operator-(Vec4<float> lhs, float rhs) noexcept
 	{
-		__m128 rhs4 = _mm_set1_ps(rhs);
+		__m128 rhs4 = _mm_set_ps1(rhs);
 		return _mm_sub_ps(lhs, rhs4);
 	}
 
@@ -142,13 +131,13 @@ namespace gmath
 
 	__forceinline Vec4<float> _vectorcall operator*(float lhs, Vec4<float> rhs) noexcept
 	{
-		__m128 lhs4 = _mm_set1_ps(lhs);
+		__m128 lhs4 = _mm_set_ps1(lhs);
 		return _mm_mul_ps(lhs4, rhs);
 	}
 
 	__forceinline Vec4<float> _vectorcall operator*(Vec4<float> lhs, float rhs) noexcept
 	{
-		__m128 rhs4 = _mm_set1_ps(rhs);
+		__m128 rhs4 = _mm_set_ps1(rhs);
 		return _mm_mul_ps(lhs, rhs4);
 	}
 
@@ -159,16 +148,195 @@ namespace gmath
 
 	__forceinline Vec4<float> _vectorcall operator/(float lhs, Vec4<float> rhs) noexcept
 	{
-		__m128 lhs4 = _mm_set1_ps(lhs);
+		__m128 lhs4 = _mm_set_ps1(lhs);
 		return _mm_div_ps(lhs4, rhs);
 	}
 
 	__forceinline Vec4<float> _vectorcall operator/(Vec4<float> lhs, float rhs) noexcept
 	{
-		__m128 rhs4 = _mm_set1_ps(rhs);
+		__m128 rhs4 = _mm_set_ps1(rhs);
 		return _mm_div_ps(lhs, rhs4);
 	}
 };
+
+namespace gmath
+{
+	inline Vec3<float>::Vec3(float v) :x{ v }, y{ v }, z{ v }, _w{ 0 }{}
+	inline Vec3<float>::Vec3(float x, float y, float z) : x{ x }, y{ y }, z{ z }, _w{ 0 }{}
+	inline Vec3<float>::Vec3(Vec4<float> vec4) :
+		x{ vec4.x },
+		y{ vec4.y },
+		z{ vec4.z },
+		_w{ 0 }{};
+	inline Vec3<float>::Vec3(Vec2<float> vec2, float z) :
+		x{ vec2.x },
+		y{ vec2.y },
+		z{ z },
+		_w{ 0 }
+	{}
+	inline Vec3<float>::Vec3(__m128 data) : data_m128{ data } {/* _w = 0; */ }
+	inline Vec3<float>::operator __m128()
+	{
+		return data_m128;
+	}
+
+	__forceinline Vec4<float> Vec3<float>::ToHomoCoord() const
+	{
+		return Vec4<float>{x, y, z, 1.f};
+	}
+
+	__forceinline Vec3<float> _vectorcall Vec3<float>::cross(Vec3 rhs) const
+	{
+		__m128 temp1 = _mm_shuffle_ps(data_m128, data_m128, _MM_SHUFFLE(3, 0, 2, 1));
+		__m128 temp2 = _mm_shuffle_ps(rhs.data_m128, rhs.data_m128, _MM_SHUFFLE(3, 1, 0, 2));
+		__m128 ret = _mm_mul_ps(temp1, temp2);
+		temp1 = _mm_shuffle_ps(temp1, temp1, _MM_SHUFFLE(3, 0, 2, 1));
+		temp2 = _mm_shuffle_ps(temp2, temp2, _MM_SHUFFLE(3, 1, 0, 2));
+		temp1 = _mm_mul_ps(temp1, temp2);
+		ret = _mm_sub_ps(ret, temp1);
+		return _mm_and_ps(ret, mask3.mask);
+		//return Vec3{ y * rhs.z - z * rhs.y,z * rhs.x - x * rhs.z,x * rhs.y - y * rhs.x };
+	}
+
+	__forceinline Vec3<float> Vec3<float>::normalize() const
+	{
+		//float len = pow(x * x + y * y + z * z, 0.5f);
+		__m128 len = _mm_dp_ps(data_m128, data_m128, 0x7f);
+		len = _mm_sqrt_ps(len);
+		return _mm_and_ps(_mm_div_ps(data_m128, len), mask3.mask);
+	}
+
+	__forceinline float _vectorcall Vec3<float>::Dot(Vec3 rhs) const noexcept
+	{
+		//rhs._w = 0;
+		//__m128 ret = _mm_mul_ps(data_m128, rhs.data_m128);
+		//ret = _mm_and_ps(ret, mask3.mask);
+		//ret = _mm_hadd_ps(ret, ret);
+		//ret = _mm_hadd_ps(ret, ret);
+		__m128 ret = _mm_dp_ps(data_m128, rhs.data_m128, 0x7f);
+		return ret.m128_f32[0];
+	}
+
+	__forceinline Vec3<float>& _vectorcall Vec3<float>::operator+=(Vec3 rhs) noexcept
+	{
+		data_m128 = _mm_add_ps(data_m128, rhs.data_m128);
+		return *this;
+	}
+
+	__forceinline Vec3<float>& _vectorcall Vec3<float>::operator+=(float rhs) noexcept
+	{
+		__m128 rhs4 = _mm_set_ps1(rhs);
+		data_m128 = _mm_add_ps(data_m128, rhs4);
+		return *this;
+	}
+
+	__forceinline Vec3<float>& _vectorcall Vec3<float>::operator-=(Vec3 rhs) noexcept
+	{
+		data_m128 = _mm_sub_ps(data_m128, rhs.data_m128);
+		return *this;
+	}
+
+	__forceinline Vec3<float>& _vectorcall Vec3<float>::operator-=(float rhs) noexcept
+	{
+		__m128 rhs4 = _mm_set_ps1(rhs);
+		data_m128 = _mm_sub_ps(data_m128, rhs4);
+		return *this;
+	}
+
+	__forceinline Vec3<float>& _vectorcall Vec3<float>::operator*=(Vec3 rhs) noexcept
+	{
+		data_m128 = _mm_mul_ps(data_m128, rhs.data_m128);
+		return *this;
+	}
+
+	__forceinline Vec3<float>& _vectorcall Vec3<float>::operator*=(float rhs) noexcept
+	{
+		__m128 rhs4 = _mm_set_ps1(rhs);
+		data_m128 = _mm_mul_ps(data_m128, rhs4);
+		return *this;
+	}
+
+	__forceinline Vec3<float>& _vectorcall Vec3<float>::operator/=(Vec3 rhs) noexcept
+	{
+		data_m128 = _mm_div_ps(data_m128, rhs.data_m128);
+		return *this;
+	}
+
+	__forceinline Vec3<float>& _vectorcall Vec3<float>::operator/=(float rhs) noexcept
+	{
+		__m128 rhs4 = _mm_set_ps1(rhs);
+		data_m128 = _mm_div_ps(data_m128, rhs4);
+		return *this;
+	}
+
+	__forceinline Vec3<float> _vectorcall operator+(Vec3<float> lhs, Vec3<float> rhs) noexcept
+	{
+		return _mm_add_ps(lhs, rhs);
+	}
+
+	__forceinline Vec3<float> _vectorcall operator+(float lhs, Vec3<float> rhs) noexcept
+	{
+		__m128 lhs4 = _mm_set_ps1(lhs);
+		return _mm_add_ps(lhs4, rhs);
+	}
+
+	__forceinline Vec3<float> _vectorcall operator+(Vec3<float> lhs, float rhs) noexcept
+	{
+		__m128 rhs4 = _mm_set_ps1(rhs);
+		return _mm_add_ps(lhs, rhs4);
+	}
+
+	__forceinline Vec3<float> _vectorcall operator-(Vec3<float> lhs, Vec3<float> rhs) noexcept
+	{
+		return _mm_sub_ps(lhs, rhs);
+	}
+
+	__forceinline Vec3<float> _vectorcall operator-(float lhs, Vec3<float> rhs) noexcept
+	{
+		__m128 lhs4 = _mm_set_ps1(lhs);
+		return _mm_sub_ps(lhs4, rhs);
+	}
+
+	__forceinline Vec3<float> _vectorcall operator-(Vec3<float> lhs, float rhs) noexcept
+	{
+		__m128 rhs4 = _mm_set_ps1(rhs);
+		return _mm_sub_ps(lhs, rhs4);
+	}
+
+	__forceinline Vec3<float> _vectorcall operator*(Vec3<float> lhs, Vec3<float> rhs) noexcept
+	{
+		return _mm_mul_ps(lhs, rhs);
+	}
+
+	__forceinline Vec3<float> _vectorcall operator*(float lhs, Vec3<float> rhs) noexcept
+	{
+		__m128 lhs4 = _mm_set_ps1(lhs);
+		return _mm_mul_ps(lhs4, rhs);
+	}
+
+	__forceinline Vec3<float> _vectorcall operator*(Vec3<float> lhs, float rhs) noexcept
+	{
+		__m128 rhs4 = _mm_set_ps1(rhs);
+		return _mm_mul_ps(lhs, rhs4);
+	}
+
+	__forceinline Vec3<float> _vectorcall operator/(Vec3<float> lhs, Vec3<float> rhs) noexcept
+	{
+		return _mm_div_ps(lhs, rhs);
+	}
+
+	__forceinline Vec3<float> _vectorcall operator/(float lhs, Vec3<float> rhs) noexcept
+	{
+		__m128 lhs4 = _mm_set_ps1(lhs);
+		return _mm_div_ps(lhs4, rhs);
+	}
+
+	__forceinline Vec3<float> _vectorcall operator/(Vec3<float> lhs, float rhs) noexcept
+	{
+		__m128 rhs4 = _mm_set_ps1(rhs);
+		return _mm_div_ps(lhs, rhs4);
+	}
+}
 
 namespace gmath
 {

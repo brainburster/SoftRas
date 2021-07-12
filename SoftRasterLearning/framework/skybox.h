@@ -18,7 +18,7 @@ namespace framework
 				return;
 			}
 
-			static core::Vec3 box[] =
+			static core::Vec4 box[] =
 			{
 				{-1.f, 1.f, -1.f},
 				{-1.f, -1.f, -1.f},
@@ -66,17 +66,17 @@ namespace framework
 			struct varying_t : core::shader_varying_float<varying_t>
 			{
 				core::Vec4 position;
-				core::Vec3 position_ls;
+				core::Vec4 position_ls;
 			};
 
 			static struct Shader
 			{
 				std::shared_ptr<core::CubeMap> cube_map;
 				core::Mat mvp = core::Mat::Unit();
-				varying_t VS(const core::Vec3& point) const
+				varying_t VS(const core::Vec4& point) const
 				{
 					varying_t v{};
-					v.position = mvp * point.ToHomoCoord();
+					v.position = mvp * point;
 					v.position.z = v.position.w - 0.0001f;
 					v.position_ls = point;
 					return v;
