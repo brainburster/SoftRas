@@ -4,6 +4,7 @@
 #include "buffer_view.hpp"
 #include "game_math.hpp"
 #include "types_and_defs.hpp"
+#include "omp.h"
 
 namespace core
 {
@@ -268,8 +269,12 @@ namespace core
 					x1 = left;
 					x2 = right;
 				}
+				int start = (int)x1 - 1;
+				int end = (int)x2 + 1;
 
-				for (int x = (int)x1 - 1; x <= (int)x2 + 1; ++x)
+				omp_set_num_threads(4);
+#pragma omp parallel for
+				for (int x = start; x <= end; ++x)
 				{
 					RasterizePixel(x, (int)y, p, p0, p1, p2);
 				}
