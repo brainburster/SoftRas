@@ -13,6 +13,7 @@ namespace core
 	public:
 		Buffer2DView<Color> fragment_buffer_view;
 		Buffer2DView<float> depth_buffer_view;
+		//size_t interlaced_scanning_flag = 3;
 
 		void CopyToBuffer(Buffer2DView<uint32>& screen_buffer_view)
 		{
@@ -44,14 +45,20 @@ namespace core
 
 		void Clear(Color color = { 0,0,0,1 })
 		{
-			for (auto& pixel : fragment_buffer)
+			auto w = fragment_buffer_view.w;
+			auto h = fragment_buffer_view.h;
+
+			//for (size_t y = interlaced_scanning_flag; y < h; y += 2)
+			for (size_t y = 0; y < h; ++y)
 			{
-				pixel = color;
+				for (size_t x = 0; x < w; ++x)
+				{
+					fragment_buffer[x + y * w] = color;
+					depth_buffer[x + y * w] = -inf;
+				}
 			}
-			for (auto& depth : depth_buffer)
-			{
-				depth = -inf;
-			}
+
+			//interlaced_scanning_flag = (interlaced_scanning_flag + 1) & 1;
 		}
 
 		static Color32 TransFloat4colorToUint32color(const Color& color)
@@ -208,9 +215,9 @@ namespace core
 
 			Vec2 q[3] = { p[0],p[1],p[2] };
 
-			for (int i = 0; i < 2; ++i)
+			for (size_t i = 0; i < 2; ++i)
 			{
-				for (int j = i; j < 3; ++j)
+				for (size_t j = i; j < 3; ++j)
 				{
 					if (q[i].y < q[j].y)
 					{
@@ -221,12 +228,14 @@ namespace core
 				}
 			}
 			using gmath::Utility::Clamp;
-			float y1 = Clamp(q[2].y, 0.6f, context.fragment_buffer_view.h - 0.6f);
-			float y2 = Clamp(q[0].y, 0.6f, context.fragment_buffer_view.h - 0.6f);
+			size_t y1 = Clamp(q[2].y, 1, context.fragment_buffer_view.h - 2);
+			size_t y2 = Clamp(q[0].y, 1, context.fragment_buffer_view.h - 2);
 
 			//从上到下扫描
-			for (float y = y2 + 1.f; y >= y1 - 1.f; --y)
+			for (float y = y2 + 1; y >= y1 - 1; --y)
 			{
+				//隔行扫描
+				//if (((size_t)y & 1) == context.interlaced_scanning_flag) continue;
 				//计算出直线 y = y 与 三角形相交2点的x坐标
 
 				//float k = (q[2].y - q[0].y) / (q[2].x - q[0].x);
@@ -245,8 +254,8 @@ namespace core
 					x2 = (y + 0.5f - q[1].y) * (q[2].x - q[1].x) / (q[2].y - q[1].y) + q[1].x;
 				}
 
-				x1 = Clamp(x1, 1.f, (float)context.fragment_buffer_view.w - 1.f);
-				x2 = Clamp(x2, 1.f, (float)context.fragment_buffer_view.w - 1.f);
+				x1 = Clamp(x1, 1.f, (float)context.fragment_buffer_view.w - 2.f);
+				x2 = Clamp(x2, 1.f, (float)context.fragment_buffer_view.w - 2.f);
 
 				if (x1 > x2)
 				{

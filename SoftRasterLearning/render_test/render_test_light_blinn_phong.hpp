@@ -69,12 +69,11 @@ class Scene_Render_Test_Test_Blinn_Phong : public framework::Scene
 {
 private:
 	std::shared_ptr<framework::MaterialEntity> sphere;
-	std::shared_ptr<framework::FPSCamera> fps_camera;
+	std::shared_ptr<framework::TargetCamera> fps_camera;
 
 public:
 	void Init(framework::IRenderEngine& engine) override
 	{
-		fps_camera = std::make_shared<framework::FPSCamera>(core::Vec3{ 0,0,5.f }, -90.f);
 		auto material_blinn_phong = std::make_shared<Material_Blinn_Phong>();
 		material_blinn_phong->tex0 = framework::GetResource<core::Texture>(L"tex0").value();
 		//auto skybox = Spawn<framework::Skybox>();
@@ -82,6 +81,7 @@ public:
 		sphere = Spawn<framework::MaterialEntity>();
 		sphere->model = framework::GetResource<core::Model>(L"sphere").value();
 		sphere->material = material_blinn_phong;
+		fps_camera = std::make_shared<framework::TargetCamera>(sphere);
 		//..
 	}
 

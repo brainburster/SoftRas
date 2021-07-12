@@ -119,5 +119,8 @@
     <ClInclude Include="render_test\render_test_skybox.hpp">
       <Filter>头文件\render_test</Filter>
     </ClInclude>
+    <ClInclude Include="framework\target_camera.h">
+      <Filter>头文件\framework</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

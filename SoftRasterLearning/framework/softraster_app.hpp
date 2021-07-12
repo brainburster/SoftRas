@@ -98,14 +98,14 @@ namespace framework
 		virtual void HookInput() override
 		{
 			dc_wnd.RegisterWndProc(WM_KEYDOWN, [&](auto wParam, auto lParam) {
-				input_state.key[wParam] = true;
-				input_state.keydown[wParam] = true;
+				input_state.key[(size_t)LOWORD(wParam)] = true;
+				input_state.keydown[(size_t)LOWORD(wParam)] = true;
 				return true;
 				});
 
 			dc_wnd.RegisterWndProc(WM_KEYUP, [&](auto wParam, auto lParam) {
-				input_state.key[wParam] = false;
-				input_state.keyup[wParam] = true;
+				input_state.key[(size_t)LOWORD(wParam)] = false;
+				input_state.keyup[(size_t)LOWORD(wParam)] = true;
 				return true;
 				});
 

@@ -16,8 +16,8 @@ namespace framework
 		virtual Mat4x4 GetViewMatrix() const = 0;
 
 		virtual Vec3 GetFront() const = 0;
-		virtual void SetPosition(Vec3) = 0;
-		virtual void AddPosition(Vec3) = 0;
+		//virtual void SetPosition(Vec3) = 0;
+		//virtual void AddPosition(Vec3) = 0;
 		virtual Vec3 GetPosition() const = 0;
 		virtual void SetYawPitch(float, float) = 0;
 		virtual void AddYaw(float) = 0;
