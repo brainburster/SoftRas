@@ -25,6 +25,9 @@
     <Filter Include="头文件\render_test">
       <UniqueIdentifier>{d6c0f5b7-2497-4c2b-ae07-48a4a669df73}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\core\impl">
+      <UniqueIdentifier>{0fd35c19-3bc3-4ade-879f-f2445c88de2b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -122,5 +125,10 @@
     <ClInclude Include="framework\target_camera.h">
       <Filter>头文件\framework</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="core\impl\game_math.inl">
+      <Filter>头文件\core\impl</Filter>
+    </None>
   </ItemGroup>
 </Project>

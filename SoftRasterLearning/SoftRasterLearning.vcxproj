@@ -193,6 +193,9 @@
     <ClInclude Include="render_test\render_test_light_blinn_phong.hpp" />
     <ClInclude Include="render_test\varying_type.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="core\impl\game_math.inl" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

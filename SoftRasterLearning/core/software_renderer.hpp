@@ -229,16 +229,16 @@ namespace core
 				}
 			}
 			using gmath::Utility::Clamp;
-			size_t y1 = Clamp(q[2].y, 1, context.fragment_buffer_view.h - 2);
-			size_t y2 = Clamp(q[0].y, 1, context.fragment_buffer_view.h - 2);
+			size_t y1 = (size_t)Clamp(q[2].y, 1, context.fragment_buffer_view.h - 2);
+			size_t y2 = (size_t)Clamp(q[0].y, 1, context.fragment_buffer_view.h - 2);
 
 			//从上到下扫描
 			for (float y = y2 + 1; y >= y1 - 1; --y)
 			{
 				//隔行扫描
 				//if (((size_t)y & 1) == context.interlaced_scanning_flag) continue;
-				//计算出直线 y = y 与 三角形相交2点的x坐标
 
+				//计算出直线 y = y 与 三角形相交2点的x坐标
 				//float k = (q[2].y - q[0].y) / (q[2].x - q[0].x);
 				//float b = q[0].y - k * q[0].x;
 				//float x1 = ((float)y - b) / k;
