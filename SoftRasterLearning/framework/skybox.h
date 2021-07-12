@@ -18,52 +18,50 @@ namespace framework
 				return;
 			}
 
-			static float box[] =
+			static core::Vec3 box[] =
 			{
-				   -1.f, 1.f, -1.f,
-					-1.f, -1.f, -1.f,
-					1.f, -1.f, -1.f,
-					1.f, -1.f, -1.f,
-					1.f, 1.f, -1.f,
-					-1.f, 1.f, -1.f,
+				{-1.f, 1.f, -1.f},
+				{-1.f, -1.f, -1.f},
+				{1.f, -1.f, -1.f},
+				{1.f, -1.f, -1.f},
+				{1.f, 1.f, -1.f},
+				{-1.f, 1.f, -1.f},
 
-					-1.f, -1.f, 1.f,
-					-1.f, -1.f, -1.f,
-					-1.f, 1.f, -1.f,
-					-1.f, 1.f, -1.f,
-					-1.f, 1.f, 1.f,
-					-1.f, -1.f, 1.f,
+				{-1.f, -1.f, 1.f},
+				{-1.f, -1.f, -1.f},
+				{-1.f, 1.f, -1.f},
+				{-1.f, 1.f, -1.f},
+				{-1.f, 1.f, 1.f},
+				{-1.f, -1.f, 1.f},
 
-					1.f, -1.f, -1.f,
-					1.f, -1.f, 1.f,
-					1.f, 1.f, 1.f,
-					1.f, 1.f, 1.f,
-					1.f, 1.f, -1.f,
-					1.f, -1.f, -1.f,
+				{1.f, -1.f, -1.f},
+				{1.f, -1.f, 1.f},
+				{1.f, 1.f, 1.f},
+				{1.f, 1.f, 1.f},
+				{1.f, 1.f, -1.f},
+				{1.f, -1.f, -1.f},
 
-					-1.f, -1.f, 1.f,
-					-1.f, 1.f, 1.f,
-					1.f, 1.f, 1.f,
-					1.f, 1.f, 1.f,
-					1.f, -1.f, 1.f,
-					-1.f, -1.f, 1.f,
+				{-1.f, -1.f, 1.f},
+				{-1.f, 1.f, 1.f},
+				{1.f, 1.f, 1.f},
+				{1.f, 1.f, 1.f},
+				{1.f, -1.f, 1.f},
+				{-1.f, -1.f, 1.f},
 
-					-1.f, 1.f, -1.f,
-					1.f, 1.f, -1.f,
-					1.f, 1.f, 1.f,
-					1.f, 1.f, 1.f,
-					-1.f, 1.f, 1.f,
-					-1.f, 1.f, -1.f,
+				{-1.f, 1.f, -1.f},
+				{1.f, 1.f, -1.f},
+				{1.f, 1.f, 1.f},
+				{1.f, 1.f, 1.f},
+				{-1.f, 1.f, 1.f},
+				{ -1.f, 1.f, -1.f},
 
-					-1.f, -1.f, -1.f,
-					-1.f, -1.f, 1.f,
-					1.f, -1.f, -1.f,
-					1.f, -1.f, -1.f,
-					-1.f, -1.f, 1.f,
-					1.f, -1.f, 1.f
+				{-1.f, -1.f, -1.f},
+				{-1.f, -1.f, 1.f},
+				{1.f, -1.f, -1.f},
+				{1.f, -1.f, -1.f},
+				{-1.f, -1.f, 1.f},
+				{1.f, -1.f, 1.f}
 			};
-
-			static auto cube = reinterpret_cast<core::Vec3*>(box);
 
 			struct varying_t : core::shader_varying_float<varying_t>
 			{
@@ -98,7 +96,7 @@ namespace framework
 			}
 
 			core::Renderer<Shader> renderer = { engine.GetCtx(), shader };
-			renderer.DrawTriangles(cube, sizeof(box) / sizeof(core::Vec3));
+			renderer.DrawTriangles(box, sizeof(box));
 		}
 	};
 }
