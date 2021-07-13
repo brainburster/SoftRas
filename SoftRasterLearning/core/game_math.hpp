@@ -346,6 +346,33 @@ namespace gmath
 		friend __forceinline Vec3 _vectorcall operator/(float lhs, Vec3 rhs) noexcept;
 		friend __forceinline Vec3 _vectorcall operator/(Vec3 lhs, float rhs) noexcept;
 	};
+
+	template<>
+	struct alignas(16) Mat4x4<float>
+	{
+		union
+		{
+			float data[16];
+			__m128 column[4];
+		};
+		//修改为列矩阵
+		inline Mat4x4(float _0, float _1, float _2, float _3, float _4, float _5, float _6, float _7, float _8, float _9, float _10, float _11, float _12, float _13, float _14, float _15);
+
+		inline Mat4x4(__m128 c1, __m128 c2, __m128 c3, __m128 c4);
+
+		Mat4x4() = default;
+
+		//矩阵乘法
+		__forceinline  Mat4x4<float> operator*(const Mat4x4<float>& rhs) const;
+
+		//乘向量 4分量
+		__forceinline Vec4<float> _vectorcall operator*(Vec4<float> rhs) const;
+
+		//转置
+		//__forceinline Mat4x4<float> Transpose() const;
+
+		inline Mat3x3<float> ToMat3x3() const;
+	};
 };
 
 #include "impl/game_math.inl"

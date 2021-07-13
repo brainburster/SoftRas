@@ -340,6 +340,111 @@ namespace gmath
 
 namespace gmath
 {
+	inline Mat4x4<float>::Mat4x4(float _0, float _1, float _2, float _3, float _4, float _5, float _6, float _7, float _8, float _9, float _10, float _11, float _12, float _13, float _14, float _15) :
+		data{
+		_0,_4,_8,_12,
+		_1,_5,_9,_13,
+		_2,_6,_10,_14,
+		_3,_7,_11,_15
+	}
+	{}
+
+	inline Mat4x4<float>::Mat4x4(__m128 c1, __m128 c2, __m128 c3, __m128 c4) :
+		column{ c1,c2,c3,c4 }
+	{
+	}
+
+	//矩阵乘法
+	__forceinline Mat4x4<float> Mat4x4<float>::operator*(const Mat4x4<float>& rhs) const
+	{
+		__m128 lhs_column_0 = column[0];
+		__m128 lhs_column_1 = column[1];
+		__m128 lhs_column_2 = column[2];
+		__m128 lhs_column_3 = column[3];
+		__m128 rhs_column_0 = rhs.column[0];
+		__m128 rhs_column_1 = rhs.column[1];
+		__m128 rhs_column_2 = rhs.column[2];
+		__m128 rhs_column_3 = rhs.column[3];
+
+		//对每个列进行向量乘法，最后合并为新的矩阵
+		__m128 x = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(0, 0, 0, 0)); //提取第一列的第一个元素
+		__m128 y = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(1, 1, 1, 1)); //提取第一列的第二个元素
+		__m128 z = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(2, 2, 2, 2)); //提取第一列的第三个元素
+		__m128 w = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(3, 3, 3, 3)); //提取第一列的第四个元素
+
+		//得到新的第一列
+		rhs_column_0 = _mm_mul_ps(lhs_column_0, x);
+		rhs_column_0 = _mm_add_ps(rhs_column_0, _mm_mul_ps(lhs_column_1, y));
+		rhs_column_0 = _mm_add_ps(rhs_column_0, _mm_mul_ps(lhs_column_2, z));
+		rhs_column_0 = _mm_add_ps(rhs_column_0, _mm_mul_ps(lhs_column_3, w));
+
+		x = _mm_shuffle_ps(rhs_column_1, rhs_column_1, _MM_SHUFFLE(0, 0, 0, 0));
+		y = _mm_shuffle_ps(rhs_column_1, rhs_column_1, _MM_SHUFFLE(1, 1, 1, 1));
+		z = _mm_shuffle_ps(rhs_column_1, rhs_column_1, _MM_SHUFFLE(2, 2, 2, 2));
+		w = _mm_shuffle_ps(rhs_column_1, rhs_column_1, _MM_SHUFFLE(3, 3, 3, 3));
+
+		//第二列
+		rhs_column_1 = _mm_mul_ps(lhs_column_0, x);
+		rhs_column_1 = _mm_add_ps(rhs_column_1, _mm_mul_ps(lhs_column_1, y));
+		rhs_column_1 = _mm_add_ps(rhs_column_1, _mm_mul_ps(lhs_column_2, z));
+		rhs_column_1 = _mm_add_ps(rhs_column_1, _mm_mul_ps(lhs_column_3, w));
+
+		x = _mm_shuffle_ps(rhs_column_2, rhs_column_2, _MM_SHUFFLE(0, 0, 0, 0));
+		y = _mm_shuffle_ps(rhs_column_2, rhs_column_2, _MM_SHUFFLE(1, 1, 1, 1));
+		z = _mm_shuffle_ps(rhs_column_2, rhs_column_2, _MM_SHUFFLE(2, 2, 2, 2));
+		w = _mm_shuffle_ps(rhs_column_2, rhs_column_2, _MM_SHUFFLE(3, 3, 3, 3));
+
+		//第三列
+		rhs_column_2 = _mm_mul_ps(lhs_column_0, x);
+		rhs_column_2 = _mm_add_ps(rhs_column_2, _mm_mul_ps(lhs_column_1, y));
+		rhs_column_2 = _mm_add_ps(rhs_column_2, _mm_mul_ps(lhs_column_2, z));
+		rhs_column_2 = _mm_add_ps(rhs_column_2, _mm_mul_ps(lhs_column_3, w));
+
+		x = _mm_shuffle_ps(rhs_column_3, rhs_column_3, _MM_SHUFFLE(0, 0, 0, 0));
+		y = _mm_shuffle_ps(rhs_column_3, rhs_column_3, _MM_SHUFFLE(1, 1, 1, 1));
+		z = _mm_shuffle_ps(rhs_column_3, rhs_column_3, _MM_SHUFFLE(2, 2, 2, 2));
+		w = _mm_shuffle_ps(rhs_column_3, rhs_column_3, _MM_SHUFFLE(3, 3, 3, 3));
+
+		//第四列
+		rhs_column_3 = _mm_mul_ps(lhs_column_0, x);
+		rhs_column_3 = _mm_add_ps(rhs_column_3, _mm_mul_ps(lhs_column_1, y));
+		rhs_column_3 = _mm_add_ps(rhs_column_3, _mm_mul_ps(lhs_column_2, z));
+		rhs_column_3 = _mm_add_ps(rhs_column_3, _mm_mul_ps(lhs_column_3, w));
+
+		return Mat4x4<float>{ rhs_column_0, rhs_column_1, rhs_column_2, rhs_column_3 };
+	}
+
+	//乘向量 4分量
+	__forceinline Vec4<float> _vectorcall Mat4x4<float>::operator*(Vec4<float> rhs) const
+	{
+		__m128 x = _mm_shuffle_ps(rhs, rhs, _MM_SHUFFLE(0, 0, 0, 0));
+		__m128 y = _mm_shuffle_ps(rhs, rhs, _MM_SHUFFLE(1, 1, 1, 1));
+		__m128 z = _mm_shuffle_ps(rhs, rhs, _MM_SHUFFLE(2, 2, 2, 2));
+		__m128 w = _mm_shuffle_ps(rhs, rhs, _MM_SHUFFLE(3, 3, 3, 3));
+		__m128 ret = _mm_mul_ps(column[0], x);
+		ret = _mm_add_ps(ret, _mm_mul_ps(column[1], y));
+		ret = _mm_add_ps(ret, _mm_mul_ps(column[2], z));
+		ret = _mm_add_ps(ret, _mm_mul_ps(column[3], w));
+		return ret;
+	}
+
+	//__forceinline Mat4x4<float> Mat4x4<float>::Transpose() const
+	//{
+	//	//
+	//}
+
+	inline Mat3x3<float> Mat4x4<float>::ToMat3x3() const
+	{
+		return Mat3x3 <float>{
+			data[0], data[1], data[2],
+				data[4], data[5], data[6],
+				data[8], data[9], data[10],
+		};
+	}
+}
+
+namespace gmath
+{
 	template<typename T> inline Vec4<T>::Vec4(T v) : x{ v }, y{ v }, z{ v }, w{ v }{}
 	template<typename T> inline Vec4<T>::Vec4(T x, T y, T z, T w) : x{ x }, y{ y }, z{ z }, w{ w }{}
 	template<typename T> inline Vec4<T>::Vec4(const Vec2<T>& vec2, T z, T w) : x{ vec2.x }, y{ vec2.y }, z{ z }, w{ w }{}
