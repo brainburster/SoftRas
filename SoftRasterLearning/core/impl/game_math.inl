@@ -583,8 +583,8 @@ namespace gmath
 			(data[0] * data[5] - data[4] * data[1]) / det,
 		};
 
-		//转置, 现在自动转置了
-		//_inverse = _inverse.transpose();
+		//转置
+		_inverse = _inverse.Transpose();
 
 		//矩阵中可能出现-0.0f，但不重要, 因为矩阵中的元素不会被除
 		return _inverse;
