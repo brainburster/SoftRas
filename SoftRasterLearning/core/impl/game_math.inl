@@ -9,7 +9,7 @@ namespace gmath
 
 	inline Vec4<float>::Vec4(const Vec2<float>& vec2, float z, float w) : x{ vec2.x }, y{ vec2.y }, z{ z }, w{ w }{}
 
-	inline Vec4<float>::Vec4(const Vec3<float>& vec3, float w) : x{ vec3.x }, y{ vec3.y }, z{ vec3.z }, w{ w }{}
+	inline Vec4<float>::Vec4(Vec3<float> vec3, float w) : x{ vec3.x }, y{ vec3.y }, z{ vec3.z }, w{ w }{}
 
 	inline Vec4<float>::Vec4(__m128 data) : data_m128{ data } {}
 
@@ -44,7 +44,7 @@ namespace gmath
 		return *this;
 	}
 
-	__forceinline Vec4<float>& _vectorcall Vec4<float>::operator-=(const Vec4& rhs) noexcept
+	__forceinline Vec4<float>& _vectorcall Vec4<float>::operator-=(Vec4 rhs) noexcept
 	{
 		data_m128 = _mm_sub_ps(data_m128, rhs.data_m128);
 		return *this;
@@ -57,7 +57,7 @@ namespace gmath
 		return *this;
 	}
 
-	__forceinline Vec4<float>& _vectorcall Vec4<float>::operator*=(const Vec4& rhs) noexcept
+	__forceinline Vec4<float>& _vectorcall Vec4<float>::operator*=(Vec4 rhs) noexcept
 	{
 		data_m128 = _mm_mul_ps(data_m128, rhs.data_m128);
 		return *this;
@@ -70,8 +70,9 @@ namespace gmath
 		return *this;
 	}
 
-	__forceinline Vec4<float>& _vectorcall Vec4<float>::operator/=(const Vec4& rhs) noexcept
+	__forceinline Vec4<float>& _vectorcall Vec4<float>::operator/=(Vec4 rhs) noexcept
 	{
+		//data_m128 = _mm_mul_ps(data_m128, _mm_rcp_ps(rhs.data_m128));
 		data_m128 = _mm_div_ps(data_m128, rhs.data_m128);
 		return *this;
 	}
@@ -79,6 +80,7 @@ namespace gmath
 	__forceinline Vec4<float>& _vectorcall Vec4<float>::operator/=(float rhs) noexcept
 	{
 		__m128 rhs4 = _mm_set_ps1(rhs);
+		//data_m128 = _mm_mul_ps(data_m128, _mm_rcp_ps(rhs4));
 		data_m128 = _mm_div_ps(data_m128, rhs4);
 		return *this;
 	}
@@ -144,18 +146,21 @@ namespace gmath
 
 	__forceinline Vec4<float> _vectorcall operator/(Vec4<float> lhs, Vec4<float> rhs) noexcept
 	{
+		//return _mm_mul_ps(lhs, _mm_rcp_ps(rhs));
 		return _mm_div_ps(lhs, rhs);
 	}
 
 	__forceinline Vec4<float> _vectorcall operator/(float lhs, Vec4<float> rhs) noexcept
 	{
 		__m128 lhs4 = _mm_set_ps1(lhs);
+		//return _mm_mul_ps(lhs4, _mm_rcp_ps(rhs));
 		return _mm_div_ps(lhs4, rhs);
 	}
 
 	__forceinline Vec4<float> _vectorcall operator/(Vec4<float> lhs, float rhs) noexcept
 	{
 		__m128 rhs4 = _mm_set_ps1(rhs);
+		//return _mm_mul_ps(lhs, _mm_rcp_ps(rhs4));
 		return _mm_div_ps(lhs, rhs4);
 	}
 };
@@ -205,6 +210,7 @@ namespace gmath
 		//float len = pow(x * x + y * y + z * z, 0.5f);
 		__m128 len = _mm_dp_ps(data_m128, data_m128, 0x7f);
 		len = _mm_sqrt_ps(len);
+		//return _mm_and_ps(_mm_mul_ps(data_m128, _mm_rcp_ps(len)), mask3.mask);
 		return _mm_and_ps(_mm_div_ps(data_m128, len), mask3.mask);
 	}
 
@@ -260,6 +266,7 @@ namespace gmath
 
 	__forceinline Vec3<float>& _vectorcall Vec3<float>::operator/=(Vec3 rhs) noexcept
 	{
+		//data_m128 = _mm_mul_ps(data_m128, _mm_rcp_ps(rhs.data_m128));
 		data_m128 = _mm_div_ps(data_m128, rhs.data_m128);
 		return *this;
 	}
@@ -267,6 +274,7 @@ namespace gmath
 	__forceinline Vec3<float>& _vectorcall Vec3<float>::operator/=(float rhs) noexcept
 	{
 		__m128 rhs4 = _mm_set_ps1(rhs);
+		//data_m128 = _mm_mul_ps(data_m128, _mm_rcp_ps(rhs4));
 		data_m128 = _mm_div_ps(data_m128, rhs4);
 		return *this;
 	}
@@ -324,18 +332,21 @@ namespace gmath
 
 	__forceinline Vec3<float> _vectorcall operator/(Vec3<float> lhs, Vec3<float> rhs) noexcept
 	{
+		//return _mm_mul_ps(lhs, _mm_rcp_ps(rhs));
 		return _mm_div_ps(lhs, rhs);
 	}
 
 	__forceinline Vec3<float> _vectorcall operator/(float lhs, Vec3<float> rhs) noexcept
 	{
 		__m128 lhs4 = _mm_set_ps1(lhs);
+		//return _mm_mul_ps(lhs4, _mm_rcp_ps(rhs));
 		return _mm_div_ps(lhs4, rhs);
 	}
 
 	__forceinline Vec3<float> _vectorcall operator/(Vec3<float> lhs, float rhs) noexcept
 	{
 		__m128 rhs4 = _mm_set_ps1(rhs);
+		//return _mm_mul_ps(lhs, _mm_rcp_ps(rhs4));
 		return _mm_div_ps(lhs, rhs4);
 	}
 }
@@ -431,17 +442,24 @@ namespace gmath
 		return ret;
 	}
 
-	//__forceinline Mat4x4<float> Mat4x4<float>::Transpose() const
-	//{
-	//	//
-	//}
+	__forceinline Mat4x4<float> Mat4x4<float>::Transpose() const
+	{
+		__m128 c0 = column[0];
+		__m128 c1 = column[1];
+		__m128 c2 = column[2];
+		__m128 c3 = column[3];
+
+		_MM_TRANSPOSE4_PS(c0, c1, c2, c3);
+
+		return Mat4x4{ c0,c1,c2,c3 };
+	}
 
 	inline Mat3x3<float> Mat4x4<float>::ToMat3x3() const
 	{
-		return Mat3x3 <float>{
-			data[0], data[1], data[2],
-				data[4], data[5], data[6],
-				data[8], data[9], data[10],
+		return Mat3x3<float>{
+			_mm_and_ps(column[0], Vec3<float>::mask3.mask),
+				_mm_and_ps(column[1], Vec3<float>::mask3.mask),
+				_mm_and_ps(column[2], Vec3<float>::mask3.mask),
 		};
 	}
 }
@@ -527,13 +545,13 @@ namespace gmath
 	//转置
 	inline Mat3x3<float> Mat3x3<float>::Transpose() const
 	{
-		//暂时不用sse改造,构造函数自动转置了
-		return Mat3x3
-		{
-			data[0],data[1],data[2],
-			data[4],data[5],data[6],
-			data[8],data[9],data[10]
-		};
+		__m128 c0 = column[0];
+		__m128 c1 = column[1];
+		__m128 c2 = column[2];
+		__m128 c3 = {};
+		_MM_TRANSPOSE4_PS(c0, c1, c2, c3);
+
+		return Mat3x3{ c0,c1,c2 };
 	}
 
 	//求逆

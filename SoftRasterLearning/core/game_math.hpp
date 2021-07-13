@@ -244,7 +244,7 @@ namespace gmath
 		Vec4(float v = 0);
 		Vec4(float x, float y, float z, float w = 1.f);
 		Vec4(const Vec2<float>& vec2, float z = 0, float w = 0);
-		Vec4(const Vec3<float>& vec3, float w = 0);
+		Vec4(Vec3<float> vec3, float w = 0);
 		Vec4(const Vec4& vec4) = default;
 
 		Vec4(__m128 data);
@@ -256,11 +256,11 @@ namespace gmath
 
 		Vec4& _vectorcall operator+=(Vec4 rhs) noexcept;
 		Vec4& _vectorcall operator+=(float rhs) noexcept;
-		Vec4& _vectorcall operator-=(const Vec4& rhs) noexcept;
+		Vec4& _vectorcall operator-=(Vec4 rhs) noexcept;
 		Vec4& _vectorcall operator-=(float rhs) noexcept;
-		Vec4& _vectorcall operator*=(const Vec4& rhs) noexcept;
+		Vec4& _vectorcall operator*=(Vec4 rhs) noexcept;
 		Vec4& _vectorcall operator*=(float rhs) noexcept;
-		Vec4& _vectorcall operator/=(const Vec4& rhs) noexcept;
+		Vec4& _vectorcall operator/=(Vec4 rhs) noexcept;
 		Vec4& _vectorcall operator/=(float rhs) noexcept;
 
 		friend  Vec4 _vectorcall operator+(Vec4 lhs, Vec4 rhs) noexcept;
@@ -368,7 +368,7 @@ namespace gmath
 		Vec4<float> _vectorcall operator*(Vec4<float> rhs) const;
 
 		//×ªÖÃ
-		//Mat4x4<float> Transpose() const;
+		Mat4x4<float> Transpose() const;
 
 		Mat3x3<float> ToMat3x3() const;
 	};
