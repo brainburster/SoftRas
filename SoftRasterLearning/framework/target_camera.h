@@ -121,8 +121,8 @@ namespace framework
 
 			if ((_mouse_state.button[1] || _mouse_state.button[2]) && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
 			{
-				offset += camera_speed * right * -_mouse_state.dx * distance * 0.005f;
-				offset += camera_speed * up * _mouse_state.dy * distance * 0.005f;
+				offset += camera_speed * right * (float)-_mouse_state.dx * distance * 0.005f;
+				offset += camera_speed * up * (float)_mouse_state.dy * distance * 0.005f;
 			}
 		}
 

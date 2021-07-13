@@ -112,8 +112,8 @@ namespace framework
 
 			if ((_mouse_state.button[1] || _mouse_state.button[2]) && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
 			{
-				AddPosition(move_speed * 0.1f * right * delta * -_mouse_state.dx);
-				AddPosition(move_speed * 0.1f * up * delta * _mouse_state.dy);
+				AddPosition(move_speed * 0.1f * right * delta * (float)-_mouse_state.dx);
+				AddPosition(move_speed * 0.1f * up * delta * (float)_mouse_state.dy);
 			}
 		}
 

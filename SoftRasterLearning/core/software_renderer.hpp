@@ -229,8 +229,8 @@ namespace core
 				}
 			}
 			using gmath::utility::Clamp;
-			size_t y1 = (size_t)Clamp(q[2].y, 1, context.fragment_buffer_view.h - 2);
-			size_t y2 = (size_t)Clamp(q[0].y, 1, context.fragment_buffer_view.h - 2);
+			float y1 = Clamp(q[2].y, 1.f, context.fragment_buffer_view.h - 2.f);
+			float y2 = Clamp(q[0].y, 1.f, context.fragment_buffer_view.h - 2.f);
 
 			//从上到下扫描
 			for (float y = y2 + 1; y >= y1 - 1; --y)
