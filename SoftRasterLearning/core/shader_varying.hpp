@@ -1,6 +1,7 @@
 #pragma once
 
 #include<type_traits>
+#include<immintrin.h>
 
 namespace core
 {
@@ -15,10 +16,26 @@ namespace core
 			T ret{};
 			float* buffer_ret = reinterpret_cast<float*>(&ret);
 			constexpr size_t size = sizeof(T) / sizeof(float);
-			for (size_t i = 0; i < size; ++i)
+
+			if constexpr (alignof(T) == 16)
 			{
-				buffer_ret[i] = buffer_lhs[i] + buffer_rhs[i];
+				for (size_t i = 0; i < size; i += 4)
+				{
+					//手动向量化
+					__m128 _lhs = _mm_load_ps(&buffer_lhs[i]);
+					__m128 _rhs = _mm_load_ps(&buffer_rhs[i]);
+					__m128 _ret = _mm_add_ps(_lhs, _rhs);
+					_mm_store_ps(&buffer_ret[i], _ret);
+				}
 			}
+			else
+			{
+				for (size_t i = 0; i < size; ++i)
+				{
+					buffer_ret[i] = buffer_lhs[i] + buffer_rhs[i];
+				}
+			}
+
 			return ret;
 		}
 
@@ -29,9 +46,23 @@ namespace core
 			T ret{};
 			float* buffer_ret = reinterpret_cast<float*>(&ret);
 			constexpr size_t size = sizeof(T) / sizeof(float);
-			for (size_t i = 0; i < size; ++i)
+
+			if constexpr (alignof(T) == 16)
 			{
-				buffer_ret[i] = buffer_lhs[i] * rhs;
+				for (size_t i = 0; i < size; i += 4)
+				{
+					__m128 _lhs = _mm_load_ps(&buffer_lhs[i]);
+					__m128 _rhs = _mm_set_ps1(rhs);
+					__m128 _ret = _mm_mul_ps(_lhs, _rhs);
+					_mm_store_ps(&buffer_ret[i], _ret);
+				}
+			}
+			else
+			{
+				for (size_t i = 0; i < size; ++i)
+				{
+					buffer_ret[i] = buffer_lhs[i] * rhs;
+				}
 			}
 
 			return ret;
