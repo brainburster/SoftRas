@@ -121,8 +121,8 @@ namespace framework
 
 			if ((_mouse_state.button[1] || _mouse_state.button[2]) && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
 			{
-				offset += camera_speed * 0.1f * right * -_mouse_state.dx;
-				offset += camera_speed * 0.1f * up * _mouse_state.dy;
+				offset += camera_speed * right * -_mouse_state.dx * distance * 0.005f;
+				offset += camera_speed * up * _mouse_state.dy * distance * 0.005f;
 			}
 		}
 
@@ -130,7 +130,7 @@ namespace framework
 		{
 			const auto& _input_state = engine.GetInputState();
 			const auto& _mouse_state = _input_state.mouse_state;
-			AddDistance((float)_input_state.mouse_state.scroll * scroll_speed);
+			AddDistance((float)_input_state.mouse_state.scroll * scroll_speed * distance * 0.01f);
 		}
 
 		void HandleInput(const IRenderEngine& engine) override
