@@ -96,8 +96,38 @@ namespace framework
 		{
 			//¼ÆËãÎ»ÖÃ
 			Vec3 front = GetFront();
-			Vec3 pos = target->transform.position - front * distance;
+			Vec3 pos = target->transform.position - front * distance + offset;
 			return pos;
+		}
+
+		void OnMouseMove(const IRenderEngine& engine)
+		{
+			const auto& _input_state = engine.GetInputState();
+			const auto& _mouse_state = _input_state.mouse_state;
+
+			if (_mouse_state.button[0] && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
+			{
+				using gmath::Utility::Clamp;
+				AddYaw(_mouse_state.dx * camera_speed);
+				AddPitch(Clamp(_mouse_state.dy * camera_speed, -89.f, 89.f));
+			}
+
+			Vec3 front = GetFront();
+			Vec3 right = front.cross({ 0,1,0 }).normalize();
+			Vec3 up = right.cross(front).normalize();
+
+			if ((_mouse_state.button[1] || _mouse_state.button[2]) && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
+			{
+				offset += camera_speed * 0.1f * right * -_mouse_state.dx;
+				offset += camera_speed * 0.1f * up * _mouse_state.dy;
+			}
+		}
+
+		void OnMouseWheel(const IRenderEngine& engine)
+		{
+			const auto& _input_state = engine.GetInputState();
+			const auto& _mouse_state = _input_state.mouse_state;
+			AddDistance((float)_input_state.mouse_state.scroll * scroll_speed);
 		}
 
 		void HandleInput(const IRenderEngine& engine) override
@@ -106,16 +136,16 @@ namespace framework
 			const auto& _mouse_state = _input_state.mouse_state;
 			float delta = (float)engine.GetEngineState().delta_count;
 
-			using gmath::Utility::Clamp;
+			//using gmath::Utility::Clamp;
 
-			if (_mouse_state.button[0] && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
-			{
-				using gmath::Utility::Clamp;
-				AddYaw(_mouse_state.dx * delta * camera_speed);
-				AddPitch(_mouse_state.dy * delta * camera_speed);
-			}
+			//if (_mouse_state.button[0] && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
+			//{
+			//	using gmath::Utility::Clamp;
+			//	AddYaw(_mouse_state.dx * delta * camera_speed);
+			//	AddPitch(_mouse_state.dy * delta * camera_speed);
+			//}
 
-			AddDistance((float)_input_state.mouse_state.scroll * delta * scroll_speed);
+			//AddDistance((float)_input_state.mouse_state.scroll * delta * scroll_speed);
 
 			if (_input_state.key['W'])
 			{
@@ -127,11 +157,23 @@ namespace framework
 			}
 			if (_input_state.key['A'])
 			{
-				AddYaw(delta * move_speed * 10);
+				AddYaw(-delta * move_speed * 10);
 			}
 			if (_input_state.key['D'])
 			{
-				AddYaw(-delta * move_speed * 10);
+				AddYaw(delta * move_speed * 10);
+			}
+			if (_input_state.key['Q'])
+			{
+				AddPitch(-delta * move_speed * 10);
+			}
+			if (_input_state.key['E'])
+			{
+				AddPitch(delta * move_speed * 10);
+			}
+			if (_input_state.key_pressed['F'])
+			{
+				offset = Vec3{ 0,0,0 };
 			}
 		}
 
@@ -139,6 +181,7 @@ namespace framework
 		//view
 		//Vec3 position;
 		std::shared_ptr<Object> target;
+		core::Vec3 offset = { 0,0,0 };
 		float yaw;
 		float pitch;
 		float distance;
@@ -150,8 +193,8 @@ namespace framework
 		float _far;
 
 		//speed
-		float camera_speed = 0.05f;
+		float camera_speed = 0.5f;
 		float move_speed = 0.02f;
-		float scroll_speed = 0.005f;
+		float scroll_speed = 0.05f;
 	};
 }

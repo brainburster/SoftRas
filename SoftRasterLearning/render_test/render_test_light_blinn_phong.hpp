@@ -69,7 +69,7 @@ class Scene_Render_Test_Test_Blinn_Phong : public framework::Scene
 {
 private:
 	std::shared_ptr<framework::MaterialEntity> sphere;
-	std::shared_ptr<framework::TargetCamera> fps_camera;
+	std::shared_ptr<framework::TargetCamera> camera;
 
 public:
 	void Init(framework::IRenderEngine& engine) override
@@ -81,13 +81,13 @@ public:
 		sphere = Spawn<framework::MaterialEntity>();
 		sphere->model = framework::GetResource<core::Model>(L"sphere").value();
 		sphere->material = material_blinn_phong;
-		fps_camera = std::make_shared<framework::TargetCamera>(sphere);
+		camera = std::make_shared<framework::TargetCamera>(sphere);
 		//..
 	}
 
 	void HandleInput(const framework::IRenderEngine& engine) override
 	{
-		fps_camera->HandleInput(engine);
+		camera->HandleInput(engine);
 		if (framework::IsKeyPressed<VK_CONTROL, 'R'>())
 		{
 			sphere->transform.rotation += core::Vec3{ 0, 0, 1 }*0.05f;
@@ -102,6 +102,16 @@ public:
 
 	virtual const framework::ICamera* GetMainCamera() const override
 	{
-		return fps_camera.get();
+		return camera.get();
+	}
+
+	virtual void OnMouseMove(const framework::IRenderEngine& engine) override
+	{
+		return camera->OnMouseMove(engine);
+	}
+
+	virtual void OnMouseWheel(const framework::IRenderEngine& engine) override
+	{
+		return camera->OnMouseWheel(engine);
 	}
 };

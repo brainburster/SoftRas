@@ -92,32 +92,63 @@ namespace framework
 			return position;
 		}
 
+		void OnMouseMove(const IRenderEngine& engine)
+		{
+			const auto& _input_state = engine.GetInputState();
+			const auto& _mouse_state = _input_state.mouse_state;
+			float delta = (float)engine.GetEngineState().delta_count;
+
+			if (_mouse_state.button[0] && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
+			{
+				using gmath::Utility::Clamp;
+				AddYaw(_mouse_state.dx * camera_speed);
+				AddPitch(Clamp(-_mouse_state.dy * camera_speed, -89.f, 89.f));
+			}
+
+			Vec3 front = GetFront();
+			Vec3 right = front.cross({ 0,1,0 }).normalize();
+			Vec3 up = right.cross(front).normalize();
+
+			if ((_mouse_state.button[1] || _mouse_state.button[2]) && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
+			{
+				AddPosition(move_speed * 0.1f * right * delta * -_mouse_state.dx);
+				AddPosition(move_speed * 0.1f * up * delta * _mouse_state.dy);
+			}
+		}
+
+		void OnMouseWheel(const IRenderEngine& engine)
+		{
+			const auto& _input_state = engine.GetInputState();
+			const auto& _mouse_state = _input_state.mouse_state;
+			AddFovy((float)_input_state.mouse_state.scroll * scroll_speed);
+		}
+
 		void HandleInput(const IRenderEngine& engine) override
 		{
 			const auto& _input_state = engine.GetInputState();
 			const auto& _mouse_state = _input_state.mouse_state;
 			float delta = (float)engine.GetEngineState().delta_count;
 
-			using gmath::Utility::Clamp;
+			//using gmath::Utility::Clamp;
 
-			if (_mouse_state.button[0] && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
-			{
-				using gmath::Utility::Clamp;
-				AddYaw(_mouse_state.dx * delta * camera_speed);
-				AddPitch(Clamp(-_mouse_state.dy * delta * camera_speed, -89.f, 89.f));
-			}
+			//if (_mouse_state.button[0] && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
+			//{
+			//	using gmath::Utility::Clamp;
+			//	AddYaw(_mouse_state.dx * delta * camera_speed);
+			//	AddPitch(Clamp(-_mouse_state.dy * delta * camera_speed, -89.f, 89.f));
+			//}
 
-			AddFovy((float)_input_state.mouse_state.scroll * delta * scroll_speed);
+			//AddFovy((float)_input_state.mouse_state.scroll * delta * scroll_speed);
 
 			Vec3 front = GetFront();
 			Vec3 right = front.cross({ 0,1,0 }).normalize();
 			Vec3 up = right.cross(front).normalize();
 
-			if (_mouse_state.button[1] && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
-			{
-				AddPosition(camera_speed * 0.1f * right * delta * -_mouse_state.dx);
-				AddPosition(camera_speed * 0.1f * up * delta * _mouse_state.dy);
-			}
+			//if (_mouse_state.button[1] && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
+			//{
+			//	AddPosition(camera_speed * 0.1f * right * delta * -_mouse_state.dx);
+			//	AddPosition(camera_speed * 0.1f * up * delta * _mouse_state.dy);
+			//}
 
 			if (_input_state.key['W'])
 			{
@@ -158,8 +189,8 @@ namespace framework
 		float _far;
 
 		//speed
-		float camera_speed = 0.05f;
+		float camera_speed = 0.5f;
 		float move_speed = 0.02f;
-		float scroll_speed = 0.005f;
+		float scroll_speed = 0.05f;
 	};
 }

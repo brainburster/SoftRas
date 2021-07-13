@@ -4,6 +4,8 @@
 #include "../core/software_renderer.hpp"
 #include "scene.hpp"
 #include "render_engine.hpp"
+#include <thread>
+#include <mutex>
 
 namespace framework
 {
@@ -71,26 +73,33 @@ namespace framework
 			AfterInit();
 			HookInput();
 
+			std::thread render_theard([&]() {
+				while (!dc_wnd.app_should_close())
+				{
+					auto last = engine_state.time;
+					engine_state.time = std::chrono::system_clock::now();
+					engine_state.delta = std::chrono::duration_cast<std::chrono::milliseconds>(engine_state.time - last);
+					engine_state.delta_count = engine_state.delta.count();
+					engine_state.frame_count++;
+
+					HandleInput();
+					Update();
+
+					RenderFrame();
+					ctx.CopyToBuffer(dc_wnd.GetFrameBufferView());
+					dc_wnd.BitBltBuffer();
+					EndFrame();
+				}
+				});
+
 			while (!dc_wnd.app_should_close())
 			{
-				auto last = engine_state.time;
-				engine_state.time = std::chrono::system_clock::now();
-				engine_state.delta = std::chrono::duration_cast<std::chrono::milliseconds>(engine_state.time - last);
-				engine_state.delta_count = engine_state.delta.count();
-				engine_state.frame_count++;
-
-				dc_wnd.PeekMsg();
-				//dc_wnd.GetMsg();
+				//dc_wnd.PeekMsg();
+				dc_wnd.GetMsg();
 				//...
-
-				HandleInput();
-				Update();
-
-				RenderFrame();
-				ctx.CopyToBuffer(dc_wnd.GetFrameBufferView());
-				dc_wnd.BitBltBuffer();
-				EndFrame();
 			}
+
+			render_theard.join();
 		}
 
 	protected:
@@ -98,14 +107,14 @@ namespace framework
 		virtual void HookInput() override
 		{
 			dc_wnd.RegisterWndProc(WM_KEYDOWN, [&](auto wParam, auto lParam) {
-				input_state.key[(unsigned char)LOWORD(wParam)] = true;
-				input_state.keydown[(unsigned char)LOWORD(wParam)] = true;
+				unsigned char key_id = (unsigned char)LOWORD(wParam);
+				input_state.key[key_id] = true;
 				return true;
 				});
 
 			dc_wnd.RegisterWndProc(WM_KEYUP, [&](auto wParam, auto lParam) {
-				input_state.key[(unsigned char)LOWORD(wParam)] = false;
-				input_state.keyup[(unsigned char)LOWORD(wParam)] = true;
+				unsigned char key_id = (unsigned char)LOWORD(wParam);
+				input_state.key[key_id] = false;
 				return true;
 				});
 
@@ -121,6 +130,9 @@ namespace framework
 				track_mouse_event.dwHoverTime = HOVER_DEFAULT;
 				track_mouse_event.hwndTrack = dc_wnd.Hwnd();
 				TrackMouseEvent(&track_mouse_event);
+
+				OnMouseMove();
+
 				return true;
 				});
 
@@ -161,6 +173,7 @@ namespace framework
 
 			dc_wnd.RegisterWndProc(WM_MOUSEWHEEL, [&](auto wParam, auto lParam) {
 				input_state.mouse_state.scroll = (short)HIWORD(wParam);
+				OnMouseWheel();
 				return true;
 				});
 		}
@@ -168,7 +181,7 @@ namespace framework
 		//初始化
 		virtual void Init() override
 		{
-			dc_wnd.WndClassName(L"softraster_wnd_cls").WndName(L"软光栅测试").Size(800, 600).AddWndStyle(~WS_MAXIMIZEBOX).Init();
+			dc_wnd.WndClassName(L"softraster_wnd_cls").WndName(L"软光栅学习").Size(800, 600).AddWndStyle(~WS_MAXIMIZEBOX).Init();
 			ctx.Viewport(800, 600);
 		}
 		//
@@ -183,9 +196,36 @@ namespace framework
 			scene->Update(*this);
 		}
 
+		void TranslateInput()
+		{
+			for (size_t i = 0; i < 256; ++i)
+			{
+				input_state.key_pressed[i] = false;
+				input_state.key_released[i] = false;
+				if (input_state.key[i] != input_state.key_old[i])
+				{
+					input_state.key_pressed[i] = !input_state.key[i];
+					input_state.key_released[i] = input_state.key[i];
+				}
+				input_state.key_old[i] = input_state.key[i];
+			}
+			for (size_t i = 0; i < 3; ++i)
+			{
+				input_state.mouse_state.button_pressed[i] = false;
+				input_state.mouse_state.button_released[i] = false;
+				if (input_state.mouse_state.button[i] != input_state.mouse_state.button_old[i])
+				{
+					input_state.mouse_state.button_pressed[i] = !input_state.mouse_state.button[i];
+					input_state.mouse_state.button_released[i] = input_state.mouse_state.button[i];
+				}
+				input_state.mouse_state.button_old[i] = input_state.mouse_state.button[i];
+			}
+		}
+
 		//每帧调用
 		virtual void HandleInput() override
 		{
+			TranslateInput();
 			scene->HandleInput(*this);
 		}
 
@@ -199,11 +239,16 @@ namespace framework
 		//每帧结束后的清理工作
 		virtual void EndFrame() override
 		{
-			input_state.mouse_state.dx = 0;
-			input_state.mouse_state.dy = 0;
-			input_state.mouse_state.scroll = 0;
-			memset(&input_state.keydown, 0, sizeof(input_state.keydown));
-			memset(&input_state.keyup, 0, sizeof(input_state.keyup));
+		}
+
+		virtual void OnMouseMove() override
+		{
+			scene->OnMouseMove(*this);
+		}
+
+		virtual void OnMouseWheel() override
+		{
+			scene->OnMouseWheel(*this);
 		}
 	};
 }

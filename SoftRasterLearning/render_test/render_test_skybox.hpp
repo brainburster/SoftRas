@@ -75,13 +75,12 @@ class Scene_Render_Test_Skybox : public framework::Scene
 {
 private:
 	std::shared_ptr<framework::MaterialEntity> sphere;
-	std::shared_ptr<framework::FPSCamera> fps_camera;
+	std::shared_ptr<framework::TargetCamera> camera;
 	std::shared_ptr<core::CubeMap> cube_map;
 
 public:
 	void Init(framework::IRenderEngine& engine) override
 	{
-		fps_camera = std::make_shared<framework::FPSCamera>(core::Vec3{ 0,0,5.f }, -90.f);
 		auto material = std::make_shared<Material_Mirror>();
 		material->cube_map = framework::GetResource<core::CubeMap>(L"cube_map").value();
 		material->normal_map = framework::GetResource<core::Texture>(L"normal_map").value();
@@ -90,12 +89,13 @@ public:
 		sphere = Spawn<framework::MaterialEntity>();
 		sphere->model = framework::GetResource<core::Model>(L"sphere").value();
 		sphere->material = material;
+		camera = std::make_shared<framework::TargetCamera>(sphere, 5.f, 90.f, 30.f);
 		//..
 	}
 
 	void HandleInput(const framework::IRenderEngine& engine) override
 	{
-		fps_camera->HandleInput(engine);
+		camera->HandleInput(engine);
 		if (framework::IsKeyPressed<VK_CONTROL, 'R'>())
 		{
 			sphere->transform.rotation += core::Vec3{ 0, 1, 0 }*0.05f;
@@ -110,6 +110,16 @@ public:
 
 	virtual const framework::ICamera* GetMainCamera() const override
 	{
-		return fps_camera.get();
+		return camera.get();
+	}
+
+	virtual void OnMouseMove(const framework::IRenderEngine& engine) override
+	{
+		return camera->OnMouseMove(engine);
+	}
+
+	virtual void OnMouseWheel(const framework::IRenderEngine& engine) override
+	{
+		return camera->OnMouseWheel(engine);
 	}
 };

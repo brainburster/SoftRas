@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <functional>
 #include "camera.hpp"
 
 namespace framework
@@ -8,11 +9,16 @@ namespace framework
 	struct InputState
 	{
 		bool key[256];
-		bool keydown[256];
-		bool keyup[256];
+		bool key_old[256];
+		bool key_pressed[256];
+		bool key_released[256];
+
 		struct MouseState
 		{
 			bool button[3];
+			bool button_old[3];
+			bool button_pressed[3];
+			bool button_released[3];
 			int x;
 			int y;
 			int dx;
@@ -54,6 +60,9 @@ namespace framework
 		virtual void RenderFrame() = 0;
 		//每帧结束后的清理工作
 		virtual void EndFrame() = 0;
+		//处理鼠标移动事件
+		virtual void OnMouseMove() = 0;
+		virtual void OnMouseWheel() = 0;
 	};
 
 	//获取组合键信息

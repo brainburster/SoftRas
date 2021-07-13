@@ -27,7 +27,7 @@ public:
 	void HandleInput(const framework::IRenderEngine& engine) override
 	{
 		sub_scenes[sub_scene_id]->HandleInput(engine);
-		if (engine.GetInputState().keydown[VK_SPACE])
+		if (engine.GetInputState().key_pressed[VK_SPACE])
 		{
 			sub_scene_id = ++sub_scene_id % sub_scenes.size();
 		}
@@ -44,6 +44,16 @@ public:
 	virtual const framework::ICamera* GetMainCamera() const override
 	{
 		return sub_scenes[sub_scene_id]->GetMainCamera();
+	}
+
+	virtual void OnMouseMove(const framework::IRenderEngine& engine) override
+	{
+		sub_scenes[sub_scene_id]->OnMouseMove(engine);
+	}
+
+	virtual void OnMouseWheel(const framework::IRenderEngine& engine) override
+	{
+		sub_scenes[sub_scene_id]->OnMouseWheel(engine);
 	}
 };
 
