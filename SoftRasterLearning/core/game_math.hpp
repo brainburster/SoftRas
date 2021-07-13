@@ -2,7 +2,6 @@
 
 #include <cmath>
 #include <immintrin.h>
-#include <DirectXMath.h>
 
 namespace gmath
 {
@@ -147,9 +146,9 @@ namespace gmath
 		//构造单位矩阵
 		static Mat3x3 Unit();
 		//转置
-		Mat3x3 transpose() const;
+		Mat3x3 Transpose() const;
 		//求逆
-		Mat3x3 inverse() const;
+		Mat3x3 Inverse() const;
 	};
 
 	template<typename T>
@@ -170,15 +169,15 @@ namespace gmath
 	{
 		static constexpr float pi = 3.1415926f;
 		template<typename T, typename U, typename V>
-		inline T Clamp(T v, U a, V b);
+		T Clamp(T v, U a, V b);
 		template<typename T>
-		inline T Clamp(T v);
+		T Clamp(T v);
 		template<typename T, typename U>
-		inline T Lerp(T a, T b, U n);
+		T Lerp(T a, T b, U n);
 		template<typename T>
-		inline T BlendColor(T color0, T color1);
-		inline float radians(float degree);
-		inline float degrees(float radian);
+		T BlendColor(T color0, T color1);
+		float radians(float degree);
+		float degrees(float radian);
 
 		//单位矩阵
 		template<typename T>
@@ -251,31 +250,31 @@ namespace gmath
 		Vec4(__m128 data);
 		operator __m128();
 
-		__forceinline Vec4 _vectorcall Pow(float rhs) const noexcept;
-		__forceinline Vec4 _vectorcall Sqrt() const noexcept;
-		__forceinline float _vectorcall Dot(Vec4 rhs) const noexcept;
+		Vec4 _vectorcall Pow(float rhs) const noexcept;
+		Vec4 _vectorcall Sqrt() const noexcept;
+		float _vectorcall Dot(Vec4 rhs) const noexcept;
 
-		__forceinline Vec4& _vectorcall operator+=(Vec4 rhs) noexcept;
-		__forceinline Vec4& _vectorcall operator+=(float rhs) noexcept;
-		__forceinline Vec4& _vectorcall operator-=(const Vec4& rhs) noexcept;
-		__forceinline Vec4& _vectorcall operator-=(float rhs) noexcept;
-		__forceinline Vec4& _vectorcall operator*=(const Vec4& rhs) noexcept;
-		__forceinline Vec4& _vectorcall operator*=(float rhs) noexcept;
-		__forceinline Vec4& _vectorcall operator/=(const Vec4& rhs) noexcept;
-		__forceinline Vec4& _vectorcall operator/=(float rhs) noexcept;
+		Vec4& _vectorcall operator+=(Vec4 rhs) noexcept;
+		Vec4& _vectorcall operator+=(float rhs) noexcept;
+		Vec4& _vectorcall operator-=(const Vec4& rhs) noexcept;
+		Vec4& _vectorcall operator-=(float rhs) noexcept;
+		Vec4& _vectorcall operator*=(const Vec4& rhs) noexcept;
+		Vec4& _vectorcall operator*=(float rhs) noexcept;
+		Vec4& _vectorcall operator/=(const Vec4& rhs) noexcept;
+		Vec4& _vectorcall operator/=(float rhs) noexcept;
 
-		friend __forceinline Vec4 _vectorcall operator+(Vec4 lhs, Vec4 rhs) noexcept;
-		friend __forceinline Vec4 _vectorcall operator+(float lhs, Vec4 rhs) noexcept;
-		friend __forceinline Vec4 _vectorcall operator+(Vec4 lhs, float rhs) noexcept;
-		friend __forceinline Vec4 _vectorcall operator-(Vec4 lhs, Vec4 rhs) noexcept;
-		friend __forceinline Vec4 _vectorcall operator-(float lhs, Vec4 rhs) noexcept;
-		friend __forceinline Vec4 _vectorcall operator-(Vec4 lhs, float rhs) noexcept;
-		friend __forceinline Vec4 _vectorcall operator*(Vec4 lhs, Vec4 rhs) noexcept;
-		friend __forceinline Vec4 _vectorcall operator*(float lhs, Vec4 rhs) noexcept;
-		friend __forceinline Vec4 _vectorcall operator*(Vec4 lhs, float rhs) noexcept;
-		friend __forceinline Vec4 _vectorcall operator/(Vec4 lhs, Vec4 rhs) noexcept;
-		friend __forceinline Vec4 _vectorcall operator/(float lhs, Vec4 rhs) noexcept;
-		friend __forceinline Vec4 _vectorcall operator/(Vec4 lhs, float rhs) noexcept;
+		friend  Vec4 _vectorcall operator+(Vec4 lhs, Vec4 rhs) noexcept;
+		friend  Vec4 _vectorcall operator+(float lhs, Vec4 rhs) noexcept;
+		friend  Vec4 _vectorcall operator+(Vec4 lhs, float rhs) noexcept;
+		friend  Vec4 _vectorcall operator-(Vec4 lhs, Vec4 rhs) noexcept;
+		friend  Vec4 _vectorcall operator-(float lhs, Vec4 rhs) noexcept;
+		friend  Vec4 _vectorcall operator-(Vec4 lhs, float rhs) noexcept;
+		friend  Vec4 _vectorcall operator*(Vec4 lhs, Vec4 rhs) noexcept;
+		friend  Vec4 _vectorcall operator*(float lhs, Vec4 rhs) noexcept;
+		friend  Vec4 _vectorcall operator*(Vec4 lhs, float rhs) noexcept;
+		friend  Vec4 _vectorcall operator/(Vec4 lhs, Vec4 rhs) noexcept;
+		friend  Vec4 _vectorcall operator/(float lhs, Vec4 rhs) noexcept;
+		friend  Vec4 _vectorcall operator/(Vec4 lhs, float rhs) noexcept;
 	};
 
 	template<>
@@ -319,32 +318,32 @@ namespace gmath
 		Vec3(__m128 data);
 		operator __m128();
 
-		__forceinline Vec4<float> ToHomoCoord() const;
-		__forceinline Vec3 normalize() const;
-		__forceinline Vec3 _vectorcall cross(Vec3 rhs) const;
-		__forceinline float _vectorcall Dot(Vec3 rhs) const noexcept;
+		Vec4<float> ToHomoCoord() const;
+		Vec3 normalize() const;
+		Vec3 _vectorcall cross(Vec3 rhs) const;
+		float _vectorcall Dot(Vec3 rhs) const noexcept;
 
-		__forceinline Vec3& _vectorcall operator+=(Vec3 rhs) noexcept;
-		__forceinline Vec3& _vectorcall operator+=(float rhs) noexcept;
-		__forceinline Vec3& _vectorcall operator-=(Vec3 rhs) noexcept;
-		__forceinline Vec3& _vectorcall operator-=(float rhs) noexcept;
-		__forceinline Vec3& _vectorcall operator*=(Vec3 rhs) noexcept;
-		__forceinline Vec3& _vectorcall operator*=(float rhs) noexcept;
-		__forceinline Vec3& _vectorcall operator/=(Vec3 rhs) noexcept;
-		__forceinline Vec3& _vectorcall operator/=(float rhs) noexcept;
+		Vec3& _vectorcall operator+=(Vec3 rhs) noexcept;
+		Vec3& _vectorcall operator+=(float rhs) noexcept;
+		Vec3& _vectorcall operator-=(Vec3 rhs) noexcept;
+		Vec3& _vectorcall operator-=(float rhs) noexcept;
+		Vec3& _vectorcall operator*=(Vec3 rhs) noexcept;
+		Vec3& _vectorcall operator*=(float rhs) noexcept;
+		Vec3& _vectorcall operator/=(Vec3 rhs) noexcept;
+		Vec3& _vectorcall operator/=(float rhs) noexcept;
 
-		friend __forceinline Vec3 _vectorcall operator+(Vec3 lhs, Vec3 rhs) noexcept;
-		friend __forceinline Vec3 _vectorcall operator+(float lhs, Vec3 rhs) noexcept;
-		friend __forceinline Vec3 _vectorcall operator+(Vec3 lhs, float rhs) noexcept;
-		friend __forceinline Vec3 _vectorcall operator-(Vec3 lhs, Vec3 rhs) noexcept;
-		friend __forceinline Vec3 _vectorcall operator-(float lhs, Vec3 rhs) noexcept;
-		friend __forceinline Vec3 _vectorcall operator-(Vec3 lhs, float rhs) noexcept;
-		friend __forceinline Vec3 _vectorcall operator*(Vec3 lhs, Vec3 rhs) noexcept;
-		friend __forceinline Vec3 _vectorcall operator*(float lhs, Vec3 rhs) noexcept;
-		friend __forceinline Vec3 _vectorcall operator*(Vec3 lhs, float rhs) noexcept;
-		friend __forceinline Vec3 _vectorcall operator/(Vec3 lhs, Vec3 rhs) noexcept;
-		friend __forceinline Vec3 _vectorcall operator/(float lhs, Vec3 rhs) noexcept;
-		friend __forceinline Vec3 _vectorcall operator/(Vec3 lhs, float rhs) noexcept;
+		friend  Vec3 _vectorcall operator+(Vec3 lhs, Vec3 rhs) noexcept;
+		friend  Vec3 _vectorcall operator+(float lhs, Vec3 rhs) noexcept;
+		friend  Vec3 _vectorcall operator+(Vec3 lhs, float rhs) noexcept;
+		friend  Vec3 _vectorcall operator-(Vec3 lhs, Vec3 rhs) noexcept;
+		friend  Vec3 _vectorcall operator-(float lhs, Vec3 rhs) noexcept;
+		friend  Vec3 _vectorcall operator-(Vec3 lhs, float rhs) noexcept;
+		friend  Vec3 _vectorcall operator*(Vec3 lhs, Vec3 rhs) noexcept;
+		friend  Vec3 _vectorcall operator*(float lhs, Vec3 rhs) noexcept;
+		friend  Vec3 _vectorcall operator*(Vec3 lhs, float rhs) noexcept;
+		friend  Vec3 _vectorcall operator/(Vec3 lhs, Vec3 rhs) noexcept;
+		friend  Vec3 _vectorcall operator/(float lhs, Vec3 rhs) noexcept;
+		friend  Vec3 _vectorcall operator/(Vec3 lhs, float rhs) noexcept;
 	};
 
 	template<>
@@ -356,22 +355,45 @@ namespace gmath
 			__m128 column[4];
 		};
 		//修改为列矩阵
-		inline Mat4x4(float _0, float _1, float _2, float _3, float _4, float _5, float _6, float _7, float _8, float _9, float _10, float _11, float _12, float _13, float _14, float _15);
+		Mat4x4(float _0, float _1, float _2, float _3, float _4, float _5, float _6, float _7, float _8, float _9, float _10, float _11, float _12, float _13, float _14, float _15);
 
-		inline Mat4x4(__m128 c1, __m128 c2, __m128 c3, __m128 c4);
+		Mat4x4(__m128 c1, __m128 c2, __m128 c3, __m128 c4);
 
 		Mat4x4() = default;
 
 		//矩阵乘法
-		__forceinline  Mat4x4<float> operator*(const Mat4x4<float>& rhs) const;
+		Mat4x4<float> operator*(const Mat4x4<float>& rhs) const;
 
 		//乘向量 4分量
-		__forceinline Vec4<float> _vectorcall operator*(Vec4<float> rhs) const;
+		Vec4<float> _vectorcall operator*(Vec4<float> rhs) const;
 
 		//转置
-		//__forceinline Mat4x4<float> Transpose() const;
+		//Mat4x4<float> Transpose() const;
 
-		inline Mat3x3<float> ToMat3x3() const;
+		Mat3x3<float> ToMat3x3() const;
+	};
+
+	template<>
+	struct alignas(16) Mat3x3<float>
+	{
+		union
+		{
+			float data[4 * 3];
+			__m128 column[3];
+		};
+
+		Mat3x3() = default;
+		Mat3x3(__m128, __m128, __m128);
+		Mat3x3(float a, float b, float c, float d, float e, float f, float g, float h, float i);
+
+		//乘矩阵
+		Mat3x3 operator*(const Mat3x3& rhs) const;
+		//乘向量
+		Vec3<float> _vectorcall operator*(Vec3<float> rhs) const;
+		//转置
+		Mat3x3 Transpose() const;
+		//求逆
+		Mat3x3 Inverse() const;
 	};
 };
 

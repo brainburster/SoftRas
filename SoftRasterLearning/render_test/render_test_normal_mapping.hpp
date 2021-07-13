@@ -22,7 +22,7 @@ public:
 		using namespace core;
 
 		//求法线矩阵
-		Mat3 normal_mat = model.ToMat3x3().inverse().transpose();
+		Mat3 normal_mat = model.ToMat3x3().Inverse().Transpose();
 		//求tbn
 		Vec3 tangent = (normal_mat * v.tangent).normalize();
 		Vec3 normal = (normal_mat * v.normal).normalize();
@@ -30,7 +30,7 @@ public:
 		Vec3 bitangent = tangent.cross(normal).normalize();
 
 		Mat3 TBN = { tangent, bitangent, normal };
-		TBN = TBN.transpose();
+		TBN = TBN.Transpose();
 
 		Varying_Light_ts varying{};
 		varying.position = mvp * v.position.ToHomoCoord();

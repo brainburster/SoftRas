@@ -1,5 +1,6 @@
 #pragma once
 
+//vec4 sse加速
 namespace gmath
 {
 	inline Vec4<float>::Vec4(float v) : x{ v }, y{ v }, z{ v }, w{ v }{}
@@ -159,6 +160,7 @@ namespace gmath
 	}
 };
 
+//vec3 sse加速
 namespace gmath
 {
 	inline Vec3<float>::Vec3(float v) :x{ v }, y{ v }, z{ v }, _w{ 0 }{}
@@ -338,6 +340,7 @@ namespace gmath
 	}
 }
 
+//mat4x4 sse加速
 namespace gmath
 {
 	inline Mat4x4<float>::Mat4x4(float _0, float _1, float _2, float _3, float _4, float _5, float _6, float _7, float _8, float _9, float _10, float _11, float _12, float _13, float _14, float _15) :
@@ -440,6 +443,133 @@ namespace gmath
 				data[4], data[5], data[6],
 				data[8], data[9], data[10],
 		};
+	}
+}
+
+//mat4x4 sse加速
+namespace gmath
+{
+	inline Mat3x3<float>::Mat3x3(__m128 c1, __m128 c2, __m128 c3) :
+		column{ c1,c2,c3 }
+	{
+	}
+	inline Mat3x3<float>::Mat3x3(float a, float b, float c, float d, float e, float f, float g, float h, float i) :
+		data{
+		a,d,g,0,
+		b,e,h,0,
+		c,f,i,0 }
+	{
+	}
+
+	//乘矩阵
+	__forceinline Mat3x3<float> Mat3x3<float>::operator*(const Mat3x3<float>& rhs) const
+	{
+		__m128 lhs_column_0 = column[0];
+		__m128 lhs_column_1 = column[1];
+		__m128 lhs_column_2 = column[2];
+		__m128 rhs_column_0 = rhs.column[0];
+		__m128 rhs_column_1 = rhs.column[1];
+		__m128 rhs_column_2 = rhs.column[2];
+
+		//对每个列进行向量乘法，最后合并为新的矩阵
+		__m128 x = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(0, 0, 0, 0)); //提取第一列的第一个元素
+		__m128 y = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(1, 1, 1, 1)); //提取第一列的第二个元素
+		__m128 z = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(2, 2, 2, 2)); //提取第一列的第三个元素
+
+		//得到新的第一列
+		rhs_column_0 = _mm_mul_ps(lhs_column_0, x);
+		rhs_column_0 = _mm_add_ps(rhs_column_0, _mm_mul_ps(lhs_column_1, y));
+		rhs_column_0 = _mm_add_ps(rhs_column_0, _mm_mul_ps(lhs_column_2, z));
+
+		x = _mm_shuffle_ps(rhs_column_1, rhs_column_1, _MM_SHUFFLE(0, 0, 0, 0));
+		y = _mm_shuffle_ps(rhs_column_1, rhs_column_1, _MM_SHUFFLE(1, 1, 1, 1));
+		z = _mm_shuffle_ps(rhs_column_1, rhs_column_1, _MM_SHUFFLE(2, 2, 2, 2));
+
+		//第二列
+		rhs_column_1 = _mm_mul_ps(lhs_column_0, x);
+		rhs_column_1 = _mm_add_ps(rhs_column_1, _mm_mul_ps(lhs_column_1, y));
+		rhs_column_1 = _mm_add_ps(rhs_column_1, _mm_mul_ps(lhs_column_2, z));
+
+		x = _mm_shuffle_ps(rhs_column_2, rhs_column_2, _MM_SHUFFLE(0, 0, 0, 0));
+		y = _mm_shuffle_ps(rhs_column_2, rhs_column_2, _MM_SHUFFLE(1, 1, 1, 1));
+		z = _mm_shuffle_ps(rhs_column_2, rhs_column_2, _MM_SHUFFLE(2, 2, 2, 2));
+
+		//第三列
+		rhs_column_2 = _mm_mul_ps(lhs_column_0, x);
+		rhs_column_2 = _mm_add_ps(rhs_column_2, _mm_mul_ps(lhs_column_1, y));
+		rhs_column_2 = _mm_add_ps(rhs_column_2, _mm_mul_ps(lhs_column_2, z));
+
+		return Mat3x3<float>{ rhs_column_0, rhs_column_1, rhs_column_2 };
+	}
+	//乘向量
+	__forceinline Vec3<float> _vectorcall Mat3x3<float>::operator*(Vec3<float> rhs) const
+	{
+		__m128 x = _mm_shuffle_ps(rhs, rhs, _MM_SHUFFLE(0, 0, 0, 0));
+		__m128 y = _mm_shuffle_ps(rhs, rhs, _MM_SHUFFLE(1, 1, 1, 1));
+		__m128 z = _mm_shuffle_ps(rhs, rhs, _MM_SHUFFLE(2, 2, 2, 2));
+		__m128 ret = _mm_mul_ps(column[0], x);
+		ret = _mm_add_ps(ret, _mm_mul_ps(column[1], y));
+		ret = _mm_add_ps(ret, _mm_mul_ps(column[2], z));
+		return _mm_and_ps(ret, Vec3<float>::mask3.mask);
+	}
+
+	//inline Vec4<float> _vectorcall Mat3x3<float>::operator*(Vec4<float> rhs) const
+	//{
+	//	__m128 x = _mm_shuffle_ps(rhs, rhs, _MM_SHUFFLE(0, 0, 0, 0));
+	//	__m128 y = _mm_shuffle_ps(rhs, rhs, _MM_SHUFFLE(1, 1, 1, 1));
+	//	__m128 z = _mm_shuffle_ps(rhs, rhs, _MM_SHUFFLE(2, 2, 2, 2));
+	//	__m128 ret = _mm_mul_ps(column[0], x);
+	//	ret = _mm_add_ps(ret, _mm_mul_ps(column[1], y));
+	//	ret = _mm_add_ps(ret, _mm_mul_ps(column[2], z));
+	//	return ret;
+	//}
+
+	//转置
+	inline Mat3x3<float> Mat3x3<float>::Transpose() const
+	{
+		//暂时不用sse改造,构造函数自动转置了
+		return Mat3x3
+		{
+			data[0],data[1],data[2],
+			data[4],data[5],data[6],
+			data[8],data[9],data[10]
+		};
+	}
+
+	//求逆
+	inline Mat3x3<float> Mat3x3<float>::Inverse() const
+	{
+		//暂时不用sse改造, 因为基本只在顶点着色器使用
+		float det = data[0] * data[5] * data[10] + data[4] * data[9] * data[2] + data[8] * data[1] * data[6] -
+			data[2] * data[5] * data[8] - data[6] * data[9] * data[0] - data[10] * data[1] * data[4];
+
+		if (fabs(det) <= 1e-20)
+		{
+			//不可求逆,返回自身
+			return *this;
+		}
+
+		//手算 A* / |A|（的转置）
+		Mat3x3<float> _inverse = Mat3x3<float>{
+			//第一行
+			 (data[5] * data[10] - data[9] * data[6]) / det,
+			-(data[1] * data[10] - data[9] * data[2]) / det,
+			(data[1] * data[6] - data[5] * data[2]) / det,
+			//第二行
+			-(data[4] * data[10] - data[8] * data[6]) / det,
+			(data[0] * data[10] - data[8] * data[2]) / det,
+			-(data[0] * data[6] - data[4] * data[2]) / det,
+			//第三行
+			(data[4] * data[9] - data[8] * data[5]) / det,
+			-(data[0] * data[9] - data[8] * data[1]) / det,
+			(data[0] * data[5] - data[4] * data[1]) / det,
+		};
+
+		//转置, 现在自动转置了
+		//_inverse = _inverse.transpose();
+
+		//矩阵中可能出现-0.0f，但不重要, 因为矩阵中的元素不会被除
+		return _inverse;
 	}
 }
 
@@ -775,7 +905,7 @@ namespace gmath
 	}
 
 	//转置
-	template<typename T> inline Mat3x3<T> Mat3x3<T>::transpose() const
+	template<typename T> inline Mat3x3<T> Mat3x3<T>::Transpose() const
 	{
 		return Mat3x3{
 			data[0],data[3],data[6],
@@ -785,7 +915,7 @@ namespace gmath
 	}
 
 	//求逆
-	template<typename T> inline Mat3x3<T> Mat3x3<T>::inverse() const
+	template<typename T> inline Mat3x3<T> Mat3x3<T>::Inverse() const
 	{
 		// A^-1 =  A*/|A|
 		//A* : A的伴随矩阵
@@ -818,7 +948,7 @@ namespace gmath
 		};
 
 		//转置
-		_inverse = _inverse.transpose();
+		_inverse = _inverse.Transpose();
 
 		//矩阵中可能出现-0.0f，但不重要, 因为矩阵中的元素不会被除
 		return _inverse;

@@ -21,7 +21,7 @@ public:
 	Varying_Light_ws VS(const core::Model_Vertex& v) const
 	{
 		using namespace core;
-		Mat3 normal_mat = m.ToMat3x3().inverse().transpose();
+		Mat3 normal_mat = m.ToMat3x3().Inverse().Transpose();
 
 		Vec3 tangent = (normal_mat * v.tangent).normalize();
 		Vec3 normal = (normal_mat * v.normal).normalize();
