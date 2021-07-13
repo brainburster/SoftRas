@@ -9,8 +9,8 @@
 class Shader_Normal
 {
 public:
-	core::Mat mvp = core::Mat::Unit();
-	core::Mat model = core::Mat::Unit();
+	core::Mat mvp = {};
+	core::Mat model = {};
 	core::Texture* tex0 = nullptr;
 	core::Texture* normal_map = nullptr;
 	core::Vec3 light_position_ws = { 0,10.f,0 };

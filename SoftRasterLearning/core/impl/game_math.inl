@@ -768,200 +768,9 @@ namespace gmath
 				data[8], data[9], data[10],
 		};
 	}
-
-	//unit
-	template<typename T> Mat4x4<T> Mat4x4<T>::Unit()
-	{
-		return Mat4x4{
-			1.f,0,0,0,
-			0,1.f,0,0,
-			0,0,1.f,0,
-			0,0,0,1.f
-		};
-	}
-
-	//平移
-	template<typename T> Mat4x4<T> Mat4x4<T>::Translate(T x, T y, T z)
-	{
-		return Mat4x4{
-			1.f,0,0,x,
-			0,1.f,0,y,
-			0,0,1.f,z,
-			0,0,0,1.f
-		};
-	}
-
-	template<typename T> Mat4x4<T> Mat4x4<T>::Translate(const Vec3<T>& v)
-	{
-		return Mat4x4{
-			1.f,0,0,v.x,
-			0,1.f,0,v.y,
-			0,0,1.f,v.z,
-			0,0,0,1.f
-		};
-	}
-
-	//旋转
-	template<typename T> Mat4x4<T> Mat4x4<T>::Rotate(T x, T y, T z)
-	{
-		return Mat4x4{
-		   1.f,0,0,0,
-		   0, cos(x), -sin(x), 0,
-		   0, sin(x), cos(x),  0,
-		   0, 0,   0, 1.f
-		} *Mat4x4{
-		   cos(y),0,sin(y),0,
-		   0,1.f,0,0,
-		   -sin(y),0,cos(y),0,
-		   0,0,0,1.f
-		} *Mat4x4{
-		   cos(z),-sin(z),0,0,
-		   sin(z),cos(z),0,0,
-		   0,0,1.f,0,
-		   0,0,0,1.f
-		};
-	}
-
-	template<typename T> Mat4x4<T> Mat4x4<T>::Rotate(const Vec3<T>& v)
-	{
-		return Mat4x4{
-		   1.f,0,0,0,
-		   0, cos(v.x), -sin(v.x), 0,
-		   0, sin(v.x), cos(v.x),  0,
-		   0, 0,   0, 1.f
-		} *Mat4x4{
-		   cos(v.y),0,sin(v.y),0,
-		   0,1.f,0,0,
-		   -sin(v.y),0,cos(v.y),0,
-		   0,0,0,1.f
-		} *Mat4x4{
-		   cos(v.z),-sin(v.z),0,0,
-		   sin(v.z),cos(v.z),0,0,
-		   0,0,1.f,0,
-		   0,0,0,1.f
-		};
-	}
-
-	//缩放
-	template<typename T> Mat4x4<T> Mat4x4<T>::Scale(T x, T y, T z)
-	{
-		return Mat4x4{
-			x, 0, 0, 0,
-			0, y, 0, 0,
-			0, 0, z, 0,
-			0, 0, 0, 1
-		};
-	}
-
-	//缩放
-	template<typename T> Mat4x4<T> Mat4x4<T>::Scale(const Vec3<T>& v)
-	{
-		return Mat4x4{
-			v.x, 0, 0, 0,
-			0, v.y, 0, 0,
-			0, 0, v.z, 0,
-			0, 0, 0, 1
-		};
-	}
-
-	//view 矩阵
-	template<typename T> Mat4x4<T> Mat4x4<T>::View(const Vec3<T>& position, const Vec3<T>& front, const Vec3<T>& up)
-	{
-		Vec3<T> f = front.normalize();
-		Vec3<T> u = up.normalize();
-		Vec3<T> right = f.cross(u);
-
-		return Mat4x4{
-			right.x,right.y,right.z,0,
-			u.x,u.y,u.z,0,
-			-f.x,-f.y,-f.z,0,
-			0,0,0,1
-		} *Mat4x4{
-			1,0,0,-position.x,
-			0,1,0,-position.y,
-			0,0,1,-position.z,
-			0,0,0,1
-		};
-	}
-
-	//相机矩阵
-	template<typename T> Mat4x4<T> Mat4x4<T>::LookAt(const Vec3<T>& position, const Vec3<T>& target, const Vec3<T>& up)
-	{
-		Vec3<T> f = (target - position).normalize();
-		Vec3<T> u = up.normalize();
-		Vec3<T> right = f.cross(u);
-
-		return Mat4x4{
-			right.x,right.y,right.z,0,
-			u.x,u.y,u.z,0,
-			-f.x,-f.y,-f.z,0,
-			0,0,0,1
-		} *Mat4x4{
-			1,0,0,-position.x,
-			0,1,0,-position.y,
-			0,0,1,-position.z,
-			0,0,0,1
-		};
-	}
-
-	//正交
-	template<typename T> Mat4x4<T> Mat4x4<T>::Ortho(T left, T right, T bottom, T top, T _near, T _far)
-	{
-		T dx = right - left;
-		T dy = top - bottom;
-		T dz = _far - _near;
-		T a = 2 / dx;
-		T b = -(right + left) / dx;
-		T c = 2 / dy;
-		T d = -(top + bottom) / dy;
-		T e = 2 / dz;
-		T f = -(_near + _far) / dy;
-		return Mat4x4{
-			a,0,0,b,
-			0,c,0,d,
-			0,0,e,f,
-			0,0,0,1
-		};
-	}
-
-	//透视矩阵-定义平截头体
-	template<typename T> Mat4x4<T> Mat4x4<T>::Frustum(T left, T right, T bottom, T top, T _near, T _far)
-	{
-		T dx = right - left;
-		T dy = top - bottom;
-		T dz = _far - _near;
-		T a = 2 * _near / dx;
-		T b = (right + left) / dx;
-		T c = 2 * _near / dy;
-		T d = (top + bottom) / dy;
-		T e = -(_far + _near) / dz;
-		T f = -2 * _far * _near / dz;
-		return Mat4x4{
-			a,0,b,0,
-			0,c,d,0,
-			0,0,e,f,
-			0,0,-1,0
-		};
-	}
-
-	//透视矩阵
-	template<typename T> Mat4x4<T> Mat4x4<T>::Projection(T fovy, T aspect, T _near, T _far)
-	{
-		T dz = _far - _near;
-		T b = 1 / tan(fovy / 2);
-		T a = b / aspect;
-		T c = -(_near + _far) / dz;
-		T d = -2 * _near * _far / dz;
-		return Mat4x4{
-			a,0,0,0,
-			0,b,0,0,
-			0,0,c,d,
-			0,0,-1,0
-		};
-	}
 };
 
-namespace gmath::Utility
+namespace gmath::utility
 {
 	template<typename T, typename U, typename V>
 	inline T Clamp(T v, U a, V b)
@@ -998,5 +807,217 @@ namespace gmath::Utility
 	inline float degrees(float radian)
 	{
 		return radian * 180.f / pi;
+	}
+
+	template<typename T>
+	inline Mat3x3<T> Mat3Unit()
+	{
+		return Mat4x4<T>{
+			1.f, 0, 0,
+				0, 1.f, 0,
+				0, 0, 1.f,
+		};
+	}
+
+	template<typename T>
+	inline Mat4x4<T> Mat4Unit()
+	{
+		return Mat4x4<T>{
+			1.f, 0, 0, 0,
+				0, 1.f, 0, 0,
+				0, 0, 1.f, 0,
+				0, 0, 0, 1.f
+		};
+	}
+
+	//平移
+	template<typename T>
+	inline Mat4x4<T> Translate(T x, T y, T z)
+	{
+		return Mat4x4<T>{
+			1.f, 0, 0, x,
+				0, 1.f, 0, y,
+				0, 0, 1.f, z,
+				0, 0, 0, 1.f
+		};
+	}
+
+	template<typename T>
+	inline Mat4x4<T> Translate(const Vec3<T>& v)
+	{
+		return Mat4x4<T>{
+			1.f, 0, 0, v.x,
+				0, 1.f, 0, v.y,
+				0, 0, 1.f, v.z,
+				0, 0, 0, 1.f
+		};
+	}
+
+	//旋转
+	template<typename T>
+	inline Mat4x4<T> Rotate(T x, T y, T z)
+	{
+		return Mat4x4<T>{
+			1.f, 0, 0, 0,
+				0, cos(x), -sin(x), 0,
+				0, sin(x), cos(x), 0,
+				0, 0, 0, 1.f
+		} *Mat4x4<T>{
+			cos(y), 0, sin(y), 0,
+				0, 1.f, 0, 0,
+				-sin(y), 0, cos(y), 0,
+				0, 0, 0, 1.f
+		} *Mat4x4<T>{
+				cos(z), -sin(z), 0, 0,
+					sin(z), cos(z), 0, 0,
+					0, 0, 1.f, 0,
+					0, 0, 0, 1.f
+			};
+	}
+
+	template<typename T>
+	inline Mat4x4<T> Rotate(const Vec3<T>& v)
+	{
+		return Mat4x4<T>{
+			1.f, 0, 0, 0,
+				0, cos(v.x), -sin(v.x), 0,
+				0, sin(v.x), cos(v.x), 0,
+				0, 0, 0, 1.f
+		} *Mat4x4<T>{
+			cos(v.y), 0, sin(v.y), 0,
+				0, 1.f, 0, 0,
+				-sin(v.y), 0, cos(v.y), 0,
+				0, 0, 0, 1.f
+		} *Mat4x4<T>{
+				cos(v.z), -sin(v.z), 0, 0,
+					sin(v.z), cos(v.z), 0, 0,
+					0, 0, 1.f, 0,
+					0, 0, 0, 1.f
+			};
+	}
+
+	//缩放
+	template<typename T>
+	inline Mat4x4<T> Scale(T x, T y, T z)
+	{
+		return Mat4x4<T>{
+			x, 0, 0, 0,
+				0, y, 0, 0,
+				0, 0, z, 0,
+				0, 0, 0, 1
+		};
+	}
+
+	//缩放
+	template<typename T>
+	inline Mat4x4<T> Scale(const Vec3<T>& v)
+	{
+		return Mat4x4<T>{
+			v.x, 0, 0, 0,
+				0, v.y, 0, 0,
+				0, 0, v.z, 0,
+				0, 0, 0, 1
+		};
+	}
+
+	//view 矩阵
+	template<typename T>
+	inline Mat4x4<T> View(const Vec3<T>& position, const Vec3<T>& front, const Vec3<T>& up)
+	{
+		Vec3<T> f = front.normalize();
+		Vec3<T> u = up.normalize();
+		Vec3<T> right = f.cross(u);
+
+		return Mat4x4<T>{
+			right.x, right.y, right.z, 0,
+				u.x, u.y, u.z, 0,
+				-f.x, -f.y, -f.z, 0,
+				0, 0, 0, 1
+		} *Mat4x4<T>{
+			1, 0, 0, -position.x,
+				0, 1, 0, -position.y,
+				0, 0, 1, -position.z,
+				0, 0, 0, 1
+		};
+	}
+
+	//相机矩阵
+	template<typename T>
+	inline Mat4x4<T> LookAt(const Vec3<T>& position, const Vec3<T>& target, const Vec3<T>& up)
+	{
+		Vec3<T> f = (target - position).normalize();
+		Vec3<T> u = up.normalize();
+		Vec3<T> right = f.cross(u);
+
+		return Mat4x4<T>{
+			right.x, right.y, right.z, 0,
+				u.x, u.y, u.z, 0,
+				-f.x, -f.y, -f.z, 0,
+				0, 0, 0, 1
+		} *Mat4x4<T>{
+			1, 0, 0, -position.x,
+				0, 1, 0, -position.y,
+				0, 0, 1, -position.z,
+				0, 0, 0, 1
+		};
+	}
+
+	//正交
+	template<typename T>
+	inline Mat4x4<T> Ortho(T left, T right, T bottom, T top, T _near, T _far)
+	{
+		T dx = right - left;
+		T dy = top - bottom;
+		T dz = _far - _near;
+		T a = 2 / dx;
+		T b = -(right + left) / dx;
+		T c = 2 / dy;
+		T d = -(top + bottom) / dy;
+		T e = 2 / dz;
+		T f = -(_near + _far) / dy;
+		return Mat4x4<T>{
+			a, 0, 0, b,
+				0, c, 0, d,
+				0, 0, e, f,
+				0, 0, 0, 1
+		};
+	}
+
+	//透视矩阵-定义平截头体
+	template<typename T>
+	inline Mat4x4<T> Frustum(T left, T right, T bottom, T top, T _near, T _far)
+	{
+		T dx = right - left;
+		T dy = top - bottom;
+		T dz = _far - _near;
+		T a = 2 * _near / dx;
+		T b = (right + left) / dx;
+		T c = 2 * _near / dy;
+		T d = (top + bottom) / dy;
+		T e = -(_far + _near) / dz;
+		T f = -2 * _far * _near / dz;
+		return Mat4x4<T>{
+			a, 0, b, 0,
+				0, c, d, 0,
+				0, 0, e, f,
+				0, 0, -1, 0
+		};
+	}
+
+	//透视矩阵
+	template<typename T>
+	inline Mat4x4<T> Projection(T fovy, T aspect, T _near, T _far)
+	{
+		T dz = _far - _near;
+		T b = 1 / tan(fovy / 2);
+		T a = b / aspect;
+		T c = -(_near + _far) / dz;
+		T d = -2 * _near * _far / dz;
+		return Mat4x4<T>{
+			a, 0, 0, 0,
+				0, b, 0, 0,
+				0, 0, c, d,
+				0, 0, -1, 0
+		};
 	}
 };

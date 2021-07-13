@@ -23,16 +23,16 @@ namespace framework
 
 		Mat4x4 GetProjectionViewMatrix()const override
 		{
-			using gmath::Utility::radians;
+			using namespace gmath::utility;
 			Vec3 front = GetFront();
 			Vec3 right = front.cross({ 0,1,0 });
 			Vec3 up = right.cross(front);
-			return Mat4x4::Projection(radians(fovy), aspect, _near, _far) * Mat4x4::View(position, front, up);
+			return Projection(radians(fovy), aspect, _near, _far) * View(position, front, up);
 		}
 
 		Vec3 GetFront() const override
 		{
-			using gmath::Utility::radians;
+			using gmath::utility::radians;
 			Vec3 front = {};
 			front.x = cos(radians(yaw)) * cos(radians(pitch));
 			front.y = sin(radians(pitch));
@@ -64,27 +64,28 @@ namespace framework
 		void AddPitch(float pitch) override
 		{
 			this->pitch += pitch;
-			this->pitch = gmath::Utility::Clamp(this->pitch, -89.f, 89.f);
+			this->pitch = gmath::utility::Clamp(this->pitch, -89.f, 89.f);
 		}
 
 		void AddFovy(float fovy) override
 		{
 			this->fovy += fovy;
-			this->fovy = gmath::Utility::Clamp(this->fovy, 1.f, 179.f);
+			this->fovy = gmath::utility::Clamp(this->fovy, 1.f, 179.f);
 		}
 
 		Mat4x4 GetProjectionwMatrix() const override
 		{
-			using gmath::Utility::radians;
-			return Mat4x4::Projection(radians(fovy), aspect, _near, _far);
+			using namespace gmath::utility;
+			return Projection(radians(fovy), aspect, _near, _far);
 		}
 
 		Mat4x4 GetViewMatrix() const override
 		{
+			using namespace gmath::utility;
 			Vec3 front = GetFront();
 			Vec3 right = front.cross({ 0,1,0 });
 			Vec3 up = right.cross(front);
-			return Mat4x4::View(position, front, up);
+			return View(position, front, up);
 		}
 
 		Vec3 GetPosition() const override
@@ -100,7 +101,7 @@ namespace framework
 
 			if (_mouse_state.button[0] && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
 			{
-				using gmath::Utility::Clamp;
+				using gmath::utility::Clamp;
 				AddYaw(_mouse_state.dx * camera_speed);
 				AddPitch(Clamp(-_mouse_state.dy * camera_speed, -89.f, 89.f));
 			}

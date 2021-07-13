@@ -64,7 +64,7 @@ namespace core
 
 		static Color32 TransFloat4colorToUint32color(const Color& color)
 		{
-			using gmath::Utility::Clamp;
+			using gmath::utility::Clamp;
 			//交换r,b通道
 			return Color32{
 				(unsigned char)(Clamp(color.b) * 255),
@@ -228,7 +228,7 @@ namespace core
 					}
 				}
 			}
-			using gmath::Utility::Clamp;
+			using gmath::utility::Clamp;
 			size_t y1 = (size_t)Clamp(q[2].y, 1, context.fragment_buffer_view.h - 2);
 			size_t y2 = (size_t)Clamp(q[0].y, 1, context.fragment_buffer_view.h - 2);
 
@@ -348,8 +348,8 @@ namespace core
 			Color color = shader.FS(interp);
 			Color color0 = context.fragment_buffer_view.Get(x, y);
 
-			using gmath::Utility::Lerp;
-			using gmath::Utility::BlendColor;
+			using gmath::utility::Lerp;
+			using gmath::utility::BlendColor;
 
 			////AA上色
 			//if ((cover_count < Mn * Mn)) {

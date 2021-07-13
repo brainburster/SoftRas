@@ -164,33 +164,9 @@ namespace gmath
 		Vec4<T> operator*(const Vec4<T>& rhs) const;
 
 		Mat3x3<T> ToMat3x3() const;
-
-		//unit
-		static Mat4x4 Unit();
-
-		//平移
-		static Mat4x4 Translate(T x, T y, T z);
-		static Mat4x4 Translate(const Vec3<T>& v);
-		//旋转
-		static Mat4x4 Rotate(T x, T y, T z);
-		static Mat4x4 Rotate(const Vec3<T>& v);
-		//缩放
-		static Mat4x4 Scale(T x, T y, T z);
-		static Mat4x4 Scale(const Vec3<T>& v);
-
-		//view 矩阵
-		static Mat4x4 View(const Vec3<T>& position, const Vec3<T>& front, const Vec3<T>& up);
-		//相机矩阵
-		static Mat4x4 LookAt(const Vec3<T>& position, const Vec3<T>& target, const Vec3<T>& up);
-		//正交
-		static Mat4x4 Ortho(T left, T right, T bottom, T top, T _near, T _far);
-		//透视矩阵-定义平截头体
-		static Mat4x4 Frustum(T left, T right, T bottom, T top, T _near, T _far);
-		//透视矩阵
-		static Mat4x4 Projection(T fovy, T aspect, T _near, T _far);
 	};
 
-	namespace Utility
+	namespace utility
 	{
 		static constexpr float pi = 3.1415926f;
 		template<typename T, typename U, typename V>
@@ -203,6 +179,45 @@ namespace gmath
 		inline T BlendColor(T color0, T color1);
 		inline float radians(float degree);
 		inline float degrees(float radian);
+
+		//单位矩阵
+		template<typename T>
+		static Mat3x3<T> Mat3Unit();
+		template<typename T>
+		static Mat4x4<T> Mat4Unit();
+
+		//平移
+		template<typename T>
+		static Mat4x4<T> Translate(T x, T y, T z);
+
+		template<typename T>
+		static Mat4x4<T> Translate(const Vec3<T>& v);
+		//旋转
+		template<typename T>
+		static Mat4x4<T> Rotate(T x, T y, T z);
+		template<typename T>
+		static Mat4x4<T> Rotate(const Vec3<T>& v);
+		//缩放
+		template<typename T>
+		static Mat4x4<T> Scale(T x, T y, T z);
+		template<typename T>
+		static Mat4x4<T> Scale(const Vec3<T>& v);
+
+		//view 矩阵
+		template<typename T>
+		static Mat4x4<T> View(const Vec3<T>& position, const Vec3<T>& front, const Vec3<T>& up);
+		//相机矩阵
+		template<typename T>
+		static Mat4x4<T> LookAt(const Vec3<T>& position, const Vec3<T>& target, const Vec3<T>& up);
+		//正交
+		template<typename T>
+		static Mat4x4<T> Ortho(T left, T right, T bottom, T top, T _near, T _far);
+		//透视矩阵-定义平截头体
+		template<typename T>
+		static Mat4x4<T> Frustum(T left, T right, T bottom, T top, T _near, T _far);
+		//透视矩阵
+		template<typename T>
+		static Mat4x4<T> Projection(T fovy, T aspect, T _near, T _far);
 	};
 
 	template<>

@@ -10,8 +10,8 @@
 class Shader_Blinn_Phong
 {
 public:
-	core::Mat mvp = core::Mat::Unit();
-	core::Mat m = core::Mat::Unit();
+	core::Mat mvp = {};
+	core::Mat m = {};
 	core::Texture* tex0 = nullptr;
 	core::Vec3 light_position_ws = { 0,10,0 };
 	core::Vec3 light_color = { 2,2,2 };

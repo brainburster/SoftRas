@@ -8,7 +8,7 @@
 
 struct Shader_Unlit
 {
-	core::Mat mat = core::Mat::Unit();
+	core::Mat mat = {};
 	core::Texture* tex0 = nullptr;
 
 	Varying_Unlit VS(const core::Model_Vertex& v) const

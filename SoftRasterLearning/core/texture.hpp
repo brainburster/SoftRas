@@ -9,7 +9,7 @@ namespace core
 	public:
 		Vec4 Get(size_t x, size_t y)
 		{
-			using gmath::Utility::Clamp;
+			using gmath::utility::Clamp;
 			x = Clamp(x, 0, w - 1);
 			y = Clamp(y, 0, h - 1);
 

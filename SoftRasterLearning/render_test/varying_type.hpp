@@ -16,8 +16,8 @@ struct Varying_Light_ws : core::shader_varying_float<Varying_Light_ws>
 	core::Position position; //clip space
 	core::Vec3 position_ws;
 	core::Vec2 uv;
-	core::Vec3 normal_ws; //转换到 world space 要乘模型矩阵
-	core::Mat3 TBN;
+	core::Vec3 normal_ws; //转换到 world space 要乘模型(法线)矩阵
+	core::Mat3 TBN = {};
 };
 
 //切线空间光照

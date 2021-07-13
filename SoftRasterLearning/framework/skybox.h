@@ -72,7 +72,7 @@ namespace framework
 			static struct Shader
 			{
 				std::shared_ptr<core::CubeMap> cube_map;
-				core::Mat mvp = core::Mat::Unit();
+				core::Mat mvp = {};
 				varying_t VS(const core::Vec4& point) const
 				{
 					varying_t v{};
@@ -92,7 +92,8 @@ namespace framework
 			shader.cube_map = cube_map;
 			if (const ICamera* camera = engine.GetMainCamera())
 			{
-				shader.mvp = camera->GetProjectionViewMatrix() * core::Mat::Translate(camera->GetPosition());
+				using namespace gmath::utility;
+				shader.mvp = camera->GetProjectionViewMatrix() * Translate(camera->GetPosition());
 			}
 
 			core::Renderer<Shader> renderer = { engine.GetCtx(), shader };

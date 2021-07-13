@@ -12,8 +12,8 @@
 class Shader_Mirror
 {
 public:
-	core::Mat mvp = core::Mat::Unit();
-	core::Mat m = core::Mat::Unit();
+	core::Mat mvp = {};
+	core::Mat m = {};
 	core::CubeMap* cube_map = nullptr;
 	core::Texture* normal_map = nullptr;
 	core::Vec3 camera_position_ws = { 0,0,5.f };

@@ -26,7 +26,8 @@ namespace framework
 		core::Vec3 scale = { 1,1,1 };
 		core::Mat GetModelMatrix() const
 		{
-			return core::Mat::Translate(position) * core::Mat::Rotate(rotation) * core::Mat::Scale(scale);
+			using namespace gmath::utility;
+			return Translate(position) * Rotate(rotation) * Scale(scale);
 		}
 	};
 
