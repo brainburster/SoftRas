@@ -173,9 +173,12 @@
     <ClInclude Include="core\software_renderer.hpp" />
     <ClInclude Include="core\texture.hpp" />
     <ClInclude Include="core\types_and_defs.hpp" />
+    <ClInclude Include="framework\billboard.hpp" />
     <ClInclude Include="framework\camera.hpp" />
+    <ClInclude Include="framework\directional_light.hpp" />
     <ClInclude Include="framework\fps_camera.hpp" />
     <ClInclude Include="framework\framework.hpp" />
+    <ClInclude Include="framework\light.hpp" />
     <ClInclude Include="framework\material.hpp" />
     <ClInclude Include="framework\object.hpp" />
     <ClInclude Include="framework\render_engine.hpp" />

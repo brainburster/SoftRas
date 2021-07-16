@@ -39,8 +39,8 @@ public:
 		Vec3 ambient = Vec3(0.01f, 0.012f, 0.01f);
 
 		Vec3 diffuse = base_color * light_color * max(N.Dot(L), 0);
-		Vec3 specular = Ks * light_color * pow(max(N.Dot(H), 0), 32.f);
-		Vec3 color = ambient + diffuse / pi + ((32 + 8) / (8 * pi)) * specular;
+		Vec3 specular = Ks * light_color * pow(max(N.Dot(H), 0), 16.f);
+		Vec3 color = ambient + diffuse / pi + ((16 + 8) / (8 * pi)) * specular;
 
 		return Vec4{ color, 1.f };
 	}
@@ -50,6 +50,7 @@ class Material_Blinn_Phong : public framework::IMaterial
 {
 public:
 	std::shared_ptr<core::Texture> tex0;
+	std::shared_ptr<framework::ILight> light;
 
 	void Render(const framework::Entity& entity, framework::IRenderEngine& engine) override
 	{
@@ -58,7 +59,9 @@ public:
 		shader.tex0 = tex0.get();
 		shader.mvp = engine.GetMainCamera()->GetProjectionViewMatrix() * entity.transform.GetModelMatrix();
 		shader.m = entity.transform.GetModelMatrix();
-		shader.light_position_ws = core::Vec3{ -1.f,2.f,3.f };//engine->GetCamera().GetPosition();
+		shader.light_position_ws = light->GetPosition();//core::Vec3{ -1.f,2.f,3.f };//engine->GetCamera().GetPosition();
+		shader.light_color = light->GetColor();
+
 		shader.camera_position_ws = engine.GetMainCamera()->GetPosition();
 
 		renderer.DrawTriangles(&entity.model->mesh[0], entity.model->mesh.size());
@@ -70,18 +73,24 @@ class Scene_Render_Test_Test_Blinn_Phong : public framework::Scene
 private:
 	std::shared_ptr<framework::MaterialEntity> sphere;
 	std::shared_ptr<framework::TargetCamera> camera;
-
+	std::shared_ptr<framework::DirectionalLight> light;
 public:
 	void Init(framework::IRenderEngine& engine) override
 	{
 		auto material_blinn_phong = std::make_shared<Material_Blinn_Phong>();
 		material_blinn_phong->tex0 = framework::GetResource<core::Texture>(L"tex0").value();
+
 		//auto skybox = Spawn<framework::Skybox>();
 		//skybox->cube_map = framework::GetResource<core::CubeMap>(L"cube_map").value();
 		sphere = Spawn<framework::MaterialEntity>();
 		sphere->model = framework::GetResource<core::Model>(L"sphere").value();
 		sphere->material = material_blinn_phong;
 		camera = std::make_shared<framework::TargetCamera>(sphere);
+		//暂时只写了平行光，用平行光代替点光源，反正数据是一样的
+		light = Spawn<framework::DirectionalLight>(); //std::make_shared<framework::DirectionalLight>();
+		light->transform.position = { -1.f,2.f,3.f };
+		light->color = { 2.4f,2.4f,1.6f };
+		material_blinn_phong->light = light;
 		//..
 	}
 
@@ -103,6 +112,12 @@ public:
 	virtual const framework::ICamera* GetMainCamera() const override
 	{
 		return camera.get();
+	}
+
+	virtual void Update(const framework::IRenderEngine& engine) override
+	{
+		size_t count = engine.GetEngineState().frame_count;
+		light->transform.position = core::Vec3{ (sin(count / 50.f)) * 2, 0.f, (-cos(count / 50.f)) * 2 };
 	}
 
 	virtual void OnMouseMove(const framework::IRenderEngine& engine) override

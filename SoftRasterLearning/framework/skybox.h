@@ -69,7 +69,7 @@ namespace framework
 				core::Vec4 position_ls;
 			};
 
-			static struct Shader
+			struct Shader
 			{
 				std::shared_ptr<core::CubeMap> cube_map;
 				core::Mat mvp = {};
@@ -87,9 +87,8 @@ namespace framework
 					core::Color color = cube_map->Sample(v.position_ls);
 					return color;
 				}
-			} shader;
+			} shader{ cube_map };
 
-			shader.cube_map = cube_map;
 			if (const ICamera* camera = engine.GetMainCamera())
 			{
 				using namespace gmath::utility;
@@ -97,7 +96,7 @@ namespace framework
 			}
 
 			core::Renderer<Shader> renderer = { engine.GetCtx(), shader };
-			renderer.DrawTriangles(box, sizeof(box));
+			renderer.DrawTriangles(box, sizeof(box) / sizeof(box[0]));
 		}
 	};
 }

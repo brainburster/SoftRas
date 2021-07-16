@@ -5,3 +5,4 @@
 #include "fps_camera.hpp"
 #include "target_camera.h"
 #include "skybox.h"
+#include "directional_light.hpp"

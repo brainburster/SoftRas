@@ -125,6 +125,15 @@
     <ClInclude Include="framework\target_camera.h">
       <Filter>头文件\framework</Filter>
     </ClInclude>
+    <ClInclude Include="framework\light.hpp">
+      <Filter>头文件\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\directional_light.hpp">
+      <Filter>头文件\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\billboard.hpp">
+      <Filter>头文件\framework</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="core\impl\game_math.inl">

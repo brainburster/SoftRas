@@ -30,7 +30,8 @@ namespace core
 			{
 				for (size_t x = 0; x < w; ++x)
 				{
-					screen_buffer_view.Set(x, y, TransFloat4colorToUint32color(fragment_buffer_view.Get(x, y)).color);
+					//color = color.Sqrt();
+					screen_buffer_view.Set(x, y, TransFloat4colorToUint32color(fragment_buffer_view.Get(x, y).Sqrt()).color);
 				}
 			}
 		}
@@ -373,7 +374,6 @@ namespace core
 			//};
 
 			//color = color.Pow(1 / gamma);
-			color = color.Sqrt();
 
 			//Ð´Èëfragment_buffer
 			context.fragment_buffer_view.Set(x, y, color);

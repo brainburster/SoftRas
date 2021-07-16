@@ -71,10 +71,12 @@ protected:
 	{
 		SoftRasterApp::Init();
 
-		auto _tex = loader::bmp::LoadFromFile(L".\\resource\\pictures\\tex0.bmp");
-		auto _normal_map = loader::bmp::LoadFromFile(L".\\resource\\pictures\\normal.bmp", false);
 		auto _sphere = loader::obj::LoadFromFile(L".\\resource\\models\\sphere.obj");
 		auto _box = loader::obj::LoadFromFile(L".\\resource\\models\\box.obj");
+
+		auto _tex = loader::bmp::LoadFromFile(L".\\resource\\pictures\\tex0.bmp");
+		auto _sunlight_icon = loader::bmp::LoadFromFile(L".\\resource\\pictures\\icon\\sunlight.bmp");
+		auto _normal_map = loader::bmp::LoadFromFile(L".\\resource\\pictures\\normal.bmp", false);
 
 		auto _front = loader::bmp::LoadFromFile(L".\\resource\\pictures\\cubemap\\front.bmp");
 		auto _back = loader::bmp::LoadFromFile(L".\\resource\\pictures\\cubemap\\back.bmp");
@@ -88,6 +90,7 @@ protected:
 		framework::SetResource(L"box", _box);
 		framework::SetResource(L"tex0", _tex);
 		framework::SetResource(L"normal_map", _normal_map);
+		framework::SetResource(L"sunlight", _sunlight_icon);
 
 		//...
 		scene = std::make_shared<RenderTestScene>();
