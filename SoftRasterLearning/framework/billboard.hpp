@@ -59,8 +59,8 @@ namespace framework
 				core::Vec3 front = (camera->GetPosition() - transform.position).normalize() * -1;
 				core::Vec3 right = front.cross(c_u).normalize();
 				core::Vec3 up = right.cross(front).normalize();
-				//core::Mat{ right,up,front,{0} };
-				core::Mat model = Translate(transform.position) * View({ 0,0,0 }, front, up).Transpose() * Rotate(transform.rotation) * Scale(transform.scale);
+				core::Mat look_at_camera = { right,up,front,{0,0,0,1.f} }; //View({ 0,0,0 }, front, up).Transpose()
+				core::Mat model = Translate(transform.position) * look_at_camera * Rotate(transform.rotation) * Scale(transform.scale);
 				shader.mvp = camera->GetProjectionViewMatrix() * model;
 			}
 
