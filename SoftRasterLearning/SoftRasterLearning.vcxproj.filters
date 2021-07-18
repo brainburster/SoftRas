@@ -80,7 +80,7 @@
     <ClInclude Include="framework\resource_manager.hpp">
       <Filter>头文件\framework</Filter>
     </ClInclude>
-    <ClInclude Include="render_test\render_test_unlit.hpp">
+    <ClInclude Include="render_test\render_test_shadow_mapping.hpp">
       <Filter>头文件\render_test</Filter>
     </ClInclude>
     <ClInclude Include="render_test\render_test_light_blinn_phong.hpp">

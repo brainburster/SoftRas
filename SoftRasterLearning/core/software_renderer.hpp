@@ -12,13 +12,13 @@ namespace core
 	class Context
 	{
 	public:
-		Buffer2DView<Color> fragment_buffer_view;
+		Buffer2DView<Color> back_buffer_view;
 		Buffer2DView<float> depth_buffer_view;
 		//size_t interlaced_scanning_flag = 3;
 
 		void CopyToBuffer(Buffer2DView<uint32>& screen_buffer_view)
 		{
-			if (!fragment_buffer_view.buffer)
+			if (!back_buffer_view.buffer)
 			{
 				return;
 			}
@@ -31,7 +31,7 @@ namespace core
 				for (size_t x = 0; x < w; ++x)
 				{
 					//color = color.Sqrt();
-					screen_buffer_view.Set(x, y, TransFloat4colorToUint32color(fragment_buffer_view.Get(x, y).Sqrt()).color);
+					screen_buffer_view.Set(x, y, TransFloat4colorToUint32color(back_buffer_view.Get(x, y).Sqrt()).color);
 				}
 			}
 		}
@@ -39,23 +39,23 @@ namespace core
 		void Viewport(size_t w, size_t h, Color color = { 0,0,0,1 })
 		{
 			depth_buffer.resize(w * h, -inf);
-			fragment_buffer.resize(w * h, color);
+			back_buffer.resize(w * h, color);
 
-			fragment_buffer_view = { &fragment_buffer[0],w , h };
+			back_buffer_view = { &back_buffer[0],w , h };
 			depth_buffer_view = { &depth_buffer[0],w , h };
 		}
 
 		void Clear(Color color = { 0,0,0,1 })
 		{
-			auto w = fragment_buffer_view.w;
-			auto h = fragment_buffer_view.h;
+			auto w = back_buffer_view.w;
+			auto h = back_buffer_view.h;
 
 			//for (size_t y = interlaced_scanning_flag; y < h; y += 2)
 			for (size_t y = 0; y < h; ++y)
 			{
 				for (size_t x = 0; x < w; ++x)
 				{
-					fragment_buffer[x + y * w] = color;
+					back_buffer[x + y * w] = color;
 					depth_buffer[x + y * w] = -inf;
 				}
 			}
@@ -74,9 +74,27 @@ namespace core
 				(unsigned char)(Clamp(color.a) * 255)
 			};
 		}
-		Context() : fragment_buffer{}, depth_buffer{}, fragment_buffer_view{ nullptr }, depth_buffer_view{ nullptr }{};
+		Context() : back_buffer{}, depth_buffer{}, back_buffer_view{ nullptr }, depth_buffer_view{ nullptr }{};
+		Context(const Context&) = default;
+		Context& operator=(const Context&) noexcept = default;
+		Context(Context&& other) noexcept :
+			back_buffer{ std::move(other.back_buffer) },
+			depth_buffer{ std::move(other.depth_buffer) },
+			back_buffer_view{ std::move(other.back_buffer_view) },
+			depth_buffer_view{ std::move(other.depth_buffer_view) }
+		{}
+		Context& operator=(Context&& other) noexcept
+		{
+			if (this == &other) return *this;
+			back_buffer = std::move(other.back_buffer);
+			depth_buffer = std::move(other.depth_buffer);
+			back_buffer_view = std::move(other.back_buffer_view);
+			depth_buffer_view = std::move(other.depth_buffer_view);
+		}
+		//void SwapBackBuffer(std::vector<Color>& other) { std::swap(back_buffer, other); }
+		//void SwapDepthBuffer(std::vector<float>& other) { std::swap(depth_buffer, other); };
 	protected:
-		std::vector<Color> fragment_buffer;
+		std::vector<Color> back_buffer;
 		std::vector<float> depth_buffer;
 	};
 
@@ -230,8 +248,8 @@ namespace core
 				}
 			}
 			using gmath::utility::Clamp;
-			float y1 = Clamp(q[2].y, 1.f, context.fragment_buffer_view.h - 2.f);
-			float y2 = Clamp(q[0].y, 1.f, context.fragment_buffer_view.h - 2.f);
+			float y1 = Clamp(q[2].y, 1.f, context.back_buffer_view.h - 2.f);
+			float y2 = Clamp(q[0].y, 1.f, context.back_buffer_view.h - 2.f);
 
 			//从上到下扫描
 			for (float y = y2 + 1; y >= y1 - 1; --y)
@@ -256,8 +274,8 @@ namespace core
 					x2 = (y + 0.5f - q[1].y) * (q[2].x - q[1].x) / (q[2].y - q[1].y) + q[1].x;
 				}
 
-				x1 = Clamp(x1, 1.f, (float)context.fragment_buffer_view.w - 2.f);
-				x2 = Clamp(x2, 1.f, (float)context.fragment_buffer_view.w - 2.f);
+				x1 = Clamp(x1, 1.f, (float)context.back_buffer_view.w - 2.f);
+				x2 = Clamp(x2, 1.f, (float)context.back_buffer_view.w - 2.f);
 
 				if (x1 > x2)
 				{
@@ -284,36 +302,6 @@ namespace core
 
 		void RasterizePixel(int x, int y, Vec2* triangle, varying_t* p0, varying_t* p1, varying_t* p2)
 		{
-			////简单MSAA，不想建simpler, 由于没让depth_bufferx4所以覆盖测试不会考虑到相邻三角面，因此会导致出现缝隙
-			//float cover_count = 0;
-			//size_t Mn = 1;
-
-			//const Vec2 simpler[4] = { Vec2{-0.35f,0.15f},Vec2{0.15f,-0.35f} ,Vec2{0.35f,0.15f},Vec2{-0.15f,-0.35f} };
-
-			//for (size_t i = 0; i < Mn; ++i)
-			//{
-			//	for (size_t j = 0; j < Mn; ++j)
-			//	{
-			//		//对插值系数进行多次采样，而不是多次插值
-			//		Vec3 weight = GetInterpolationWeight(
-			//			(float)x + simpler[i * Mn + j].x,
-			//			(float)y + simpler[i * Mn + j].y,
-			//			triangle);
-
-			//		//三个系数也刚好可以判断点是不是在三角形内
-			//		if (weight.x > epsilon && weight.y > epsilon && weight.z > epsilon)
-			//		{
-			//			++cover_count;
-			//		}
-			//	}
-			//}
-
-			////覆盖测试
-			//if (!cover_count)
-			//{
-			//	return;
-			//}
-
 			//取中心像素的重心坐标
 			Vec3 weight = GetInterpolationWeight(x + 0.5f, y + 0.5f, triangle);
 
@@ -336,28 +324,16 @@ namespace core
 
 			//深度测试
 
-			//if (fabs(depth - depth0) < 1e-2f)
-			//{
-			//	cover_count = (float)Mn * Mn;
-			//}
-			//else
 			if (depth < depth0)
 			{
 				return;
 			}
 
 			Color color = shader.FS(interp);
-			Color color0 = context.fragment_buffer_view.Get(x, y);
+			Color color0 = context.back_buffer_view.Get(x, y);
 
 			using gmath::utility::Lerp;
 			using gmath::utility::BlendColor;
-
-			////AA上色
-			//if ((cover_count < Mn * Mn)) {
-			//	float a = color.a;
-			//	color = Lerp(color, color0, cover_count / (Mn * Mn));
-			//	color.a = a;
-			//}
 
 			//颜色混合
 			if (color.a < 1.f - epsilon)
@@ -365,18 +341,8 @@ namespace core
 				color = BlendColor(color0, color);
 			}
 
-			//把颜色映射到gamma空间（假设像素着色器返回的是线性空间的颜色）
-			//color = Vec4{
-			//	(color.r > 0) ? pow(color.r,1 / gamma) : 0,
-			//	(color.g > 0) ? pow(color.g,1 / gamma) : 0,
-			//	(color.b > 0) ? pow(color.b,1 / gamma) : 0,
-			//	color.a
-			//};
-
-			//color = color.Pow(1 / gamma);
-
 			//写入fragment_buffer
-			context.fragment_buffer_view.Set(x, y, color);
+			context.back_buffer_view.Set(x, y, color);
 			//写入depth_buffer
 			context.depth_buffer_view.Set(x, y, depth);
 		}
@@ -544,8 +510,8 @@ namespace core
 				vertex.position.y /= 2.f;
 				vertex.position.x += 0.5f;
 				vertex.position.y += 0.5f;
-				vertex.position.x *= context.fragment_buffer_view.w;
-				vertex.position.y *= context.fragment_buffer_view.h;
+				vertex.position.x *= context.back_buffer_view.w;
+				vertex.position.y *= context.back_buffer_view.h;
 			}
 		}
 
@@ -558,8 +524,8 @@ namespace core
 				p.y /= 2.f;
 				p.x += 0.5f;
 				p.y += 0.5f;
-				p.x *= context.fragment_buffer_view.w;
-				p.y *= context.fragment_buffer_view.h;
+				p.x *= context.back_buffer_view.w;
+				p.y *= context.back_buffer_view.h;
 			}
 		}
 

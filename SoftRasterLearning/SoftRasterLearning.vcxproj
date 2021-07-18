@@ -192,7 +192,7 @@
     <ClInclude Include="render_test\render_test_app.hpp" />
     <ClInclude Include="render_test\render_test_normal_mapping.hpp" />
     <ClInclude Include="render_test\render_test_skybox.hpp" />
-    <ClInclude Include="render_test\render_test_unlit.hpp" />
+    <ClInclude Include="render_test\render_test_shadow_mapping.hpp" />
     <ClInclude Include="render_test\render_test_light_blinn_phong.hpp" />
     <ClInclude Include="render_test\varying_type.hpp" />
   </ItemGroup>

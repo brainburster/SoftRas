@@ -8,7 +8,8 @@ namespace framework
 	class DirectionalLight : public Object, public ILight
 	{
 	public:
-		Vec3 color;
+		Vec3 dirction = { 0,0,-1 };
+		Vec3 color = { 1,1,1 };
 	public:
 		virtual ELightType GetLightType() override
 		{
@@ -24,8 +25,7 @@ namespace framework
 		}
 		virtual Vec3 GetDirection() override
 		{
-			using namespace gmath::utility;
-			return Rotate(transform.rotation) * Vec4 { 0, 0, -1.f, 0 };
+			return dirction;
 		}
 		virtual float GetCutOff() override
 		{
@@ -37,8 +37,11 @@ namespace framework
 			Vec3 front = GetDirection();
 			Vec3 right = front.cross({ 0,1,0 });
 			Vec3 up = right.cross(front);
-			return Ortho(-10.f, 10.f, -10.f, 10.f, 0.1f, 1000.f) * View(transform.position, front, up);
+			//Ortho(-10.f, 10.f, -10.f, 10.f, 0.1f, 1000.f)
+			//Frustum<float>(-0.1f, 0.1f, -0.1f, 0.1f, 0.1f, 1000.f)
+			return Ortho(-20.f, 20.f, -20.f, 20.f, 0.1f, 1000.f) * View(transform.position, front, up);
 		}
+
 		virtual void Render(IRenderEngine& engine) const override
 		{
 			//...

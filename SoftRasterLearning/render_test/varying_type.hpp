@@ -2,8 +2,8 @@
 
 #include "../core/types_and_defs.hpp"
 
-//Œﬁπ‚’’
-struct Varying_Unlit : core::shader_varying_float<Varying_Unlit>
+//ºÚµ•varying
+struct Varying_Simple : core::shader_varying_float<Varying_Simple>
 {
 	core::Position position;
 	core::Vec2 uv;

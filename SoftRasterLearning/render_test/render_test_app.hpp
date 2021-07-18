@@ -1,9 +1,9 @@
 #pragma once
 
-#include "render_test_unlit.hpp"
 #include "render_test_light_blinn_phong.hpp"
 #include "render_test_normal_mapping.hpp"
 #include "render_test_skybox.hpp"
+#include "render_test_shadow_mapping.hpp"
 
 class RenderTestScene final : public framework::IScene
 {
@@ -15,7 +15,7 @@ public:
 	{
 		sub_scenes.push_back(std::make_shared<Scene_Render_Test_Test_Normal>());
 		sub_scenes.push_back(std::make_shared<Scene_Render_Test_Test_Blinn_Phong>());
-		sub_scenes.push_back(std::make_shared<Scene_Render_Test_Unlit>());
+		sub_scenes.push_back(std::make_shared<Scene_Render_Shadow_Mapping>());
 		sub_scenes.push_back(std::make_shared<Scene_Render_Test_Skybox>());
 
 		for (auto& sub_scene : sub_scenes)
