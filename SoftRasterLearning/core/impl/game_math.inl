@@ -1106,47 +1106,56 @@ namespace gmath::utility
 		};
 	}
 
-	//Ðý×ª
 	template<typename T>
 	inline Mat4x4<T> Rotate(T x, T y, T z)
 	{
-		return Mat4x4<T>{
+		Mat4x4<T> Rx = Mat4x4<T>{
 			1.f, 0, 0, 0,
-				0, cos(x), -sin(x), 0,
-				0, sin(x), cos(x), 0,
+				0, cos(x), sin(x), 0,
+				0, -sin(x), cos(x), 0,
 				0, 0, 0, 1.f
-		} *Mat4x4<T>{
-			cos(y), 0, sin(y), 0,
-				0, 1.f, 0, 0,
-				-sin(y), 0, cos(y), 0,
-				0, 0, 0, 1.f
-		} *Mat4x4<T>{
-				cos(z), -sin(z), 0, 0,
-					sin(z), cos(z), 0, 0,
-					0, 0, 1.f, 0,
+		};
+
+		Mat4x4<T> Ry = Mat4x4<T>{
+				cos(y), 0, -sin(y), 0,
+					0, 1.f, 0, 0,
+					sin(y), 0, cos(y), 0,
 					0, 0, 0, 1.f
-			};
+		};
+
+		Mat4x4<T> Rz = Mat4x4<T>{
+			cos(z), sin(z), 0, 0,
+				-sin(z), cos(z), 0, 0,
+				0, 0, 1.f, 0,
+				0, 0, 0, 1.f
+		};
+		return Rz * Rx * Ry;
 	}
 
 	template<typename T>
 	inline Mat4x4<T> Rotate(const Vec3<T>& v)
 	{
-		return Mat4x4<T>{
+		Mat4x4<T> Rx = Mat4x4<T>{
 			1.f, 0, 0, 0,
-				0, cos(v.x), -sin(v.x), 0,
-				0, sin(v.x), cos(v.x), 0,
+				0, cos(v.x), sin(v.x), 0,
+				0, -sin(v.x), cos(v.x), 0,
 				0, 0, 0, 1.f
-		} *Mat4x4<T>{
-			cos(v.y), 0, sin(v.y), 0,
-				0, 1.f, 0, 0,
-				-sin(v.y), 0, cos(v.y), 0,
-				0, 0, 0, 1.f
-		} *Mat4x4<T>{
-				cos(v.z), -sin(v.z), 0, 0,
-					sin(v.z), cos(v.z), 0, 0,
-					0, 0, 1.f, 0,
+		};
+
+		Mat4x4<T> Ry = Mat4x4<T>{
+				cos(v.y), 0, -sin(v.y), 0,
+					0, 1.f, 0, 0,
+					sin(v.y), 0, cos(v.y), 0,
 					0, 0, 0, 1.f
-			};
+		};
+
+		Mat4x4<T> Rz = Mat4x4<T>{
+			cos(v.z), sin(v.z), 0, 0,
+				-sin(v.z), cos(v.z), 0, 0,
+				0, 0, 1.f, 0,
+				0, 0, 0, 1.f
+		};
+		return Rz * Rx * Ry;
 	}
 
 	//Ëõ·Å
@@ -1226,8 +1235,8 @@ namespace gmath::utility
 		T b = -(right + left) / dx;
 		T c = 2 / dy;
 		T d = -(top + bottom) / dy;
-		T e = 2 / dz;
-		T f = -(_near + _far) / dy;
+		T e = -1 / dz;
+		T f = -_near / dz;
 		return Mat4x4<T>{
 			a, 0, 0, b,
 				0, c, 0, d,
@@ -1247,8 +1256,8 @@ namespace gmath::utility
 		T b = (right + left) / dx;
 		T c = 2 * _near / dy;
 		T d = (top + bottom) / dy;
-		T e = -(_far + _near) / dz;
-		T f = -2 * _far * _near / dz;
+		T e = -_far / dz;
+		T f = -_far * _near / dz;
 		return Mat4x4<T>{
 			a, 0, b, 0,
 				0, c, d, 0,
@@ -1264,8 +1273,8 @@ namespace gmath::utility
 		T dz = _far - _near;
 		T b = 1 / tan(fovy / 2);
 		T a = b / aspect;
-		T c = -(_near + _far) / dz;
-		T d = -2 * _near * _far / dz;
+		T c = -_far / dz;
+		T d = -_near * _far / dz;
 		return Mat4x4<T>{
 			a, 0, 0, 0,
 				0, b, 0, 0,
