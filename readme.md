@@ -2,8 +2,7 @@
 
 ## 说明
 
-这是一个我用来学习图形学的软光栅渲染器项目; 使用了c++17和visual studio 2019编写;
-依赖于标准库、win32api以及SSE指令集; 主要参考了[Games101](https://www.bilibili.com/video/BV1X7411F744)和[learnopengl.com](https://learnopengl.com)
+&emsp;&emsp;这是一个我用来学习图形学的软光栅渲染器项目；使用了c++17和visual studio 2019编写；依赖于标准库、win32api以及SSE指令集；主要参考了[Games101](https://www.bilibili.com/video/BV1X7411F744)和[learnopengl.com](https://learnopengl.com)
 
 ## 进度
 
