@@ -6,3 +6,4 @@
 #include "target_camera.h"
 #include "skybox.h"
 #include "directional_light.hpp"
+#include "point_light.hpp"

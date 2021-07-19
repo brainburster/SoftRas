@@ -68,12 +68,12 @@ public:
 	}
 };
 
-class Scene_Render_Test_Test_Blinn_Phong : public framework::Scene
+class Scene_Render_Test_Blinn_Phong : public framework::Scene
 {
 private:
 	std::shared_ptr<framework::MaterialEntity> sphere;
 	std::shared_ptr<framework::TargetCamera> camera;
-	std::shared_ptr<framework::DirectionalLight> light;
+	std::shared_ptr<framework::PointLight> light;
 public:
 	void Init(framework::IRenderEngine& engine) override
 	{
@@ -87,7 +87,7 @@ public:
 		sphere->material = material_blinn_phong;
 		camera = std::make_shared<framework::TargetCamera>(sphere);
 		//暂时只写了平行光，用平行光代替点光源，反正数据是一样的
-		light = Spawn<framework::DirectionalLight>(); //std::make_shared<framework::DirectionalLight>();
+		light = Spawn<framework::PointLight>(); //std::make_shared<framework::DirectionalLight>();
 		light->transform.position = { -1.f,2.f,3.f };
 		light->color = { 2.4f,2.4f,1.6f };
 		material_blinn_phong->light = light;

@@ -10,10 +10,11 @@ namespace framework
 	public:
 		Vec3 dirction = { 0,0,-1 };
 		Vec3 color = { 1,1,1 };
+
 	public:
-		virtual ELightType GetLightType() override
+		virtual ELightCategory GetLightType() override
 		{
-			return ELightType::DirectionalLight;
+			return ELightCategory::DirectionalLight;
 		}
 		virtual Vec3 GetColor() override
 		{
@@ -47,7 +48,7 @@ namespace framework
 			//...
 			//¹«¸æ°å
 			//
-			BillBord bb;
+			BillBoard bb;
 			bb.transform.position = transform.position;
 			bb.transform.rotation = { 0 };
 			bb.transform.scale = { 0.5f,0.5f,1.f };

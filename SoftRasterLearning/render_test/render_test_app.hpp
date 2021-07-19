@@ -14,7 +14,7 @@ public:
 	void Init(framework::IRenderEngine& engine) override
 	{
 		sub_scenes.push_back(std::make_shared<Scene_Render_Test_Test_Normal>());
-		sub_scenes.push_back(std::make_shared<Scene_Render_Test_Test_Blinn_Phong>());
+		sub_scenes.push_back(std::make_shared<Scene_Render_Test_Blinn_Phong>());
 		sub_scenes.push_back(std::make_shared<Scene_Render_Shadow_Mapping>());
 		sub_scenes.push_back(std::make_shared<Scene_Render_Test_Skybox>());
 
@@ -76,6 +76,8 @@ protected:
 
 		auto _tex = loader::bmp::LoadFromFile(L".\\resource\\pictures\\tex0.bmp");
 		auto _sunlight_icon = loader::bmp::LoadFromFile(L".\\resource\\pictures\\icon\\sunlight.bmp");
+		auto _bulblight_icon = loader::bmp::LoadFromFile(L".\\resource\\pictures\\icon\\bulblight.bmp");
+
 		auto _normal_map = loader::bmp::LoadFromFile(L".\\resource\\pictures\\normal.bmp", false);
 
 		auto _front = loader::bmp::LoadFromFile(L".\\resource\\pictures\\cubemap\\front.bmp");
@@ -91,6 +93,7 @@ protected:
 		framework::SetResource(L"tex0", _tex);
 		framework::SetResource(L"normal_map", _normal_map);
 		framework::SetResource(L"sunlight", _sunlight_icon);
+		framework::SetResource(L"bulblight", _bulblight_icon);
 
 		//...
 		scene = std::make_shared<RenderTestScene>();

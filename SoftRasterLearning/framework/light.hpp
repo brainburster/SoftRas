@@ -5,7 +5,7 @@
 
 namespace framework
 {
-	enum class ELightType
+	enum class ELightCategory
 	{
 		DirectionalLight = 0,
 		PointLight = 1,
@@ -20,7 +20,7 @@ namespace framework
 		using Mat3 = gmath::Mat3x3<float>;
 		using Mat4 = gmath::Mat4x4<float>;
 
-		virtual ELightType GetLightType() = 0;
+		virtual ELightCategory GetLightType() = 0;
 		virtual Vec3 GetColor() = 0;
 		virtual Vec3 GetPosition() = 0;
 		virtual Vec3 GetDirection() = 0;
