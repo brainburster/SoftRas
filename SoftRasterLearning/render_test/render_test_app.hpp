@@ -4,6 +4,7 @@
 #include "render_test_normal_mapping.hpp"
 #include "render_test_skybox.hpp"
 #include "render_test_shadow_mapping.hpp"
+#include "render_test_pbr.hpp"
 
 class RenderTestScene final : public framework::IScene
 {
@@ -17,6 +18,7 @@ public:
 		sub_scenes.push_back(std::make_shared<Scene_Render_Test_Blinn_Phong>());
 		sub_scenes.push_back(std::make_shared<Scene_Render_Shadow_Mapping>());
 		sub_scenes.push_back(std::make_shared<Scene_Render_Test_Skybox>());
+		sub_scenes.push_back(std::make_shared<Scene_Render_PBR>());
 
 		for (auto& sub_scene : sub_scenes)
 		{
