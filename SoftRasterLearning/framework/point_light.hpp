@@ -11,32 +11,32 @@ namespace framework
 		Vec4 color = { 1.f };
 
 	public:
-		virtual ELightCategory GetLightType()
+		virtual ELightCategory GetLightCategory()  const noexcept
 		{
 			return ELightCategory::PointLight;
 		}
 
-		virtual Vec3 GetColor()
+		virtual Vec3 GetColor() const
 		{
 			return color;
 		}
 
-		virtual Vec3 GetPosition()
+		virtual Vec3 GetPosition() const
 		{
 			return transform.position;
 		}
 
-		virtual Vec3 GetDirection()
+		virtual Vec3 GetDirection() const
 		{
 			return { 0.f };
 		}
 
-		virtual float GetCutOff()
+		virtual float GetCutOff() const
 		{
 			return 0;
 		}
 
-		virtual Mat4 GetLightMartrix()
+		virtual Mat4 GetLightMartrix() const
 		{
 			//点光源的光照矩阵需要计算6个面的，不太想在软光栅里做，以后再说吧
 			return {};

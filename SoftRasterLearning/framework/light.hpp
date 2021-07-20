@@ -20,11 +20,11 @@ namespace framework
 		using Mat3 = gmath::Mat3x3<float>;
 		using Mat4 = gmath::Mat4x4<float>;
 
-		virtual ELightCategory GetLightType() = 0;
-		virtual Vec3 GetColor() = 0;
-		virtual Vec3 GetPosition() = 0;
-		virtual Vec3 GetDirection() = 0;
-		virtual float GetCutOff() = 0;
-		virtual Mat4 GetLightMartrix() = 0;
+		virtual ELightCategory GetLightCategory() const noexcept = 0;
+		virtual Vec3 GetColor() const = 0;
+		virtual Vec3 GetPosition() const = 0;
+		virtual Vec3 GetDirection() const = 0;
+		virtual float GetCutOff() const = 0;
+		virtual Mat4 GetLightMartrix() const = 0;
 	};
 };

@@ -12,27 +12,27 @@ namespace framework
 		Vec3 color = { 1,1,1 };
 
 	public:
-		virtual ELightCategory GetLightType() override
+		virtual ELightCategory GetLightCategory() const noexcept override
 		{
 			return ELightCategory::DirectionalLight;
 		}
-		virtual Vec3 GetColor() override
+		virtual Vec3 GetColor() const override
 		{
 			return color;
 		}
-		virtual Vec3 GetPosition() override
+		virtual Vec3 GetPosition() const override
 		{
 			return transform.position;
 		}
-		virtual Vec3 GetDirection() override
+		virtual Vec3 GetDirection() const override
 		{
 			return dirction;
 		}
-		virtual float GetCutOff() override
+		virtual float GetCutOff() const override
 		{
 			return 0.f;
 		}
-		virtual Mat4 GetLightMartrix() override
+		virtual Mat4 GetLightMartrix() const override
 		{
 			using namespace gmath::utility;
 			Vec3 front = GetDirection();
