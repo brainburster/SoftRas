@@ -6,12 +6,61 @@
 #include "../loader/obj_loader.hpp"
 #include "varying_type.hpp"
 
+namespace pbr
+{
+	//菲涅尔方程F（schlick近似） F0 + (1-F0)(1-(n·v))^5
+	//F0 表示垂直入射时(法线夹角0°)的反射率
+	//ndotv 观察向量与法线夹角 N dot V
+	inline core::Vec3 FresnelSchlick(core::Vec3 F0, float ndotv)
+	{
+		return F0 + (1.0 - F0) * pow(1.0f - ndotv, 5.0f);
+	}
+
+	//计算f0(基础反射率), 用金属度和反照率计算
+	//albedo 表示表面颜色(漫反射系数)或基础反射率
+	//metalness 表示金属或非金属
+	inline core::Vec3 GetF0(core::Vec3 albedo, float metalness)
+	{
+		return gmath::utility::Lerp(core::Vec3(0.04f), albedo, metalness);
+	}
+
+	//(微平面法线)正态分布函数D NDF(normal distribution function) (Trowbridge-Reitz GGX) 通过粗糙度决定
+	// roughness^2/pi*((n dot h)^2*(a^2-1)+1)^2
+	inline float DistributionGGX(float NdotH, float roughness)
+	{
+		float roughness2 = roughness * roughness;
+		float NdotH2 = NdotH * NdotH;
+		float nom = roughness2;
+		float denom = (NdotH2 * (roughness2 - 1.0f) + 1.0f);
+		denom = core::pi * denom * denom + core::epsilon;
+		return nom / denom;
+	}
+
+	//几何函数（微平面本身的遮挡率）(Schlick-GGX)
+	// (n dot v) / ((n dot v) (1-k) + k)
+	//k是根据粗糙度生成的
+	inline float GeometrySchlickGGX(float cos_theta, float k)
+	{
+		float nom = cos_theta;
+		float denom = cos_theta * (1.f - k) + k + core::epsilon;
+		return nom / denom;
+	}
+
+	//考虑了观察向量和光线向量2者的几何函数 (Smith法)
+	inline float GeometrySmith(float NdotV, float NdotL, float k)
+	{
+		float G1 = GeometrySchlickGGX(NdotV, k);
+		float G2 = GeometrySchlickGGX(NdotL, k);
+		return G1 * G2;
+	}
+}
+
 class Material_PBR : public framework::IMaterial
 {
 public:
 	std::vector<std::shared_ptr<framework::ILight>> lights;
 	core::Vec3 albedo;
-	float metallic = 0;
+	float metalness = 0;
 	float roughness = 0;
 
 	virtual void Render(const framework::Entity& entity, framework::IRenderEngine& engine) override;
@@ -21,15 +70,17 @@ public:
 struct Shader_PBR
 {
 	Material_PBR* material = nullptr;
+	core::Vec3 cam_pos_ws = {};
 	core::Mat mvp = {};
 	core::Mat model = {};
+	core::Vec3 ambient = { 0.01f };
 
 	Varying_Light_ws VS(const core::Model_Vertex& v) const
 	{
 		Varying_Light_ws varying{};
-		varying.position = mvp * core::Vec4{ v.position, 1.f };
-		varying.position_ws = model * core::Vec4{ v.position, 1.f };
-		varying.normal_ws = model * core::Vec4{ v.normal, 0.f };
+		varying.position = mvp * v.position.ToHomoCoord();
+		varying.position_ws = model * v.position.ToHomoCoord();
+		varying.normal_ws = core::Vec3(model * v.normal).Normalize();
 		varying.uv = v.uv;
 		//...
 		return varying;
@@ -38,7 +89,49 @@ struct Shader_PBR
 	core::Vec4 FS(const Varying_Light_ws& v) const
 	{
 		using namespace core;
-		return Vec4{ material->metallic,material->roughness,1.f, 1.f };
+		Vec3 albedo = material->albedo;
+		float metalness = material->metalness;
+		float roughness = material->roughness;
+		Vec3 N = v.normal_ws.Normalize(); //插值之后不一定是归一化的
+		Vec3 V = cam_pos_ws - v.position_ws;
+		V = V.Normalize();
+		Vec3 Lo = 0;
+
+		for (const auto& light : material->lights)
+		{
+			Vec3 L = 0;
+			if (light->GetLightCategory() == framework::ELightCategory::DirectionalLight)
+			{
+				L = light->GetDirection();
+			}
+			else
+			{
+				L = light->GetPosition() - v.position_ws;
+			}
+
+			L = L.Normalize();
+			Vec3 H = V + L;
+			H = H.Normalize();
+
+			float distance = (light->GetPosition() - v.position_ws).Length() * 0.01f;
+			float attenuation = (light->GetLightCategory() == framework::ELightCategory::DirectionalLight) ? (1.0f) : (1.0f / (distance * distance));
+			Vec3 radiance = light->GetColor() * attenuation; //入射的radiance
+
+			float NdotV = max(N.Dot(V), 0.0f);
+			float NdotL = max(N.Dot(L), 0.0f);
+			float NdotH = max(N.Dot(H), 0.0f);
+
+			Vec3 F = pbr::GetF0(albedo, metalness);
+			F = pbr::FresnelSchlick(F, N.Dot(V)); //learnopengl.com的pbr教程里这里传入的是dot(H,V), 我觉得毫无道理, 应该是写错了
+			Vec3 D = pbr::DistributionGGX(NdotH, roughness);
+			Vec3 G = pbr::GeometrySmith(NdotV, NdotL, roughness);
+			Vec3 nom = D * G * F;
+			float denom = 4.f * NdotV * NdotL + core::epsilon;
+			Vec3 specular = nom / denom;
+			Vec3 Kd = (Vec3(1.f) - F) * (1.f - metalness);
+			Lo += ((Kd * albedo) / core::pi + specular) * radiance * NdotL;
+		}
+		return Vec4{ Lo + ambient * albedo, 1.f };
 	}
 };
 
@@ -48,6 +141,7 @@ inline void Material_PBR::Render(const framework::Entity& entity, framework::IRe
 	Shader_PBR shader{ this };
 	shader.mvp = engine.GetMainCamera()->GetProjectionViewMatrix() * entity.transform.GetModelMatrix();
 	shader.model = entity.transform.GetModelMatrix();
+	shader.cam_pos_ws = engine.GetMainCamera()->GetPosition();
 	//渲染
 	core::Renderer<Shader_PBR> renderer = { engine.GetCtx(), shader };
 	renderer.DrawTriangles(&entity.model->mesh[0], entity.model->mesh.size());
@@ -64,18 +158,18 @@ public:
 	{
 		//创建光源
 		auto light0 = std::make_shared<framework::PointLight>();
-		light0->transform.position = { -1.f,16.f,3.f };
-		light0->color = { 2.4f,2.4f,1.6f };
+		light0->transform.position = { -8.f,16.f,-8.f };
+		light0->color = 3.f;
 		auto light1 = std::make_shared<framework::PointLight>();
-		light1->transform.position = { 8.f,16.f,8.f };
-		light1->color = { 1.4f,2.0f,2.6f };
+		light1->transform.position = { 16.f,16.f,8.f };
+		light1->color = 3.f;
 		auto light2 = std::make_shared<framework::PointLight>();
-		light2->transform.position = { 0.f,-5.f,3.f };
-		light2->color = { 2.0f,2.6f,1.2f };
+		light2->transform.position = { 16.f,-10.f,8.f };
+		light2->color = 3.f;
 		auto light3 = std::make_shared<framework::DirectionalLight>();
-		light3->transform.position = { 0.f,16.f,16.f };
+		light3->transform.position = { 8.f,16.f,16.f };
 		light3->dirction = { 0,0.5f,0.5f };
-		light3->color = { 2.0f,2.6f,1.2f };
+		light3->color = 3.f;
 
 		//创建8x8个球体，x轴roughness增大,y轴metallic增大
 		objects.reserve(32);
@@ -85,9 +179,9 @@ public:
 			for (size_t i = 0; i < 5; i++)
 			{
 				auto material = std::make_shared<Material_PBR>();
-				material->albedo = { 0.8f,0.8f,0.8f };
-				material->metallic = j / 4.f;
-				material->roughness = i / 4.f;
+				material->albedo = { 0.91f,0.92f,0.92f };
+				material->metalness = i * 0.25f;
+				material->roughness = j * 0.25f;
 
 				auto sphere = Spawn<framework::MaterialEntity>();
 				sphere->transform.position = { i * 2.4f,j * 2.4f,0 };
@@ -106,6 +200,7 @@ public:
 		//创建摄像机
 		camera = std::make_shared<framework::TargetCamera>(spheres[2 + 2 * 5], 30.f);
 		//..
+		lights.reserve(4);
 		lights.push_back(light0);
 		lights.push_back(light1);
 		lights.push_back(light2);
@@ -132,11 +227,10 @@ public:
 		return camera.get();
 	}
 
-	//virtual void Update(const framework::IRenderEngine& engine) override
-	//{
-	//	size_t count = engine.GetEngineState().frame_count;
-	//	light->transform.position = core::Vec3{ (sin(count / 50.f)) * 2, 0.f, (-cos(count / 50.f)) * 2 };
-	//}
+	virtual void Update(const framework::IRenderEngine& engine) override
+	{
+		size_t count = engine.GetEngineState().frame_count;
+	}
 
 	virtual void OnMouseMove(const framework::IRenderEngine& engine) override
 	{
