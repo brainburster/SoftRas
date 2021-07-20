@@ -36,8 +36,8 @@ namespace framework
 		{
 			using namespace gmath::utility;
 			Vec3 front = GetDirection();
-			Vec3 right = front.cross({ 0,1,0 });
-			Vec3 up = right.cross(front);
+			Vec3 right = front.Cross({ 0,1,0 });
+			Vec3 up = right.Cross(front);
 			//Ortho(-10.f, 10.f, -10.f, 10.f, 0.1f, 1000.f)
 			//Frustum<float>(-0.1f, 0.1f, -0.1f, 0.1f, 0.1f, 1000.f)
 			return Ortho(-20.f, 20.f, -20.f, 20.f, 0.1f, 1000.f) * View(transform.position, front, up);

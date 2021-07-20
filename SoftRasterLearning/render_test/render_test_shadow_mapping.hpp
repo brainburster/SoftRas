@@ -22,14 +22,14 @@ struct Shader_Shadow_Mapping
 		varying.position = mvp * core::Vec4{ v.position, 1.0f };
 		varying.position_ws = model * core::Vec4{ v.position, 1.0f };
 		varying.uv = v.uv;
-		varying.normal_ws = core::Vec3(model * v.normal).normalize();
+		varying.normal_ws = core::Vec3(model * v.normal).Normalize();
 		return varying;
 	}
 
 	core::Vec4 FS(const Varying_Light_ws& v) const
 	{
 		core::Vec3 base_color = { 0.8f,0.8f,0.8f };/*core::Texture::Sample(tex0, v.uv);*/
-		float ndl = max(v.normal_ws.Dot(light_dir.normalize() * -1), 0.03f);
+		float ndl = max(v.normal_ws.Dot(light_dir.Normalize() * -1), 0.03f);
 		core::Vec3 final_color = base_color * light_color * ndl;
 		//º∆À„shadow mapping
 		core::Vec4 farg_pos_light_space = light_mat * core::Vec4(v.position_ws + v.normal_ws * 0.05f, 1.f);

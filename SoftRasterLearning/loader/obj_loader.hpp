@@ -81,12 +81,12 @@ namespace loader::obj
 				float tz = f * (duv1.y * e0.z - duv0.y * e1.z);
 
 				//求出平面的切线
-				Vec3 tangent = Vec3{ tx,ty,tz }.normalize();
+				Vec3 tangent = Vec3{ tx,ty,tz }.Normalize();
 
 				//求出每个顶点的切线（因为可能有自定义法线）
-				v0.tangent = (tangent - (tangent.Dot(v0.normal) * v0.normal)).normalize();
-				v1.tangent = (tangent - (tangent.Dot(v1.normal) * v1.normal)).normalize();
-				v2.tangent = (tangent - (tangent.Dot(v2.normal) * v2.normal)).normalize();
+				v0.tangent = (tangent - (tangent.Dot(v0.normal) * v0.normal)).Normalize();
+				v1.tangent = (tangent - (tangent.Dot(v1.normal) * v1.normal)).Normalize();
+				v2.tangent = (tangent - (tangent.Dot(v2.normal) * v2.normal)).Normalize();
 			}
 		}
 

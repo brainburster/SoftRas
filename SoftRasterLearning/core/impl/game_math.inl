@@ -187,12 +187,12 @@ namespace gmath
 		return data_m128;
 	}
 
-	__forceinline Vec4<float> Vec3<float>::ToHomoCoord() const
+	__forceinline Vec4<float> Vec3<float>::ToHomoCoord() const noexcept
 	{
 		return Vec4<float>{x, y, z, 1.f};
 	}
 
-	__forceinline Vec3<float> _vectorcall Vec3<float>::cross(Vec3 rhs) const
+	__forceinline Vec3<float> _vectorcall Vec3<float>::Cross(Vec3 rhs) const noexcept
 	{
 		__m128 temp1 = _mm_shuffle_ps(data_m128, data_m128, _MM_SHUFFLE(3, 0, 2, 1));
 		__m128 temp2 = _mm_shuffle_ps(rhs.data_m128, rhs.data_m128, _MM_SHUFFLE(3, 1, 0, 2));
@@ -205,7 +205,7 @@ namespace gmath
 		//return Vec3{ y * rhs.z - z * rhs.y,z * rhs.x - x * rhs.z,x * rhs.y - y * rhs.x };
 	}
 
-	__forceinline Vec3<float> Vec3<float>::normalize() const
+	__forceinline Vec3<float> Vec3<float>::Normalize() const noexcept
 	{
 		//float len = pow(x * x + y * y + z * z, 0.5f);
 		__m128 len = _mm_dp_ps(data_m128, data_m128, 0x7f);
@@ -223,6 +223,11 @@ namespace gmath
 		//ret = _mm_hadd_ps(ret, ret);
 		__m128 ret = _mm_dp_ps(data_m128, rhs.data_m128, 0x7f);
 		return ret.m128_f32[0];
+	}
+
+	float _vectorcall Vec3<float>::Length() const noexcept
+	{
+		return _mm_dp_ps(data_m128, data_m128, 0x7f).m128_f32[0];
 	}
 
 	__forceinline Vec3<float>& _vectorcall Vec3<float>::operator+=(Vec3 rhs) noexcept
@@ -589,6 +594,16 @@ namespace gmath
 		//矩阵中可能出现-0.0f，但不重要, 因为矩阵中的元素不会被除
 		return _inverse;
 	}
+
+	inline Mat4x4<float> Mat3x3<float>::ToMat4x4() const
+	{
+		return Mat4x4<float>{
+			_mm_and_ps(column[0], Vec3<float>::mask3.mask),
+				_mm_and_ps(column[1], Vec3<float>::mask3.mask),
+				_mm_and_ps(column[2], Vec3<float>::mask3.mask),
+				Vec4<float>{0, 0, 0, 1.f}
+		};
+	}
 }
 
 namespace gmath
@@ -686,7 +701,7 @@ namespace gmath
 		return Vec4<T>{ x, y, z, 1.f };
 	}
 
-	template<typename T> inline Vec3<T> Vec3<T>::normalize() const
+	template<typename T> inline Vec3<T> Vec3<T>::Normalize() const
 	{
 		T len = pow(x * x + y * y + z * z, 0.5f);
 		return {
@@ -701,7 +716,7 @@ namespace gmath
 		return x * rhs.x + y * rhs.y + z * rhs.z;
 	}
 
-	template<typename T> inline Vec3<T> Vec3<T>::cross(const Vec3& b) const
+	template<typename T> inline Vec3<T> Vec3<T>::Cross(const Vec3& b) const
 	{
 		return Vec3{ y * b.z - z * b.y,z * b.x - x * b.z,x * b.y - y * b.x };
 	}
@@ -1186,9 +1201,9 @@ namespace gmath::utility
 	template<typename T>
 	inline Mat4x4<T> View(const Vec3<T>& position, const Vec3<T>& front, const Vec3<T>& up)
 	{
-		Vec3<T> f = front.normalize();
-		Vec3<T> u = up.normalize();
-		Vec3<T> right = f.cross(u);
+		Vec3<T> f = front.Normalize();
+		Vec3<T> u = up.Normalize();
+		Vec3<T> right = f.Cross(u);
 
 		return Mat4x4<T>{
 			right.x, right.y, right.z, 0,
@@ -1208,8 +1223,8 @@ namespace gmath::utility
 	inline Mat4x4<T> LookAt(const Vec3<T>& position, const Vec3<T>& target, const Vec3<T>& up)
 	{
 		Vec3<T> f = (target - position).normalize();
-		Vec3<T> u = up.normalize();
-		Vec3<T> right = f.cross(u);
+		Vec3<T> u = up.Normalize();
+		Vec3<T> right = f.Cross(u);
 
 		return Mat4x4<T>{
 			right.x, right.y, right.z, 0,

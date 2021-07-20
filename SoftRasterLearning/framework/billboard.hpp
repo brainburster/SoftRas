@@ -54,8 +54,8 @@ namespace framework
 				using namespace gmath::utility;
 
 				core::Vec3 front = camera->GetFront();
-				core::Vec3 right = front.cross(core::Vec3{ 0,1.f,0 }).normalize();
-				core::Vec3 up = right.cross(front).normalize();
+				core::Vec3 right = front.Cross(core::Vec3{ 0,1.f,0 }).Normalize();
+				core::Vec3 up = right.Cross(front).Normalize();
 
 				core::Mat bb_mat = { right,up,front,{0,0,0,1.f} }; //View({ 0,0,0 }, front, up).Transpose()
 				core::Mat model = Translate(transform.position) * bb_mat * Rotate(transform.rotation) * Scale(transform.scale);

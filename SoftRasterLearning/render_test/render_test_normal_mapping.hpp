@@ -24,10 +24,10 @@ public:
 		//求法线矩阵
 		Mat3 normal_mat = model.ToMat3x3().Inverse().Transpose();
 		//求tbn
-		Vec3 tangent = (normal_mat * v.tangent).normalize();
-		Vec3 normal = (normal_mat * v.normal).normalize();
+		Vec3 tangent = (normal_mat * v.tangent).Normalize();
+		Vec3 normal = (normal_mat * v.normal).Normalize();
 		//tangent = (tangent - tangent.Dot(normal) * normal).normalize();
-		Vec3 bitangent = tangent.cross(normal).normalize();
+		Vec3 bitangent = tangent.Cross(normal).Normalize();
 
 		Mat3 TBN = { tangent, bitangent, normal };
 		TBN = TBN.Transpose();
@@ -36,13 +36,13 @@ public:
 		varying.position = mvp * v.position.ToHomoCoord();
 		Vec3 position_ws = model * v.position.ToHomoCoord();
 
-		Vec3 view_dir = (camera_position_ws - position_ws).normalize();
-		Vec3 light_dir = (light_position_ws - position_ws).normalize();
-		Vec3 half_dir = (view_dir + light_dir).normalize();
+		Vec3 view_dir = (camera_position_ws - position_ws).Normalize();
+		Vec3 light_dir = (light_position_ws - position_ws).Normalize();
+		Vec3 half_dir = (view_dir + light_dir).Normalize();
 
-		varying.view_dir_ts = (TBN * view_dir).normalize();
-		varying.light_dir_ts = (TBN * light_dir).normalize();
-		varying.half_dir_ts = (TBN * half_dir).normalize();
+		varying.view_dir_ts = (TBN * view_dir).Normalize();
+		varying.light_dir_ts = (TBN * light_dir).Normalize();
+		varying.half_dir_ts = (TBN * half_dir).Normalize();
 
 		varying.uv = v.uv;
 
@@ -53,7 +53,7 @@ public:
 	{
 		using namespace core;
 
-		Vec3 N = Vec3(Texture::Sample(normal_map, v.uv) * 2 - 1.f).normalize(); //切线空间法线
+		Vec3 N = Vec3(Texture::Sample(normal_map, v.uv) * 2 - 1.f).Normalize(); //切线空间法线
 		Vec3 base_color = Vec3{ 0.8f };//Texture::Sample(tex0, v.uv);
 
 		Vec3 L = v.light_dir_ts;

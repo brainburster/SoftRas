@@ -25,8 +25,8 @@ namespace framework
 		{
 			using namespace gmath::utility;
 			Vec3 front = GetFront();
-			Vec3 right = front.cross({ 0,1,0 });
-			Vec3 up = right.cross(front);
+			Vec3 right = front.Cross({ 0,1,0 });
+			Vec3 up = right.Cross(front);
 			return Projection(radians(fovy), aspect, _near, _far) * View(position, front, up);
 		}
 
@@ -83,8 +83,8 @@ namespace framework
 		{
 			using namespace gmath::utility;
 			Vec3 front = GetFront();
-			Vec3 right = front.cross({ 0,1,0 });
-			Vec3 up = right.cross(front);
+			Vec3 right = front.Cross({ 0,1,0 });
+			Vec3 up = right.Cross(front);
 			return View(position, front, up);
 		}
 
@@ -107,8 +107,8 @@ namespace framework
 			}
 
 			Vec3 front = GetFront();
-			Vec3 right = front.cross({ 0,1,0 }).normalize();
-			Vec3 up = right.cross(front).normalize();
+			Vec3 right = front.Cross({ 0,1,0 }).Normalize();
+			Vec3 up = right.Cross(front).Normalize();
 
 			if ((_mouse_state.button[1] || _mouse_state.button[2]) && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
 			{
@@ -142,8 +142,8 @@ namespace framework
 			//AddFovy((float)_input_state.mouse_state.scroll * delta * scroll_speed);
 
 			Vec3 front = GetFront();
-			Vec3 right = front.cross({ 0,1,0 }).normalize();
-			Vec3 up = right.cross(front).normalize();
+			Vec3 right = front.Cross({ 0,1,0 }).Normalize();
+			Vec3 up = right.Cross(front).Normalize();
 
 			//if (_mouse_state.button[1] && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
 			//{

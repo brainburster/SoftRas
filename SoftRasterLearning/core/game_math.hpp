@@ -73,8 +73,8 @@ namespace gmath
 
 		Vec4<T> ToHomoCoord() const;
 		T Dot(const Vec3& rhs) const;
-		Vec3 cross(const Vec3& b) const;
-		Vec3 normalize() const;
+		Vec3 Cross(const Vec3& b) const;
+		Vec3 Normalize() const;
 
 		Vec3 operator+(const Vec3& rhs) const;
 		Vec3 operator-(const Vec3& rhs) const;
@@ -318,10 +318,11 @@ namespace gmath
 		Vec3(__m128 data);
 		operator __m128();
 
-		Vec4<float> ToHomoCoord() const;
-		Vec3 normalize() const;
-		Vec3 _vectorcall cross(Vec3 rhs) const;
+		Vec4<float> ToHomoCoord() const noexcept;
+		Vec3 Normalize() const noexcept;
+		Vec3 _vectorcall Cross(Vec3 rhs) const noexcept;
 		float _vectorcall Dot(Vec3 rhs) const noexcept;
+		float _vectorcall Length() const noexcept;
 
 		Vec3& _vectorcall operator+=(Vec3 rhs) noexcept;
 		Vec3& _vectorcall operator+=(float rhs) noexcept;
@@ -370,6 +371,7 @@ namespace gmath
 		//转置
 		Mat4x4<float> Transpose() const;
 
+		//转换到3x3矩阵
 		Mat3x3<float> ToMat3x3() const;
 	};
 
@@ -387,13 +389,15 @@ namespace gmath
 		Mat3x3(float a, float b, float c, float d, float e, float f, float g, float h, float i);
 
 		//乘矩阵
-		Mat3x3 operator*(const Mat3x3& rhs) const;
+		Mat3x3<float> operator*(const Mat3x3& rhs) const;
 		//乘向量
 		Vec3<float> _vectorcall operator*(Vec3<float> rhs) const;
 		//转置
-		Mat3x3 Transpose() const;
+		Mat3x3<float> Transpose() const;
 		//求逆
-		Mat3x3 Inverse() const;
+		Mat3x3<float> Inverse() const;
+		//转换到4x4矩阵
+		Mat4x4<float> ToMat4x4() const;
 	};
 };
 

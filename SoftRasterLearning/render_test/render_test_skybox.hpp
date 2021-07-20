@@ -23,9 +23,9 @@ public:
 		using namespace core;
 		Mat3 normal_mat = m.ToMat3x3().Inverse().Transpose();
 
-		Vec3 tangent = (normal_mat * v.tangent).normalize();
-		Vec3 normal = (normal_mat * v.normal).normalize();
-		Vec3 bitangent = normal.cross(tangent).normalize();
+		Vec3 tangent = (normal_mat * v.tangent).Normalize();
+		Vec3 normal = (normal_mat * v.normal).Normalize();
+		Vec3 bitangent = normal.Cross(tangent).Normalize();
 		gmath::Mat3x3 TBN = { tangent, bitangent,normal };
 
 		Varying_Light_ws varying{};
@@ -40,9 +40,9 @@ public:
 	core::Vec4 FS(const Varying_Light_ws& v) const
 	{
 		using namespace core;
-		Vec3 V = Vec3(camera_position_ws - v.position_ws).normalize();
+		Vec3 V = Vec3(camera_position_ws - v.position_ws).Normalize();
 		Vec3 N = Vec3(Texture::Sample(normal_map, v.uv) * 2 - 1.f);
-		N = (v.TBN * N).normalize();
+		N = (v.TBN * N).Normalize();
 		Vec3 R = V * -1 - 2 * (V * -1).Dot(N) * N;
 
 		Vec3 light_color = cube_map->Sample(R);

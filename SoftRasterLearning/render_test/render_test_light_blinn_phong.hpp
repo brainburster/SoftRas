@@ -30,10 +30,10 @@ public:
 	core::Vec4 FS(const Varying_Light_ws& v) const
 	{
 		using namespace core;
-		Vec3 L = (light_position_ws - v.position_ws).normalize();
-		Vec3 V = (camera_position_ws - v.position_ws).normalize();
-		Vec3 H = (L + V).normalize();
-		Vec3 N = v.normal_ws.normalize();
+		Vec3 L = (light_position_ws - v.position_ws).Normalize();
+		Vec3 V = (camera_position_ws - v.position_ws).Normalize();
+		Vec3 H = (L + V).Normalize();
+		Vec3 N = v.normal_ws.Normalize();
 		Vec3 base_color = Texture::Sample(tex0, v.uv);
 		Vec3 Ks = Vec3(0.3f, 0.3f, 0.3f);
 		Vec3 ambient = Vec3(0.01f, 0.012f, 0.01f);
@@ -86,7 +86,7 @@ public:
 		sphere->model = framework::GetResource<core::Model>(L"sphere").value();
 		sphere->material = material_blinn_phong;
 		camera = std::make_shared<framework::TargetCamera>(sphere);
-		//暂时只写了平行光，用平行光代替点光源，反正数据是一样的
+
 		light = Spawn<framework::PointLight>(); //std::make_shared<framework::DirectionalLight>();
 		light->transform.position = { -1.f,2.f,3.f };
 		light->color = { 2.4f,2.4f,1.6f };
