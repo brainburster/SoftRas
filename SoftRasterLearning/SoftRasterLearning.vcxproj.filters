@@ -113,7 +113,7 @@
     <ClInclude Include="core\cube_map.hpp">
       <Filter>头文件\core</Filter>
     </ClInclude>
-    <ClInclude Include="framework\skybox.h">
+    <ClInclude Include="framework\skybox.hpp">
       <Filter>头文件\framework</Filter>
     </ClInclude>
     <ClInclude Include="framework\fps_camera.hpp">
@@ -122,7 +122,7 @@
     <ClInclude Include="render_test\render_test_skybox.hpp">
       <Filter>头文件\render_test</Filter>
     </ClInclude>
-    <ClInclude Include="framework\target_camera.h">
+    <ClInclude Include="framework\target_camera.hpp">
       <Filter>头文件\framework</Filter>
     </ClInclude>
     <ClInclude Include="framework\light.hpp">
@@ -132,6 +132,12 @@
       <Filter>头文件\framework</Filter>
     </ClInclude>
     <ClInclude Include="framework\billboard.hpp">
+      <Filter>头文件\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="render_test\render_test_pbr.hpp">
+      <Filter>头文件\render_test</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\point_light.hpp">
       <Filter>头文件\framework</Filter>
     </ClInclude>
   </ItemGroup>
