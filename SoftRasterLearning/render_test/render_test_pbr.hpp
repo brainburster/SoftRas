@@ -6,6 +6,92 @@
 #include "../loader/obj_loader.hpp"
 #include "varying_type.hpp"
 
+//
+struct IBL
+{
+	std::shared_ptr<core::CubeMap> diffuse_map; //漫反射部分卷积
+	std::vector<core::CubeMap> specular_maps; //镜面反射部分卷积
+	std::shared_ptr<core::Texture> lut; //BRDF积分图
+	IBL()
+	{
+		//size_t w = evn_map.front->GetWidth();
+		//size_t h = evn_map.front->GetHeight();
+		diffuse_map = std::make_shared<core::CubeMap>(16, 16);
+		specular_maps.reserve(5);
+		specular_maps.emplace_back(128, 128);
+		specular_maps.emplace_back(64, 64);
+		specular_maps.emplace_back(32, 32);
+		specular_maps.emplace_back(16, 16);
+		specular_maps.emplace_back(8, 8);
+	}
+
+	void init(const core::CubeMap& env)
+	{
+		auto* diffuse_arrary = reinterpret_cast<std::shared_ptr<core::Texture>*>(diffuse_map.get());
+		const core::Vec3 r = { 1,0,0 };
+		const core::Vec3 u = { 0,1,0 };
+		const core::Vec3 f = { 0,0,1 };
+
+		core::Mat3 rotate_mat[6] = {
+			//front, 不需要旋转(坐标系变换),r,u,f
+			{r,u,f},
+			//back, -r,u,-f
+			{-r,u,-f},
+			//top, r,-f,u,
+			{ r,-f,u },
+			//bottom, r,f,-u
+			{r,f,-u},
+			//left, f,u,-r
+			{f,u,-r},
+			//right, -f,u,r
+			{-f,u,r}
+		};
+		for (size_t k = 0; k < 6; k++)
+		{
+			auto& tex = diffuse_arrary[k];
+			size_t w = tex->GetWidth();
+			size_t h = tex->GetHeight();
+			for (size_t j = 0; j < h; j++)
+			{
+				for (size_t i = 0; i < w; i++)
+				{
+					//将i,j,k映射到边长为1的正方体方体上
+					//i,j => {i/w-0.5f,j/w-0.5f,0.5f}
+					//k 决定旋转矩阵
+					//获得env采样方向
+					core::Vec3 normal = core::Vec3{ (float)i / w - 0.5f, (float)j / h - 0.5f, 0.5f };
+					normal = rotate_mat[k] * normal;
+					normal = normal.Normalize();
+
+					//计算卷积
+					core::Vec3 up = { 0.0, 1.0f, 0.0 };
+					core::Vec3 right = up.Cross(normal);
+					up = normal.Cross(right);
+
+					float sampleDelta = 0.05f;
+					float nrSamples = 0.0f;
+
+					core::Vec3 irradiance = {};
+					for (float phi = 0.0f; phi < 2.0f * core::pi; phi += sampleDelta)
+					{
+						for (float theta = 0.0f; theta < 0.5f * core::pi; theta += sampleDelta)
+						{
+							// spherical to cartesian (in tangent space), 计算半球方向内切线空间的采样坐标
+							core::Vec3  tangentSample = core::Vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
+							// tangent space to world 从切线空间转换到世界空间
+							core::Vec3  sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * normal;
+							irradiance += core::Vec3{ env.Sample(sampleVec) } *cos(theta) * sin(theta);
+							nrSamples++;
+						}
+					}
+					irradiance = core::pi * irradiance * (1.0f / float(nrSamples));
+					tex->GetRef(i, j) = core::Vec4{ irradiance,1.0f };
+				}
+			}
+		}
+	}
+};
+
 class Material_PBR : public framework::IMaterial
 {
 public:
@@ -149,6 +235,17 @@ public:
 
 		//创建摄像机
 		camera = std::make_shared<framework::TargetCamera>(spheres[2 + 2 * 5], 30.f);
+		//
+		static std::mutex mutex;
+		static IBL ibl{};
+		std::thread t{ [&]() {
+			ibl.init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
+			std::lock_guard lock{ mutex };
+			auto skybox = Spawn<framework::Skybox>();
+			skybox->cube_map = ibl.diffuse_map;
+		} };
+		t.detach();
+		//ibl.init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
 		//..
 		lights.reserve(4);
 		lights.push_back(light0);

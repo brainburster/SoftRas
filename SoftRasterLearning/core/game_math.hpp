@@ -248,12 +248,13 @@ namespace gmath
 		Vec4(const Vec4& vec4) = default;
 
 		Vec4(__m128 data);
-		operator __m128();
+		operator __m128() const noexcept;
 
 		Vec4 _vectorcall Pow(float rhs) const noexcept;
 		Vec4 _vectorcall Sqrt() const noexcept;
 		float _vectorcall Dot(Vec4 rhs) const noexcept;
 
+		Vec4 _vectorcall operator-() noexcept;
 		Vec4& _vectorcall operator+=(Vec4 rhs) noexcept;
 		Vec4& _vectorcall operator+=(float rhs) noexcept;
 		Vec4& _vectorcall operator-=(Vec4 rhs) noexcept;
@@ -316,7 +317,7 @@ namespace gmath
 		Vec3(Vec2<float> vec2, float z = 0);
 		Vec3(const Vec3<float>&) = default;
 		Vec3(__m128 data);
-		operator __m128();
+		operator __m128() const noexcept;
 
 		Vec4<float> ToHomoCoord() const noexcept;
 		Vec3 Normalize() const noexcept;
@@ -324,6 +325,7 @@ namespace gmath
 		float _vectorcall Dot(Vec3 rhs) const noexcept;
 		float _vectorcall Length() const noexcept;
 
+		Vec3 _vectorcall operator-() const noexcept;
 		Vec3& _vectorcall operator+=(Vec3 rhs) noexcept;
 		Vec3& _vectorcall operator+=(float rhs) noexcept;
 		Vec3& _vectorcall operator-=(Vec3 rhs) noexcept;

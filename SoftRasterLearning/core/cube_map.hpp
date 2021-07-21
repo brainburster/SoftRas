@@ -7,7 +7,7 @@ namespace core
 {
 	class CubeMap
 	{
-	protected:
+	private:
 		std::shared_ptr<core::Texture> front;
 		std::shared_ptr<core::Texture> back;
 		std::shared_ptr<core::Texture> top;
@@ -22,7 +22,17 @@ namespace core
 		{
 		}
 
-		core::Vec4 Sample(core::Vec3 dir)
+		CubeMap(size_t w, size_t h)
+		{
+			front = std::make_shared<core::Texture>(w, h);
+			back = std::make_shared<core::Texture>(w, h);
+			top = std::make_shared<core::Texture>(w, h);
+			bottom = std::make_shared<core::Texture>(w, h);
+			left = std::make_shared<core::Texture>(w, h);
+			right = std::make_shared<core::Texture>(w, h);
+		}
+
+		core::Vec4 Sample(core::Vec3 dir) const
 		{
 			//3个分量中绝对值最大的,决定采样哪个面
 			//对剩下的两个分量"归一化"，决定uv

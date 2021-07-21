@@ -149,7 +149,7 @@ public:
 	virtual void Update(const framework::IRenderEngine& engine) override
 	{
 		size_t delta = engine.GetEngineState().delta_count;
-		sphere->transform.rotation += core::Vec3{ 0.f, 1.f, 0.f }*0.001f * delta;
+		sphere->transform.rotation += core::Vec3{ 0.f, 1.f, 0.f }*0.001f * (float)delta;
 	}
 
 	virtual const framework::ICamera* GetMainCamera() const override

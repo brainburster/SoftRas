@@ -13,7 +13,7 @@ namespace gmath
 
 	inline Vec4<float>::Vec4(__m128 data) : data_m128{ data } {}
 
-	inline Vec4<float>::operator __m128()
+	inline Vec4<float>::operator __m128() const noexcept
 	{
 		return data_m128;
 	}
@@ -29,6 +29,12 @@ namespace gmath
 	__forceinline Vec4<float> _vectorcall Vec4<float>::Sqrt() const noexcept
 	{
 		return _mm_sqrt_ps(data_m128);
+	}
+
+	__forceinline Vec4<float> _vectorcall  Vec4<float>::operator-() noexcept
+	{
+		__m128 neg1 = _mm_set_ps1(-1.f);
+		return _mm_mul_ps(data_m128, neg1);
 	}
 
 	__forceinline Vec4<float>& _vectorcall Vec4<float>::operator+=(Vec4 rhs) noexcept
@@ -182,7 +188,8 @@ namespace gmath
 		_w{ 0 }
 	{}
 	inline Vec3<float>::Vec3(__m128 data) : data_m128{ data } {/* _w = 0; */ }
-	inline Vec3<float>::operator __m128()
+
+	inline Vec3<float>::operator __m128() const noexcept
 	{
 		return data_m128;
 	}
@@ -228,6 +235,12 @@ namespace gmath
 	float _vectorcall Vec3<float>::Length() const noexcept
 	{
 		return _mm_dp_ps(data_m128, data_m128, 0x7f).m128_f32[0];
+	}
+
+	__forceinline Vec3<float> _vectorcall  Vec3<float>::operator-()const noexcept
+	{
+		__m128 neg1 = _mm_set_ps1(-1.f);
+		return _mm_mul_ps(data_m128, neg1);
 	}
 
 	__forceinline Vec3<float>& _vectorcall Vec3<float>::operator+=(Vec3 rhs) noexcept
