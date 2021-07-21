@@ -189,6 +189,7 @@ private:
 	std::vector<std::shared_ptr<framework::MaterialEntity>> spheres;
 	std::vector<std::shared_ptr<framework::Object>> lights;
 	std::shared_ptr<framework::TargetCamera> camera;
+	std::mutex mutex_0;
 public:
 	void Init(framework::IRenderEngine& engine) override
 	{
@@ -236,11 +237,10 @@ public:
 		//创建摄像机
 		camera = std::make_shared<framework::TargetCamera>(spheres[2 + 2 * 5], 30.f);
 		//
-		static std::mutex mutex;
 		static IBL ibl{};
 		std::thread t{ [&]() {
 			ibl.init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
-			std::lock_guard lock{ mutex };
+			std::lock_guard lock{ mutex_0 };
 			auto skybox = Spawn<framework::Skybox>();
 			skybox->cube_map = ibl.diffuse_map;
 		} };
@@ -291,7 +291,10 @@ public:
 
 	virtual void RenderFrame(framework::IRenderEngine& engine)override
 	{
-		Scene::RenderFrame(engine);
+		{
+			std::lock_guard lock{ mutex_0 };
+			Scene::RenderFrame(engine);
+		}
 
 		//画家算法对光源（透明物体进行排序）
 		std::sort(lights.begin(), lights.end(), [&](auto l1, auto l2) {
