@@ -54,19 +54,36 @@ public:
 		using namespace core;
 
 		Vec3 N = Vec3(Texture::Sample(normal_map, v.uv) * 2 - 1.f).Normalize(); //切线空间法线
-		Vec3 base_color = Vec3{ 0.8f };//Texture::Sample(tex0, v.uv);
+		Vec3 albedo = Vec3{ 0.91f };//Texture::Sample(tex0, v.uv);
 
-		Vec3 L = v.light_dir_ts;
-		Vec3 V = v.view_dir_ts;
-		Vec3 H = v.half_dir_ts;
+		//得到切线空间中的L、V、H
+		//经过线性插值之后原先是单位向量的，不一定还是
+		Vec3 L = v.light_dir_ts.Normalize();
+		Vec3 V = v.view_dir_ts.Normalize();
+		Vec3 H = v.half_dir_ts.Normalize();
 
-		float k_diffuse = 1 / pi;
-		float k_specular = (128 + 8) / (8 * pi);
+		//float k_diffuse = 1 / pi;
+		//float k_specular = (32 + 8) / (8 * pi);
 
-		Vec3 ambient = Vec3{ 0.01f, 0.01f, 0.01f } *base_color;
-		Vec3 diffuse = base_color * light_color * max(N.Dot(L), 0);
-		Vec3 specular = 0.3f * light_color * pow(max(N.Dot(H), 0), 128.f);
-		Vec3 final_color = ambient + k_diffuse * diffuse + k_specular * specular;
+		//Vec3 ambient = Vec3{ 0.01f, 0.01f, 0.01f } *base_color;
+		//Vec3 diffuse = base_color * light_color * max(N.Dot(L), 0);
+		//Vec3 specular = 0.3f * light_color * pow(max(N.Dot(H), 0), 32.f);
+		//Vec3 final_color = ambient + k_diffuse * diffuse + k_specular * specular;
+
+		float NdotV = max(N.Dot(V), 0.0f);
+		float NdotL = max(N.Dot(L), 0.0f);
+		float NdotH = max(N.Dot(H), 0.0f);
+		float metalness = 0.0f;
+		float roughness = 0.35f;
+
+		Vec3 F = pbr::GetF0(albedo, metalness);
+		F = pbr::FresnelSchlick(F, N.Dot(V));
+		float D = pbr::DistributionGGX(NdotH, roughness);
+		float G = pbr::GeometrySmith(NdotV, NdotL, roughness);
+		Vec3 specular = pbr::SpecularCooKTorrance(D, F, G, NdotV, NdotL);
+		auto Ks = F;
+		Vec3 Kd = (Vec3(1.f) - Ks) * (1.f - metalness);
+		Vec3 final_color = ((Kd * albedo) / core::pi + specular) * light_color * NdotL;
 
 		return Vec4{ final_color, 1.f };
 	}
@@ -86,7 +103,7 @@ public:
 		shader.normal_map = normal_map.get();
 		shader.mvp = engine.GetMainCamera()->GetProjectionViewMatrix() * entity.transform.GetModelMatrix();
 		shader.model = entity.transform.GetModelMatrix();
-		shader.light_position_ws = core::Vec3{ -1.f,2.f,3.f };//engine->GetCamera().GetPosition();
+		shader.light_position_ws = core::Vec3{ 0.f,2.f,3.f };//engine->GetCamera().GetPosition();
 		shader.camera_position_ws = engine.GetMainCamera()->GetPosition();
 
 		renderer.DrawTriangles(&entity.model->mesh[0], entity.model->mesh.size());
@@ -127,6 +144,12 @@ public:
 			sphere->transform.position = core::Vec3{ (cos(count / 500.f) - 1) * 2,0,  (sin(count / 500.f) - 1) * 2 };
 			count += engine.GetEngineState().delta_count;
 		}
+	}
+
+	virtual void Update(const framework::IRenderEngine& engine) override
+	{
+		size_t delta = engine.GetEngineState().delta_count;
+		sphere->transform.rotation += core::Vec3{ 0.f, 1.f, 0.f }*0.001f * delta;
 	}
 
 	virtual const framework::ICamera* GetMainCamera() const override

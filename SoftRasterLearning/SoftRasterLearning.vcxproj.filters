@@ -140,6 +140,9 @@
     <ClInclude Include="framework\point_light.hpp">
       <Filter>头文件\framework</Filter>
     </ClInclude>
+    <ClInclude Include="core\pbr.hpp">
+      <Filter>头文件\core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="core\impl\game_math.inl">

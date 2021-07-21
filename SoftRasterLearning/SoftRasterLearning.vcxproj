@@ -168,6 +168,7 @@
     <ClInclude Include="core\dc_wnd.hpp" />
     <ClInclude Include="core\game_math.hpp" />
     <ClInclude Include="core\model.hpp" />
+    <ClInclude Include="core\pbr.hpp" />
     <ClInclude Include="core\raw_wnd.hpp" />
     <ClInclude Include="core\shader_varying.hpp" />
     <ClInclude Include="core\software_renderer.hpp" />
