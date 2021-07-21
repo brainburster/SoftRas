@@ -135,9 +135,9 @@ public:
 	virtual void Update(const framework::IRenderEngine& engine) override
 	{
 		Scene::Update(engine);
-		size_t count = engine.GetEngineState().frame_count;
-		cube->transform.position = core::Vec3{ (sin(count / 50.f)) * 4, 0.f, (-cos(count / 50.f)) * 4 };
-		cube->transform.rotation = core::Vec3{ count / 60.f,count / 30.f,count / 20.f };
+		size_t time = engine.GetEngineState().total_time;
+		cube->transform.position = core::Vec3{ (sin(time / 500.f)) * 4, 0.f, (-cos(time / 500.f)) * 4 };
+		cube->transform.rotation = core::Vec3{ time / 600.f,time / 300.f,0.f };
 	}
 
 	virtual void RenderFrame(framework::IRenderEngine& engine)override

@@ -73,6 +73,8 @@ namespace framework
 			AfterInit();
 			HookInput();
 
+			engine_state.time = std::chrono::system_clock::now();;
+
 			std::thread render_theard([&]() {
 				while (!dc_wnd.app_should_close())
 				{
@@ -80,6 +82,7 @@ namespace framework
 					engine_state.time = std::chrono::system_clock::now();
 					engine_state.delta = std::chrono::duration_cast<std::chrono::milliseconds>(engine_state.time - last);
 					engine_state.delta_count = engine_state.delta.count();
+					engine_state.total_time += engine_state.delta_count;
 					engine_state.frame_count++;
 
 					HandleInput();

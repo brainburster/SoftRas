@@ -33,6 +33,7 @@ namespace framework
 		std::chrono::milliseconds delta;
 		size_t delta_count;
 		size_t frame_count;
+		size_t total_time;
 		size_t cur_scene_id;
 	};
 

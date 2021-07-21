@@ -116,8 +116,8 @@ public:
 
 	virtual void Update(const framework::IRenderEngine& engine) override
 	{
-		size_t count = engine.GetEngineState().frame_count;
-		light->transform.position = core::Vec3{ (sin(count / 50.f)) * 2, 0.f, (-cos(count / 50.f)) * 2 };
+		size_t time = engine.GetEngineState().total_time;
+		light->transform.position = core::Vec3{ (sin(time / 500.f)) * 2, 0.f, (-cos(time / 500.f)) * 2 };
 	}
 
 	virtual void OnMouseMove(const framework::IRenderEngine& engine) override
