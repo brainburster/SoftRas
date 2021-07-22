@@ -258,6 +258,7 @@ struct IBL
 class Material_PBR : public framework::IMaterial
 {
 public:
+	IBL* IBL;
 	std::vector<std::shared_ptr<framework::ILight>> lights;
 	core::Vec3 albedo;
 	float metalness = 0;
@@ -273,7 +274,6 @@ struct Shader_PBR
 	core::Vec3 cam_pos_ws = {};
 	core::Mat mvp = {};
 	core::Mat model = {};
-	core::Vec3 ambient = { 0.01f };
 
 	Varying_Light_ws VS(const core::Model_Vertex& v) const
 	{
@@ -292,9 +292,11 @@ struct Shader_PBR
 		Vec3 albedo = material->albedo;
 		float metalness = material->metalness;
 		float roughness = material->roughness;
+		auto IBL = material->IBL;
 		Vec3 N = v.normal_ws.Normalize(); //插值之后不一定是归一化的
 		Vec3 V = cam_pos_ws - v.position_ws;
 		V = V.Normalize();
+		float NdotV = max(N.Dot(V), 0.0f);
 		Vec3 Lo = 0;
 
 		for (const auto& light : material->lights)
@@ -317,12 +319,11 @@ struct Shader_PBR
 			float attenuation = (light->GetLightCategory() == framework::ELightCategory::DirectionalLight) ? (1.0f) : (1.0f / (distance * distance));
 			Vec3 radiance = light->GetColor() * attenuation; //入射的radiance
 
-			float NdotV = max(N.Dot(V), 0.0f);
 			float NdotL = max(N.Dot(L), 0.0f);
 			float NdotH = max(N.Dot(H), 0.0f);
 
 			Vec3 F = pbr::GetF0(albedo, metalness);
-			F = pbr::FresnelSchlick(F, N.Dot(V)); //learnopengl.com的pbr教程里这里传入的是dot(H,V), 我觉得毫无道理, 应该是写错了
+			F = pbr::FresnelSchlickRoughness(F, NdotV, roughness); //learnopengl.com的pbr教程里这里传入的是dot(H,V), 我觉得毫无道理, 应该是写错了
 			float D = pbr::DistributionGGX(NdotH, roughness);
 			float G = pbr::GeometrySmith(NdotV, NdotL, roughness);
 			Vec3 specular = pbr::SpecularCooKTorrance(D, F, G, NdotV, NdotL);
@@ -330,7 +331,27 @@ struct Shader_PBR
 			Vec3 Kd = (Vec3(1.f) - Ks) * (1.f - metalness);
 			Lo += ((Kd * albedo) / core::pi + specular) * radiance * NdotL;
 		}
-		return Vec4{ Lo + ambient * albedo, 1.f };
+
+		core::Vec3 ambient = { 0.01f };
+		//计算环境光
+		if (IBL)
+		{
+			Vec3 F = pbr::GetF0(albedo, metalness);
+			F = pbr::FresnelSchlickRoughness(F, NdotV, roughness);
+			Vec3 Ks = F;
+			Vec3 Kd = 1.0f - Ks;
+			Kd *= 1.0 - metalness;
+			Vec3 irradiance = IBL->diffuse_map->Sample(N);
+			Vec3 diffuse = irradiance * albedo;
+			Vec3 R = (-V).Reflect(N).Normalize();
+			size_t lod = size_t(roughness * 4); //就暂时不插值了
+			Vec3 prefilteredColor = IBL->specular_maps[lod]->Sample(R);
+			Vec3 envBRDF = core::Texture::Sample(IBL->brdf_map.get(), { NdotV,roughness });
+			Vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
+			ambient = Kd * diffuse + specular;
+		}
+
+		return Vec4{ Lo + ambient, 1.f };
 	}
 };
 
@@ -354,23 +375,24 @@ private:
 	std::shared_ptr<framework::TargetCamera> camera;
 	std::shared_ptr<framework::Skybox> skybox;
 	std::atomic_bool b_ibl_init_ok = false;
+	IBL ibl{};
 public:
 	void Init(framework::IRenderEngine& engine) override
 	{
 		//创建光源
 		auto light0 = std::make_shared<framework::PointLight>();
 		light0->transform.position = { -8.f,16.f,-8.f };
-		light0->color = 3.f;
+		light0->color = 2.f;
 		auto light1 = std::make_shared<framework::PointLight>();
 		light1->transform.position = { 16.f,16.f,8.f };
-		light1->color = 3.f;
+		light1->color = 2.f;
 		auto light2 = std::make_shared<framework::PointLight>();
 		light2->transform.position = { 16.f,-10.f,8.f };
-		light2->color = 3.f;
+		light2->color = 2.f;
 		auto light3 = std::make_shared<framework::DirectionalLight>();
 		light3->transform.position = { 8.f,16.f,16.f };
 		light3->dirction = { 0,0.5f,0.5f };
-		light3->color = 3.f;
+		light3->color = 1.5f;
 
 		//创建8x8个球体，x轴roughness增大,y轴metallic增大
 		objects.reserve(32);
@@ -383,7 +405,7 @@ public:
 				material->albedo = { 0.91f,0.92f,0.92f };
 				material->metalness = i * 0.25f;
 				material->roughness = j * 0.25f;
-
+				material->IBL = &ibl;
 				auto sphere = Spawn<framework::MaterialEntity>();
 				sphere->transform.position = { i * 2.4f,j * 2.4f,0 };
 				sphere->model = framework::GetResource<core::Model>(L"sphere").value();
@@ -402,21 +424,21 @@ public:
 		camera = std::make_shared<framework::TargetCamera>(spheres[2 + 2 * 5], 30.f, 90.f, 0.1f);
 		skybox = std::make_shared<framework::Skybox>();
 
-		//创建预计算环境光照贴图
-		static IBL ibl{};
-		std::thread t{ [&]() {
-			ibl.init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
-			skybox->cube_map = ibl.diffuse_map;
-			b_ibl_init_ok = true;
-		} };
-		t.detach();
-		//ibl.init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
 		//..
 		lights.reserve(4);
 		lights.push_back(light0);
 		lights.push_back(light1);
 		lights.push_back(light2);
 		lights.push_back(light3);
+
+		//创建预计算环境光照贴图
+		//ibl.init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
+		std::thread t{ [&]() {
+			ibl.init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
+			skybox->cube_map = framework::GetResource<core::CubeMap>(L"cube_map").value();//ibl.diffuse_map;
+			b_ibl_init_ok = true;
+		} };
+		t.detach();
 	}
 
 	void HandleInput(const framework::IRenderEngine& engine) override

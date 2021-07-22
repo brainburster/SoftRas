@@ -77,7 +77,7 @@ public:
 		float roughness = 0.35f;
 
 		Vec3 F = pbr::GetF0(albedo, metalness);
-		F = pbr::FresnelSchlick(F, N.Dot(V));
+		F = pbr::FresnelSchlickRoughness(F, NdotV, roughness);
 		float D = pbr::DistributionGGX(NdotH, roughness);
 		float G = pbr::GeometrySmith(NdotV, NdotL, roughness);
 		Vec3 specular = pbr::SpecularCooKTorrance(D, F, G, NdotV, NdotL);

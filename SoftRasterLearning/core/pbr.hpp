@@ -12,6 +12,12 @@ namespace core::pbr
 		return F0 + (1.0 - F0) * pow(1.0f - ndotv, 5.0f);
 	}
 
+	//受到粗糙度影响的菲涅耳方程，因为粗糙微平面会遮蔽反射光
+	core::Vec3 FresnelSchlickRoughness(core::Vec3 F0, float ndotv, float roughness)
+	{
+		return F0 + (_mm_max_ps(core::Vec3(1.0f - roughness), F0) - F0) * pow(1.0f - ndotv, 5.0f);
+	}
+
 	//计算f0(基础反射率), 用金属度和反照率计算
 	//albedo 表示表面颜色(漫反射系数)或基础反射率
 	//metalness 表示金属或非金属

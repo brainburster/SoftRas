@@ -95,19 +95,19 @@ protected:
 		framework::SetResource(L"sunlight", _sunlight_icon);
 		framework::SetResource(L"bulblight", _bulblight_icon);
 
-		//预设了栈空间是连续的，debug模式下无法正常工作
-		//auto* env_tex = reinterpret_cast<decltype(_front)*>(&_front);
-		decltype(_front) env_tex[6] = { _front, _back, _left, _right, _top, _bottom };
-		for (size_t i = 0; i < 6; i++)
-		{
-			auto& data = env_tex[i]->GetData();
-			std::transform(data.begin(), data.end(), data.begin(), [](core::Vec4 color) {
-				//提高动态范围，使ldr环境贴图能够作为ibl使用，不过原来的高亮度信息已经损失了，没办法复原了
-				//return (color.b > 0.92f) ? (color * 2.f).Pow(2.f) : color;
-				//使用sinh函数提亮
-				return core::Vec4{ _mm_sinh_ps(color * 2.2f) } / 2.2f; //应该可以把原来接近1的亮度提高到2, 而低亮度信息几乎不变
-				});
-		}
+		////预设了栈空间是连续的，debug模式下无法正常工作
+		////auto* env_tex = reinterpret_cast<decltype(_front)*>(&_front);
+		//decltype(_front) env_tex[6] = { _front, _back, _left, _right, _top, _bottom };
+		//for (size_t i = 0; i < 6; i++)
+		//{
+		//	auto& data = env_tex[i]->GetData();
+		//	std::transform(data.begin(), data.end(), data.begin(), [](core::Vec4 color) {
+		//		//提高动态范围，使ldr环境贴图能够作为ibl使用，不过原来的高亮度信息已经损失了，没办法复原了
+		//		//return (color.b > 0.92f) ? (color * 2.f).Pow(2.f) : color;
+		//		//使用sinh函数提亮
+		//		return core::Vec4{ _mm_sinh_ps(color * 2.2f) } / 2.2f; //应该可以把原来接近1的亮度提高到2, 而低亮度信息几乎不变
+		//		});
+		//}
 		SoftRasterApp::Init();
 		//...
 		scene = std::make_shared<RenderTestScene>();
