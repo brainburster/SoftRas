@@ -1084,7 +1084,7 @@ namespace gmath::utility
 	template<typename T, typename U>
 	inline T Lerp(T a, T b, U n)
 	{
-		return a * n + b * (1.0f - n);
+		return  a * (1.0f - n) + b * n;
 	}
 
 	template<typename T>
