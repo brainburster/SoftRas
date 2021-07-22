@@ -10,7 +10,7 @@
 struct IBL
 {
 	std::shared_ptr<core::CubeMap> diffuse_map; //漫反射部分卷积
-	std::vector<core::CubeMap> specular_maps; //镜面反射部分卷积
+	std::vector<std::shared_ptr<core::CubeMap>> specular_maps; //镜面反射部分卷积
 	std::shared_ptr<core::Texture> lut; //BRDF积分图
 	IBL()
 	{
@@ -18,14 +18,124 @@ struct IBL
 		//size_t h = evn_map.front->GetHeight();
 		diffuse_map = std::make_shared<core::CubeMap>(32, 32);
 		specular_maps.reserve(5);
-		specular_maps.emplace_back(128, 128);
-		specular_maps.emplace_back(64, 64);
-		specular_maps.emplace_back(32, 32);
-		specular_maps.emplace_back(16, 16);
-		specular_maps.emplace_back(8, 8);
+		specular_maps.emplace_back(std::make_shared<core::CubeMap>(128, 128));
+		specular_maps.emplace_back(std::make_shared<core::CubeMap>(64, 64));
+		specular_maps.emplace_back(std::make_shared<core::CubeMap>(32, 32));
+		specular_maps.emplace_back(std::make_shared<core::CubeMap>(16, 16));
+		specular_maps.emplace_back(std::make_shared<core::CubeMap>(8, 8));
 	}
 
 	void init(const core::CubeMap& env)
+	{
+		init_diffuse_map(env);
+		init_specular_maps(env);
+	}
+
+	float RadicalInverse_VdC(size_t bits)
+	{
+		bits = (bits << 16u) | (bits >> 16u);
+		bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+		bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+		bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+		bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+		return float(bits) * 2.3283064365386963e-10f;
+	}
+
+	core::Vec2 Hammersley(size_t i, size_t N)
+	{
+		return core::Vec2(float(i) / float(N), RadicalInverse_VdC(i));
+	}
+
+	//获得根据roughness随机生成的切线空间半球采样
+	core::Vec3 ImportanceSampleGGX(core::Vec2 Xi, core::Vec3 N, float roughness)
+	{
+		float a = roughness * roughness;
+
+		float phi = 2.0f * core::pi * Xi.x;
+		float cosTheta = sqrt((1.0f - Xi.y) / (1.0f + (a * a - 1.0f) * Xi.y));
+		float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
+
+		// from spherical coordinates to cartesian coordinates
+		core::Vec3 H;
+		H.x = cos(phi) * sinTheta;
+		H.y = sin(phi) * sinTheta;
+		H.z = cosTheta;
+
+		// from tangent-space vector to world-space sample vector
+		core::Vec3 up = abs(N.z) < 0.999 ? core::Vec3(0.0, 0.0, 1.0f) : core::Vec3(1.0f, 0.0, 0.0);
+		core::Vec3 tangent = up.Cross(N).Normalize();
+		core::Vec3 bitangent = N.Cross(tangent);
+
+		core::Vec3 sampleVec = tangent * H.x + bitangent * H.y + N * H.z;
+		return sampleVec.Normalize();
+	}
+
+	void init_specular_maps(const core::CubeMap& env)
+	{
+		const core::Vec3 r = { 1,0,0 };
+		const core::Vec3 u = { 0,1,0 };
+		const core::Vec3 f = { 0,0,1 };
+		core::Mat3 rotate_mat[6] = {
+			//front, 不需要旋转(坐标系变换),r,u,f
+			{r,u,f},
+			//back, -r,u,-f
+			{-r,u,-f},
+			//top, r,-f,u,
+			{ r,-f,u },
+			//bottom, r,f,-u
+			{r,f,-u},
+			//left, f,u,-r
+			{f,u,-r},
+			//right, -f,u,r
+			{-f,u,r}
+		};
+
+		const size_t size_map[] = { 128,64,32,16,8 };
+		for (size_t mip = 0; mip < 5; ++mip)
+		{
+			size_t w = size_map[mip];
+			size_t h = size_map[mip];
+			float roughness = mip / 4.f;
+			auto* specular_arrary = reinterpret_cast<std::shared_ptr<core::Texture>*>(specular_maps[mip].get());
+			for (size_t k = 0; k < 6; ++k)
+			{
+				auto& tex = specular_arrary[k];
+				for (size_t j = 0; j < h; ++j)
+				{
+					for (size_t i = 0; i < w; ++i)
+					{
+						core::Vec3 N = core::Vec3{ (float)i / w - 0.5f, (float)j / h - 0.5f , 0.4999999f };
+						N = rotate_mat[k] * N;
+						N = N.Normalize();
+						core::Vec3 R = N;
+						core::Vec3 V = R;
+
+						const size_t SAMPLE_COUNT = 256;
+						float totalWeight = 0.0f;
+						core::Vec3 prefilteredColor = 0.0f;
+						for (size_t i = 0u; i < SAMPLE_COUNT; ++i)
+						{
+							core::Vec2 Xi = Hammersley(i, SAMPLE_COUNT);
+							core::Vec3 H = ImportanceSampleGGX(Xi, N, roughness);
+							core::Vec3 L = (-V).Reflect(H).Normalize();
+
+							float NdotL = max(N.Dot(L), 0.0f);
+							if (NdotL > 0.0f)
+							{
+								prefilteredColor += env.Sample(L) * NdotL;
+								totalWeight += NdotL;
+							}
+						}
+
+						prefilteredColor = prefilteredColor / totalWeight;
+						tex->GetRef(i, j) = { prefilteredColor, 1.0f };
+					}
+				}
+			}
+		}
+	}
+
+	void init_diffuse_map(const core::CubeMap& env)
 	{
 		auto* diffuse_arrary = reinterpret_cast<std::shared_ptr<core::Texture>*>(diffuse_map.get());
 		const core::Vec3 r = { 1,0,0 };
@@ -46,20 +156,20 @@ struct IBL
 			//right, -f,u,r
 			{-f,u,r}
 		};
-		for (size_t k = 0; k < 6; k++)
+		for (size_t k = 0; k < 6; ++k)
 		{
 			auto& tex = diffuse_arrary[k];
 			size_t w = tex->GetWidth();
 			size_t h = tex->GetHeight();
-			for (size_t j = 0; j < h; j++)
+			for (size_t j = 0; j < h; ++j)
 			{
-				for (size_t i = 0; i < w; i++)
+				for (size_t i = 0; i < w; ++i)
 				{
 					//将i,j,k映射到边长为1的正方体方体上
 					//i,j => {i/w-0.5f,j/w-0.5f,0.5f}
 					//k 决定旋转矩阵
 					//获得env采样方向
-					core::Vec3 normal = core::Vec3{ (float)i / w - 0.5f, (float)j / h - 0.5f, 0.5f };
+					core::Vec3 normal = core::Vec3{ (float)i / w - 0.5f, (float)j / h - 0.5f, 0.4999999f };
 					normal = rotate_mat[k] * normal;
 					normal = normal.Normalize();
 
@@ -190,7 +300,7 @@ private:
 	std::vector<std::shared_ptr<framework::Object>> lights;
 	std::shared_ptr<framework::TargetCamera> camera;
 	std::shared_ptr<framework::Skybox> skybox;
-	std::mutex mutex_0;
+	std::atomic_bool b_ibl_init_ok = false;
 public:
 	void Init(framework::IRenderEngine& engine) override
 	{
@@ -238,13 +348,13 @@ public:
 		//创建摄像机
 		camera = std::make_shared<framework::TargetCamera>(spheres[2 + 2 * 5], 30.f, 90.f, 0.1f);
 		skybox = std::make_shared<framework::Skybox>();
-		//
+
+		//创建预计算环境光照贴图
 		static IBL ibl{};
 		std::thread t{ [&]() {
 			ibl.init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
-			std::lock_guard lock{ mutex_0 };
-			//auto skybox = Spawn<framework::Skybox>();
 			skybox->cube_map = ibl.diffuse_map;
+			b_ibl_init_ok = true;
 		} };
 		t.detach();
 		//ibl.init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
@@ -259,16 +369,6 @@ public:
 	void HandleInput(const framework::IRenderEngine& engine) override
 	{
 		camera->HandleInput(engine);
-		//if (framework::IsKeyPressed<VK_CONTROL, 'R'>())
-		//{
-		//	sphere->transform.rotation += core::Vec3{ 0, 0, 1 }*0.05f;
-		//}
-		//if (framework::IsKeyPressed<VK_CONTROL, 'F'>())
-		//{
-		//	static size_t count = 0;
-		//	sphere->transform.position = core::Vec3{ (cos(count / 500.f) - 1) * 2,0,  (sin(count / 500.f) - 1) * 2 };
-		//	count += engine.GetEngineState().delta_count;
-		//}
 	}
 
 	virtual const framework::ICamera* GetMainCamera() const override
@@ -295,10 +395,9 @@ public:
 	{
 		Scene::RenderFrame(engine);
 
-		if (mutex_0.try_lock())
+		if (b_ibl_init_ok)
 		{
 			skybox->Render(engine);
-			mutex_0.unlock();
 		}
 
 		//画家算法对光源（透明物体进行排序）
