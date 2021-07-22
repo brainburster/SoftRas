@@ -61,7 +61,7 @@ namespace loader::bmp
 
 		texture.SetSize(bmp_info.width, bmp_info.width);
 		size_t channel = bmp_info.bitCount == 32 ? 4 : 3;
-		size_t size = bmp_info.width * bmp_info.width;
+		size_t size = (size_t)bmp_info.width * bmp_info.width;
 		size_t size_of_byte = size * channel;
 
 		std::vector<core::uint8> buffer{};

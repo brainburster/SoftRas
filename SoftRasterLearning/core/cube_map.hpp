@@ -36,9 +36,9 @@ namespace core
 		{
 			//3个分量中绝对值最大的,决定采样哪个面
 			//对剩下的两个分量"归一化"，决定uv
-			float abs_x = fabs(dir.x);
-			float abs_y = fabs(dir.y);
-			float abs_z = fabs(dir.z);
+			float abs_x = fabs(dir.x) + core::epsilon;
+			float abs_y = fabs(dir.y) + core::epsilon;
+			float abs_z = fabs(dir.z) + core::epsilon;
 			float u = 0;
 			float v = 0;
 			core::Texture* tex = front.get();

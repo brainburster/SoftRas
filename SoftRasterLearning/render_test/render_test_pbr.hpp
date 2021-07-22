@@ -16,7 +16,7 @@ struct IBL
 	{
 		//size_t w = evn_map.front->GetWidth();
 		//size_t h = evn_map.front->GetHeight();
-		diffuse_map = std::make_shared<core::CubeMap>(16, 16);
+		diffuse_map = std::make_shared<core::CubeMap>(32, 32);
 		specular_maps.reserve(5);
 		specular_maps.emplace_back(128, 128);
 		specular_maps.emplace_back(64, 64);
@@ -68,7 +68,7 @@ struct IBL
 					core::Vec3 right = up.Cross(normal);
 					up = normal.Cross(right);
 
-					float sampleDelta = 0.05f;
+					float sampleDelta = 0.1f;
 					float nrSamples = 0.0f;
 
 					core::Vec3 irradiance = {};
@@ -80,7 +80,7 @@ struct IBL
 							core::Vec3  tangentSample = core::Vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
 							// tangent space to world 从切线空间转换到世界空间
 							core::Vec3  sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * normal;
-							irradiance += core::Vec3{ env.Sample(sampleVec) } *cos(theta) * sin(theta);
+							irradiance += env.Sample(sampleVec) * cos(theta) * sin(theta);
 							nrSamples++;
 						}
 					}
@@ -189,6 +189,7 @@ private:
 	std::vector<std::shared_ptr<framework::MaterialEntity>> spheres;
 	std::vector<std::shared_ptr<framework::Object>> lights;
 	std::shared_ptr<framework::TargetCamera> camera;
+	std::shared_ptr<framework::Skybox> skybox;
 	std::mutex mutex_0;
 public:
 	void Init(framework::IRenderEngine& engine) override
@@ -235,13 +236,14 @@ public:
 		}
 
 		//创建摄像机
-		camera = std::make_shared<framework::TargetCamera>(spheres[2 + 2 * 5], 30.f);
+		camera = std::make_shared<framework::TargetCamera>(spheres[2 + 2 * 5], 30.f, 90.f, 0.1f);
+		skybox = std::make_shared<framework::Skybox>();
 		//
 		static IBL ibl{};
 		std::thread t{ [&]() {
 			ibl.init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
 			std::lock_guard lock{ mutex_0 };
-			auto skybox = Spawn<framework::Skybox>();
+			//auto skybox = Spawn<framework::Skybox>();
 			skybox->cube_map = ibl.diffuse_map;
 		} };
 		t.detach();
@@ -291,9 +293,12 @@ public:
 
 	virtual void RenderFrame(framework::IRenderEngine& engine)override
 	{
+		Scene::RenderFrame(engine);
+
+		if (mutex_0.try_lock())
 		{
-			std::lock_guard lock{ mutex_0 };
-			Scene::RenderFrame(engine);
+			skybox->Render(engine);
+			mutex_0.unlock();
 		}
 
 		//画家算法对光源（透明物体进行排序）

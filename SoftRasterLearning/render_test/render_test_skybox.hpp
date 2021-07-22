@@ -43,7 +43,7 @@ public:
 		Vec3 V = Vec3(camera_position_ws - v.position_ws).Normalize();
 		Vec3 N = Vec3(Texture::Sample(normal_map, v.uv) * 2 - 1.f);
 		N = (v.TBN * N).Normalize();
-		Vec3 R = V * -1 - 2 * (V * -1).Dot(N) * N;
+		Vec3 R = (-V).Reflect(N);
 
 		Vec3 light_color = cube_map->Sample(R);
 
@@ -76,7 +76,6 @@ class Scene_Render_Test_Skybox : public framework::Scene
 private:
 	std::shared_ptr<framework::MaterialEntity> sphere;
 	std::shared_ptr<framework::TargetCamera> camera;
-	std::shared_ptr<core::CubeMap> cube_map;
 
 public:
 	void Init(framework::IRenderEngine& engine) override

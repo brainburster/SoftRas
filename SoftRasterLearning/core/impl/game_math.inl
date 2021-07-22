@@ -237,6 +237,22 @@ namespace gmath
 		return _mm_dp_ps(data_m128, data_m128, 0x7f).m128_f32[0];
 	}
 
+	__forceinline Vec3<float> _vectorcall Vec3<float>::Pow(float rhs) const noexcept
+	{
+		__m128 rhs4 = _mm_set_ps1(rhs);
+		return _mm_pow_ps(data_m128, rhs4);
+	}
+	__forceinline Vec3<float>  _vectorcall Vec3<float>::Sqrt() const noexcept
+	{
+		return _mm_sqrt_ps(data_m128);
+	}
+
+	__forceinline Vec3<float> _vectorcall  Vec3<float>::Reflect(Vec3 normal) const noexcept
+	{
+		const __m128 rhs_2 = _mm_set_ps1(2.f);
+		return _mm_sub_ps(data_m128, _mm_mul_ps(_mm_mul_ps(_mm_dp_ps(data_m128, normal, 0x7f), normal), rhs_2));
+	}
+
 	__forceinline Vec3<float> _vectorcall  Vec3<float>::operator-()const noexcept
 	{
 		__m128 neg1 = _mm_set_ps1(-1.f);
