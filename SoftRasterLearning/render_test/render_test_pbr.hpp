@@ -258,7 +258,7 @@ struct IBL
 class Material_PBR : public framework::IMaterial
 {
 public:
-	IBL* IBL;
+	IBL* IBL = nullptr;
 	std::vector<std::shared_ptr<framework::ILight>> lights;
 	core::Vec3 albedo;
 	float metalness = 0;
@@ -340,12 +340,17 @@ struct Shader_PBR
 			F = pbr::FresnelSchlickRoughness(F, NdotV, roughness);
 			Vec3 Ks = F;
 			Vec3 Kd = 1.0f - Ks;
-			Kd *= 1.0 - metalness;
+			Kd *= 1.0f - metalness;
 			Vec3 irradiance = IBL->diffuse_map->Sample(N);
 			Vec3 diffuse = irradiance * albedo;
 			Vec3 R = (-V).Reflect(N).Normalize();
-			size_t lod = size_t(roughness * 4); //就暂时不插值了
+			size_t lod = size_t((double)roughness * 4); //就暂时不插值了
+			size_t lod_1 = gmath::utility::Clamp(lod + 1, 0, 4);
+			float u = roughness * 4.f - lod;
 			Vec3 prefilteredColor = IBL->specular_maps[lod]->Sample(R);
+			Vec3 prefilteredColor1 = IBL->specular_maps[lod_1]->Sample(R);
+			prefilteredColor = prefilteredColor * (1 - u) + prefilteredColor1 * u;
+
 			Vec3 envBRDF = core::Texture::Sample(IBL->brdf_map.get(), { NdotV,roughness });
 			Vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 			ambient = Kd * diffuse + specular;
@@ -395,16 +400,16 @@ public:
 		light3->color = 1.5f;
 
 		//创建8x8个球体，x轴roughness增大,y轴metallic增大
-		objects.reserve(32);
+		objects.reserve(60);
 		spheres.reserve(25);
-		for (size_t j = 0; j < 5; j++)
+		for (size_t j = 0; j < 7; j++)
 		{
-			for (size_t i = 0; i < 5; i++)
+			for (size_t i = 0; i < 7; i++)
 			{
 				auto material = std::make_shared<Material_PBR>();
 				material->albedo = { 0.91f,0.92f,0.92f };
-				material->metalness = i * 0.25f;
-				material->roughness = j * 0.25f;
+				material->metalness = i / 7.f;
+				material->roughness = j / 7.f;
 				material->IBL = &ibl;
 				auto sphere = Spawn<framework::MaterialEntity>();
 				sphere->transform.position = { i * 2.4f,j * 2.4f,0 };
@@ -421,7 +426,7 @@ public:
 		}
 
 		//创建摄像机
-		camera = std::make_shared<framework::TargetCamera>(spheres[2 + 2 * 5], 30.f, 90.f, 0.1f);
+		camera = std::make_shared<framework::TargetCamera>(spheres[3 + 3 * 7], 30.f, 90.f, 0.1f);
 		skybox = std::make_shared<framework::Skybox>();
 
 		//..

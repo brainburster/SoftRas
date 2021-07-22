@@ -31,7 +31,7 @@ namespace core
 				for (size_t x = 0; x < w; ++x)
 				{
 					//color = color.Sqrt();
-					screen_buffer_view.Set(x, y, TransFloat4colorToUint32color(back_buffer_view.Get(x, y).Sqrt()).color);
+					screen_buffer_view.Set(x, y, TransFloat4colorToUint32color(back_buffer_view.Get(x, y).Pow(1 / 2.2f)).color);
 				}
 			}
 		}
@@ -291,8 +291,7 @@ namespace core
 				int start = (int)x1 - 1;
 				int end = (int)x2 + 1;
 
-				omp_set_num_threads(4);
-#pragma omp parallel for
+#pragma omp parallel for num_threads(4)
 				for (int x = start; x <= end; ++x)
 				{
 					RasterizePixel(x, (int)y, p, p0, p1, p2);
