@@ -336,7 +336,7 @@ namespace core
 			using gmath::utility::BlendColor;
 
 			//ÑÕÉ«»ìºÏ
-			if (color.a < 1.f - epsilon)
+			if (color.a < (1.f - epsilon))
 			{
 				color = BlendColor(color0, color);
 			}

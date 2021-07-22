@@ -71,8 +71,6 @@ protected:
 
 	void Init() override
 	{
-		SoftRasterApp::Init();
-
 		auto _sphere = loader::obj::LoadFromFile(L".\\resource\\models\\sphere.obj");
 		auto _box = loader::obj::LoadFromFile(L".\\resource\\models\\box.obj");
 
@@ -110,6 +108,7 @@ protected:
 				return core::Vec4{ _mm_sinh_ps(color * 2.2f) } / 2.2f; //应该可以把原来接近1的亮度提高到2, 而低亮度信息几乎不变
 				});
 		}
+		SoftRasterApp::Init();
 		//...
 		scene = std::make_shared<RenderTestScene>();
 	}
