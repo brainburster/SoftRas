@@ -11,7 +11,7 @@ struct IBL
 {
 	std::shared_ptr<core::CubeMap> diffuse_map; //漫反射部分卷积
 	std::vector<std::shared_ptr<core::CubeMap>> specular_maps; //镜面反射部分卷积
-	std::shared_ptr<core::Texture> lut; //BRDF积分图
+	std::shared_ptr<core::Texture> brdf_map; //BRDF积分图
 	IBL()
 	{
 		//size_t w = evn_map.front->GetWidth();
@@ -23,12 +23,65 @@ struct IBL
 		specular_maps.emplace_back(std::make_shared<core::CubeMap>(32, 32));
 		specular_maps.emplace_back(std::make_shared<core::CubeMap>(16, 16));
 		specular_maps.emplace_back(std::make_shared<core::CubeMap>(8, 8));
+		brdf_map = std::make_shared<core::Texture>(256, 256);
 	}
 
 	void init(const core::CubeMap& env)
 	{
 		init_diffuse_map(env);
 		init_specular_maps(env);
+		init_brdf_map();
+	}
+
+	core::Vec2 IntegrateBRDF(float NdotV, float roughness)
+	{
+		core::Vec3 V;
+		V.x = sqrt(1.0f - NdotV * NdotV);
+		V.y = 0.0;
+		V.z = NdotV;
+
+		float A = 0.0;
+		float B = 0.0;
+
+		core::Vec3 N = core::Vec3(0.0, 0.0, 1.0f);
+
+		const size_t SAMPLE_COUNT = 256u;
+		for (size_t i = 0u; i < SAMPLE_COUNT; ++i)
+		{
+			core::Vec2 Xi = Hammersley(i, SAMPLE_COUNT);
+			core::Vec3 H = ImportanceSampleGGX(Xi, N, roughness);
+			core::Vec3 L = (-V).Reflect(N);
+
+			float NdotL = max(L.z, 0.0f);
+			float NdotH = max(H.z, 0.0f);
+			float VdotH = max(V.Dot(H), 0.0f);
+
+			if (NdotL > 0.0)
+			{
+				float G = core::pbr::GeometrySmith(NdotV, NdotL, roughness * roughness / 2.f);
+				float G_Vis = (G * VdotH) / (NdotH * NdotV);
+				float Fc = pow(1.0f - VdotH, 5.0f);
+
+				A += (1.0f - Fc) * G_Vis;
+				B += Fc * G_Vis;
+			}
+		}
+		A /= float(SAMPLE_COUNT);
+		B /= float(SAMPLE_COUNT);
+		return core::Vec2(A, B);
+	}
+
+	void init_brdf_map()
+	{
+		const size_t w = brdf_map->GetWidth();
+		const size_t h = brdf_map->GetHeight();
+		for (size_t j = 0; j < h; j++)
+		{
+			for (size_t i = 0; i < w; i++)
+			{
+				brdf_map->GetRef(i, j) = IntegrateBRDF((float)i / w, (float)j / h);
+			}
+		}
 	}
 
 	float RadicalInverse_VdC(size_t bits)
