@@ -29,10 +29,10 @@ struct Shader_Shadow_Mapping
 	core::Vec4 FS(const Varying_Light_ws& v) const
 	{
 		core::Vec3 base_color = { 0.8f,0.8f,0.8f };/*core::Texture::Sample(tex0, v.uv);*/
-		float ndl = max(v.normal_ws.Dot(light_dir.Normalize() * -1), 0.03f);
+		float ndl = max(v.normal_ws.Dot(light_dir.Normalize() * -1), 0.f);
 		core::Vec3 final_color = base_color * light_color * ndl;
 		//¼ÆËãshadow mapping
-		core::Vec4 farg_pos_light_space = light_mat * core::Vec4(v.position_ws + v.normal_ws * 0.05f, 1.f);
+		core::Vec4 farg_pos_light_space = light_mat * core::Vec4(v.position_ws, 1.f);
 		farg_pos_light_space /= farg_pos_light_space.w;
 		core::Vec2 shadow_uv = farg_pos_light_space;
 		shadow_uv *= 0.5f;
@@ -41,7 +41,8 @@ struct Shader_Shadow_Mapping
 		int s_u = gmath::utility::Clamp((int)shadow_uv.x, 0, 511);
 		int s_v = gmath::utility::Clamp((int)shadow_uv.y, 0, 511);
 		float depth0 = -shadow_map->Get(s_u, s_v);
-		float depth = farg_pos_light_space.z;
+		float bias = ndl * 0.005f;
+		float depth = farg_pos_light_space.z - bias;
 		float shadow = depth < depth0 ? 1.0f : 0.03f;
 		return core::Vec4(final_color * shadow, 1.f);
 	}
