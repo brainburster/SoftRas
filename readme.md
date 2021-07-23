@@ -12,7 +12,7 @@
 
 - [x] Blin-Phong光照模型
 
-- [x] sse加速数学库
+- [x] 自制数学库(sse加速)
 
 - [x] bmp和obj加载器
 
@@ -22,19 +22,25 @@
 
 - [x] 天空盒以及cube-mapping
 
-- [x] 公告板
+- [x] 公告板billboard
 
 - [x] fps摄像机和环绕摄像机
 
-- [ ] PBR
+- [x] 四元数旋转
 
-- [ ] IBL
+- [x] PBR(Cook-Torrance BRDF)
 
-- [ ] 骨骼动画
+- [x] IBL(Image Base Light)
+
+- [ ] fbx加载器
+
+- [ ] 骨骼动画(obj标准没有动画, 所以要先实现骨骼动画加载器)
 
 - [ ] 打印文字
 
 - [ ] UI
+
+- [ ] ...
 
 ## 展示
 
