@@ -28,10 +28,11 @@ namespace core
 
 			for (size_t y = 0; y < h; ++y)
 			{
-				for (size_t x = 0; x < w; ++x)
+#pragma omp parallel for num_threads(4)
+				for (int x = 0; x < w; ++x)
 				{
 					//color = color.Sqrt();
-					screen_buffer_view.Set(x, y, TransFloat4colorToUint32color(back_buffer_view.Get(x, y).Pow(1 / 2.2f)).color);
+					screen_buffer_view.Set((size_t)x, y, TransFloat4colorToUint32color(back_buffer_view.Get(x, y).Sqrt()).color);
 				}
 			}
 		}

@@ -148,5 +148,8 @@
     <None Include="core\impl\game_math.inl">
       <Filter>头文件\core\impl</Filter>
     </None>
+    <None Include="core\impl\pbr.inl">
+      <Filter>头文件\core\impl</Filter>
+    </None>
   </ItemGroup>
 </Project>
