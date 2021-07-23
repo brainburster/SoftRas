@@ -534,7 +534,7 @@ namespace core
 			Vec2 a = triangle[1] - triangle[0];
 			Vec2 b = triangle[2] - triangle[1];
 			//Vec2 c = triangle[0].position - triangle[2].position;
-			return a.cross(b) < 0;//&& b.cross(c) > 0 && c.cross(a) > 0;
+			return a.Cross(b) < 0;//&& b.Cross(c) > 0 && c.Cross(a) > 0;
 		}
 
 		bool IsPointInTriangle2D(float x, float y, varying_t* triangle) const
@@ -544,7 +544,7 @@ namespace core
 			Vec2 pb = (Vec2)triangle[1].position - p;
 			Vec2 pc = (Vec2)triangle[2].position - p;;
 
-			return (pa.cross(pb) > 0 && pb.cross(pc) > 0 && pc.cross(pa) > 0) || (pa.cross(pb) < 0 && pb.cross(pc) < 0 && pc.cross(pa) < 0);
+			return (pa.Cross(pb) > 0 && pb.Cross(pc) > 0 && pc.Cross(pa) > 0) || (pa.Cross(pb) < 0 && pb.Cross(pc) < 0 && pc.Cross(pa) < 0);
 		}
 
 		//»ñÈ¡²åÖµ

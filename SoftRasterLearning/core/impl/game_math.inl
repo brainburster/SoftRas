@@ -635,6 +635,94 @@ namespace gmath
 	}
 }
 
+//四元数
+namespace gmath
+{
+	template<typename T> Quaternions<T>::Quaternions(Vec4<T> vec4) : x{ vec4.x }, y{ vec4.y }, z{ vec4.z }, w{ vec4.w }{}
+	template<typename T> Quaternions<T>::Quaternions(Vec3<T> vec3) : x{ vec3.x }, y{ vec3.y }, z{ vec3.z }, w{ 0 }{}
+	template<typename T> Quaternions<T>::Quaternions(Vec3<T> a, float r) : x{ a.x * sin(r / 2) }, y{ a.y * sin(r / 2) }, z{ a.z * sin(r / 2) }, w{ cos(r / 2) }{}
+	//转换为欧拉角
+	template<typename T> Vec3<T> Quaternions<T>::ToEulerAngles() const
+	{
+		return {
+			atan2(2 * (w * x + y * z),1 - 2(x * x + y * y)),
+			asin(2 * (w * y - z * x)),
+			atan2(2 * (w * z + x * y),1 - 2 * (y * y + z * z))
+		};
+	}
+
+	//转换为旋转矩阵
+	template<typename T> Mat4x4<T> Quaternions<T>::ToMat4() const
+	{
+		return {
+			1.f - 2.f * y * y - 2.f * z * z, 2.f * x * y - 2.f * z * w, 2.f * x * z + 2.f * y * w, 0.f,
+			2.f * x * y + 2.f * z * w, 1.f - 2.f * x * x - 2.f * z * z, 2.f * y * z - 2.f * x * w, 0.f,
+			2.f * x * z - 2.f * y * w, 2.f * y * z + 2.f * x * w, 1.f - 2.f * x * x - 2.f * y * y, 0.f,
+			0.f, 0.f, 0.f, 1.f
+		};
+	}
+
+	//转换为旋转矩阵
+	template<typename T> Mat3x3<T> Quaternions<T>::ToMat3() const
+	{
+		return {
+			1.f - 2.f * y * y - 2.f * z * z, 2.f * x * y - 2.f * z * w, 2.f * x * z + 2.f * y * w,
+			2.f * x * y + 2.f * z * w, 1.f - 2.f * x * x - 2.f * z * z, 2.f * y * z - 2.f * x * w,
+			2.f * x * z - 2.f * y * w, 2.f * y * z + 2.f * x * w, 1.f - 2.f * x * x - 2.f * y * y,
+		};
+	}
+
+	//乘四元数
+	template<typename T> Quaternions<T> Quaternions<T>::operator*(const Quaternions& rhs) const
+	{
+		return {
+			w * rhs.x + x * rhs.w + y * rhs.z - z * rhs.y,
+			w * rhs.y - x * rhs.z + y * rhs.w + z * rhs.x,
+			w * rhs.z + x * rhs.y - y * rhs.x + z * rhs.w,
+			w * rhs.w - x * rhs.x - y * rhs.y - z * rhs.z
+		};
+	}
+
+	//归一化
+	template<typename T> Quaternions<T> Quaternions<T>::Normalize() const
+	{
+		auto len = x + y + z + w;
+		return { x / len,y / len,z / len,w / len };
+	}
+	//求逆
+	template<typename T> Quaternions<T> Quaternions<T>::Inverse() const
+	{
+		auto len = x + y + z + w;
+		len = len * len;
+		return { -x / len ,-y / len,-z / len,w / len };
+	}
+	//乘向量
+	template<typename T> Vec4<T> Quaternions<T>::operator*(const Vec4<T>& rhs) const
+	{
+		return *this * Quaternions<T>{ rhs} *this->Inverse();
+	}
+	//线性插值
+	template<typename T> Quaternions<T> Quaternions<T>::Lerp(Quaternions rhs, float t) const
+	{
+		return { (1.f - t) * x + t * rhs.x,(1.f - t) * y + t * rhs.y,(1.f - t) * z + t * rhs.z,(1.f - t) * w + t * rhs.w };
+	}
+	//球面插值
+	template<typename T> Quaternions<T> Quaternions<T>::SLerp(Quaternions rhs, float t) const
+	{
+		auto len1 = sqrt(x * x + y * y + z * z + w * w);
+		auto len2 = sqrt(rhs.x * rhs.x + rhs.y * rhs.y + rhs.z * rhs.z + rhs.w * rhs.w);
+		auto cos_theta = (x * rhs.x + y * rhs.y + z * rhs.z + w * rhs.w) / (len1 * len2);
+		auto theta = acos(cos_theta);
+
+		return  {
+			(sin((1.0f - t) * theta) / sin(theta)) * x + (sin(t * theta) / sin(theta)) * rhs.x,
+			(sin((1.0f - t) * theta) / sin(theta)) * y + (sin(t * theta) / sin(theta)) * rhs.y,
+			(sin((1.0f - t) * theta) / sin(theta)) * z + (sin(t * theta) / sin(theta)) * rhs.z,
+			(sin((1.0f - t) * theta) / sin(theta)) * w + (sin(t * theta) / sin(theta)) * rhs.w
+		};
+	}
+}
+
 namespace gmath
 {
 	template<typename T> inline Vec4<T>::Vec4(T v) : x{ v }, y{ v }, z{ v }, w{ v }{}
@@ -750,6 +838,46 @@ namespace gmath
 		return Vec3{ y * b.z - z * b.y,z * b.x - x * b.z,x * b.y - y * b.x };
 	}
 
+	template<typename T> T Vec3<T>::Length() const
+	{
+		return  pow(x * x + y * y + z * z, 0.5f);;
+	}
+
+	template<typename T> Vec3<T> Vec3<T>::Reflect(Vec3 normal) const
+	{
+		return *this - normal.Dot(*this) * 2.f * normal;
+	}
+
+	template<typename T> Vec3<T> Vec3<T>::Pow(T rhs) const
+	{
+		return { pow(x, rhs), pow(y, rhs), pow(z, rhs) };
+	}
+	template<typename T> Vec3<T> Vec3<T>::Sqrt() const
+	{
+		return { sqrt(x), sqrt(y), sqrt(z) };
+	}
+
+	template<typename T> Quaternions<T> Vec3<T>::EularAngleToQuaternions() const
+	{
+		T sa = sin(x / 2);
+		T sb = sin(y / 2);
+		T sc = sin(z / 2);
+		T ca = cos(x / 2);
+		T cb = cos(y / 2);
+		T cc = cos(z / 2);
+
+		return {
+			//x
+			sa * cb * cc - ca * sb * sc,
+			//y
+			ca * sb * cc + sa * cb * sa,
+			//z
+			ca * sb * cc + sa * cb * sc,
+			//w
+			ca * cb * cc + sa * sb * sc
+		};
+	}
+
 	template<typename T> inline Vec3<T> Vec3<T>::operator+(const Vec3& rhs) const
 	{
 		return { x + rhs.x,y + rhs.y,z + rhs.z };
@@ -830,12 +958,12 @@ namespace gmath
 		return x * rhs.x + y * rhs.y;
 	}
 
-	template<typename T> inline T Vec2<T>::cross(const Vec2 b) const
+	template<typename T> inline T Vec2<T>::Cross(const Vec2 b) const
 	{
 		return x * b.y - y * b.x;
 	}
 
-	template<typename T> inline Vec2<T> Vec2<T>::normalize() const
+	template<typename T> inline Vec2<T> Vec2<T>::Normalize() const
 	{
 		T len = pow(x * x + y * y, 0.5f);
 		return {
@@ -1251,7 +1379,7 @@ namespace gmath::utility
 	template<typename T>
 	inline Mat4x4<T> LookAt(const Vec3<T>& position, const Vec3<T>& target, const Vec3<T>& up)
 	{
-		Vec3<T> f = (target - position).normalize();
+		Vec3<T> f = (target - position).Normalize();
 		Vec3<T> u = up.Normalize();
 		Vec3<T> right = f.Cross(u);
 

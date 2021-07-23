@@ -10,6 +10,7 @@ namespace gmath
 	template<typename T = float> struct Vec4;
 	template<typename T = float> struct Mat3x3;
 	template<typename T = float> struct Mat4x4;
+	template<typename T = float> struct Quaternions;
 
 	template<typename T>
 	struct Vec4
@@ -75,6 +76,11 @@ namespace gmath
 		T Dot(const Vec3& rhs) const;
 		Vec3 Cross(const Vec3& b) const;
 		Vec3 Normalize() const;
+		T Length() const;
+		Vec3 Reflect(Vec3 normal) const;
+		Vec3 Pow(T rhs) const;
+		Vec3 Sqrt() const;
+		Quaternions<T> EularAngleToQuaternions() const;
 
 		Vec3 operator+(const Vec3& rhs) const;
 		Vec3 operator-(const Vec3& rhs) const;
@@ -110,8 +116,8 @@ namespace gmath
 		Vec2 operator-(const Vec2& rhs) const;
 
 		T Dot(const Vec2& rhs) const;
-		T cross(const Vec2 b) const;
-		Vec2 normalize() const;
+		T Cross(const Vec2 b) const;
+		Vec2 Normalize() const;
 
 		template<typename T>
 		friend Vec2<T> operator*(const Vec2<T>& lhs, T rhs);
@@ -163,6 +169,42 @@ namespace gmath
 		Vec4<T> operator*(const Vec4<T>& rhs) const;
 
 		Mat3x3<T> ToMat3x3() const;
+	};
+
+	template<typename T>
+	struct Quaternions
+	{
+		T x;
+		T y;
+		T z;
+		T w;
+
+		Quaternions() = default;
+		Quaternions(Vec4<T>);
+		Quaternions(Vec3<T>);
+		Quaternions(Vec3<T>, float);
+
+		//转换为欧拉角
+		Vec3<T> ToEulerAngles() const;
+
+		//转换为旋转矩阵
+		Mat4x4<T> ToMat4() const;
+
+		//转换为旋转矩阵
+		Mat3x3<T> ToMat3() const;
+
+		//乘四元数
+		Quaternions operator*(const Quaternions& rhs) const;
+		//归一化
+		Quaternions Normalize() const;
+		//求逆
+		Quaternions Inverse() const;
+		//乘向量
+		Vec4<T> operator*(const Vec4<T>& rhs) const;
+		//线性插值
+		Quaternions Lerp(Quaternions rhs, float t) const;
+		//球面插值
+		Quaternions SLerp(Quaternions rhs, float t) const;
 	};
 
 	namespace utility
