@@ -186,7 +186,7 @@ public:
 		}
 
 		//´´½¨ÉãÏñ»ú
-		camera = std::make_shared<framework::TargetCamera>(spheres[2 + 2 * 5], 30.f, 90.f, 0.1f);
+		camera = std::make_shared<framework::TargetCamera>(spheres[2 + 2 * 5], 30.f, 0.f, 0.1f);
 		skybox = std::make_shared<framework::Skybox>();
 
 		//..

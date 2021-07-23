@@ -638,9 +638,11 @@ namespace gmath
 //四元数
 namespace gmath
 {
+	template<typename T> Quaternions<T>::Quaternions() :x{ 0 }, y{ 0 }, z{ 0 }, w{ 1 } {}
 	template<typename T> Quaternions<T>::Quaternions(Vec4<T> vec4) : x{ vec4.x }, y{ vec4.y }, z{ vec4.z }, w{ vec4.w }{}
 	template<typename T> Quaternions<T>::Quaternions(Vec3<T> vec3) : x{ vec3.x }, y{ vec3.y }, z{ vec3.z }, w{ 0 }{}
 	template<typename T> Quaternions<T>::Quaternions(Vec3<T> a, float r) : x{ a.x * sin(r / 2) }, y{ a.y * sin(r / 2) }, z{ a.z * sin(r / 2) }, w{ cos(r / 2) }{}
+	template<typename T> Quaternions<T>::Quaternions(float x, float y, float z, float w) : x{ x }, y{ y }, z{ z }, w{ w } {}
 	//转换为欧拉角
 	template<typename T> Vec3<T> Quaternions<T>::ToEulerAngles() const
 	{
@@ -686,20 +688,21 @@ namespace gmath
 	//归一化
 	template<typename T> Quaternions<T> Quaternions<T>::Normalize() const
 	{
-		auto len = x + y + z + w;
+		auto len = x * x + y * y + z * z + w * w;
 		return { x / len,y / len,z / len,w / len };
 	}
 	//求逆
 	template<typename T> Quaternions<T> Quaternions<T>::Inverse() const
 	{
-		auto len = x + y + z + w;
+		auto len = x * x + y * y + z * z + w * w;
 		len = len * len;
 		return { -x / len ,-y / len,-z / len,w / len };
 	}
 	//乘向量
 	template<typename T> Vec4<T> Quaternions<T>::operator*(const Vec4<T>& rhs) const
 	{
-		return *this * Quaternions<T>{ rhs} *this->Inverse();
+		auto ret = (*this) * Quaternions<T>{ rhs } *(this->Inverse());
+		return { ret.x,ret.y,ret.z,ret.w };
 	}
 	//线性插值
 	template<typename T> Quaternions<T> Quaternions<T>::Lerp(Quaternions rhs, float t) const

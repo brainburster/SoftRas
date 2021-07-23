@@ -88,7 +88,7 @@ public:
 		sphere = Spawn<framework::MaterialEntity>();
 		sphere->model = framework::GetResource<core::Model>(L"sphere").value();
 		sphere->material = material;
-		camera = std::make_shared<framework::TargetCamera>(sphere, 5.f, 90.f, 30.f);
+		camera = std::make_shared<framework::TargetCamera>(sphere, 5.f, 0.f, -30.f);
 		//..
 	}
 

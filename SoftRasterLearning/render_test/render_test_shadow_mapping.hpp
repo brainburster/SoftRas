@@ -96,7 +96,7 @@ public:
 		cube2->material = material;
 		cube3->material = material;
 		//...
-		camera = std::make_shared<framework::TargetCamera>(cube, 20.f, 90.f, 30.f);
+		camera = std::make_shared<framework::TargetCamera>(cube, 20.f, 0.f, -30.f);
 		light = std::make_shared<framework::DirectionalLight>();
 		light->color = { 1.f,1.f,1.f };
 		light->transform.position = { -2.f,7.f,2.f };

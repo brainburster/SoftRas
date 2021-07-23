@@ -179,10 +179,11 @@ namespace gmath
 		T z;
 		T w;
 
-		Quaternions() = default;
+		Quaternions();
 		Quaternions(Vec4<T>);
 		Quaternions(Vec3<T>);
 		Quaternions(Vec3<T>, float);
+		Quaternions(float, float, float, float);
 
 		//×ª»»ÎªÅ·À­½Ç
 		Vec3<T> ToEulerAngles() const;

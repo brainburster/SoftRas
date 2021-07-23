@@ -10,7 +10,7 @@ namespace framework
 	class FPSCamera : public ICamera
 	{
 	public:
-		FPSCamera(Vec3 position = Vec3{ 0,0,0 }, float yaw = -90, float pitch = 0, float aspect = 4.f / 3.f, float fovy = 60, float _near = 0.1, float _far = 1e10) :
+		FPSCamera(Vec3 position = Vec3{ 0,0,0 }, float yaw = 0, float pitch = 0, float aspect = 4.f / 3.f, float fovy = 60, float _near = 0.1, float _far = 1e10) :
 			position{ position },
 			yaw(yaw),
 			pitch(pitch),
@@ -24,8 +24,11 @@ namespace framework
 		Mat4x4 GetProjectionViewMatrix()const override
 		{
 			using namespace gmath::utility;
-			Vec3 front = GetFront();
-			Vec3 right = front.Cross({ 0,1,0 });
+			core::Quat quat = { {0,1,0}, radians(-yaw) };
+			quat = quat * core::Quat{ {1,0,0}, radians(pitch) };
+			quat.Normalize();
+			Vec3 front = quat * core::Vec4{ 0,0,-1,0 };
+			Vec3 right = quat * core::Vec4{ 1,0,0,0 };
 			Vec3 up = right.Cross(front);
 			return Projection(radians(fovy), aspect, _near, _far) * View(position, front, up);
 		}
@@ -33,11 +36,24 @@ namespace framework
 		Vec3 GetFront() const override
 		{
 			using gmath::utility::radians;
-			Vec3 front = {};
-			front.x = cos(radians(yaw)) * cos(radians(pitch));
-			front.y = sin(radians(pitch));
-			front.z = sin(radians(yaw)) * cos(radians(pitch));
-			return front;
+			//Vec3 front = {};
+			//front.x = cos(radians(yaw)) * cos(radians(pitch));
+			//front.y = sin(radians(pitch));
+			//front.z = sin(radians(yaw)) * cos(radians(pitch));
+			//return front;
+			core::Quat quat = { {0,1,0}, radians(-yaw) };
+			quat = quat * core::Quat{ {1,0,0}, radians(pitch) };
+			quat.Normalize();
+			return quat * core::Vec4{ 0,0,-1,0 };
+		}
+
+		Vec3 GetRight() const override
+		{
+			using gmath::utility::radians;
+			core::Quat quat = { {0,1,0}, radians(-yaw) };
+			quat = quat * core::Quat{ {1,0,0}, radians(pitch) };
+			quat.Normalize();
+			return quat * core::Vec4{ 1,0,0,0 };
 		}
 
 		void SetPosition(Vec3 position)
@@ -50,24 +66,18 @@ namespace framework
 			this->position += position;
 		}
 
-		void SetYawPitch(float yaw, float pitch) override
-		{
-			this->yaw = yaw;
-			this->pitch = pitch;
-		}
-
-		void AddYaw(float yaw) override
+		void AddYaw(float yaw)
 		{
 			this->yaw += yaw;
 		}
 
-		void AddPitch(float pitch) override
+		void AddPitch(float pitch)
 		{
 			this->pitch += pitch;
-			this->pitch = gmath::utility::Clamp(this->pitch, -89.f, 89.f);
+			//this->pitch = gmath::utility::Clamp(this->pitch, -89.f, 89.f);
 		}
 
-		void AddFovy(float fovy) override
+		void AddFovy(float fovy)
 		{
 			this->fovy += fovy;
 			this->fovy = gmath::utility::Clamp(this->fovy, 1.f, 179.f);
@@ -103,7 +113,7 @@ namespace framework
 			{
 				using gmath::utility::Clamp;
 				AddYaw(_mouse_state.dx * camera_speed);
-				AddPitch(Clamp(-_mouse_state.dy * camera_speed, -89.f, 89.f));
+				AddPitch(-_mouse_state.dy * camera_speed);
 			}
 
 			Vec3 front = GetFront();
@@ -130,26 +140,9 @@ namespace framework
 			const auto& _mouse_state = _input_state.mouse_state;
 			float delta = (float)engine.GetEngineState().delta_count;
 
-			//using gmath::Utility::Clamp;
-
-			//if (_mouse_state.button[0] && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
-			//{
-			//	using gmath::Utility::Clamp;
-			//	AddYaw(_mouse_state.dx * delta * camera_speed);
-			//	AddPitch(Clamp(-_mouse_state.dy * delta * camera_speed, -89.f, 89.f));
-			//}
-
-			//AddFovy((float)_input_state.mouse_state.scroll * delta * scroll_speed);
-
 			Vec3 front = GetFront();
 			Vec3 right = front.Cross({ 0,1,0 }).Normalize();
 			Vec3 up = right.Cross(front).Normalize();
-
-			//if (_mouse_state.button[1] && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
-			//{
-			//	AddPosition(camera_speed * 0.1f * right * delta * -_mouse_state.dx);
-			//	AddPosition(camera_speed * 0.1f * up * delta * _mouse_state.dy);
-			//}
 
 			if (_input_state.key['W'])
 			{

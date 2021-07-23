@@ -13,6 +13,7 @@ namespace core
 	using Vec2 = gmath::Vec2<float>;
 	using Mat = gmath::Mat4x4<float>;
 	using Mat3 = gmath::Mat3x3<float>;
+	using Quat = gmath::Quaternions<float>;
 
 	using uint8 = unsigned char;
 	using uint16 = unsigned short;
