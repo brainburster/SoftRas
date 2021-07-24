@@ -235,7 +235,7 @@ namespace framework
 		//äÖÈ¾Ã¿Ö¡
 		virtual void RenderFrame() override
 		{
-			ctx.Clear({ 0.16f, 0.36f, 0.04f, 1.f });
+			ctx.Clear({ 0.05f, 0.05f, 0.05f, 1.f });
 			scene->RenderFrame(*this);
 		}
 

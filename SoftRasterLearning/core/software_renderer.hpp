@@ -170,7 +170,7 @@ namespace core
 
 		void DrawTriangle(attribute_t* p0, attribute_t* p1, attribute_t* p2)
 		{
-			if constexpr (render_flag & RF_CULL_CVV_SIMPLE)
+			if constexpr (bool(render_flag & RF_CULL_CVV_SIMPLE))
 			{
 				//本地空间 => 裁剪空间 clip space
 				varying_t triangle[3] = {
@@ -182,7 +182,7 @@ namespace core
 				if (SimpleCull(triangle)) return;
 				RasterizeTriangle(triangle, triangle + 1, triangle + 2);
 			}
-			else if constexpr (render_flag & RF_CULL_CVV_CLIP) {
+			else if constexpr (bool(render_flag & RF_CULL_CVV_CLIP)) {
 				//本地空间 => 裁剪空间 clip space
 				varying_t triangle[8] = {
 					{ shader.VS(*p0) },
@@ -224,7 +224,7 @@ namespace core
 			//转化为屏幕坐标 screen space
 			TransToScreenSpace(p, 3);
 
-			if constexpr (render_flag & RF_CULL_BACK)
+			if constexpr (bool(render_flag & RF_CULL_BACK))
 			{
 				//剔除背面
 				if (IsBackface(p))
@@ -232,7 +232,7 @@ namespace core
 					return;
 				}
 			}
-			if constexpr (render_flag & RF_CULL_FRONT)
+			if constexpr (bool(render_flag & RF_CULL_FRONT))
 			{
 				//剔除前面
 				if (!IsBackface(p))
@@ -324,7 +324,7 @@ namespace core
 				int start = (int)x1 - 1;
 				int end = (int)x2 + 1;
 
-				if constexpr (render_flag & RF_MULTI_THREAD)
+				if constexpr (bool(render_flag & RF_MULTI_THREAD))
 				{
 #pragma omp parallel for num_threads(4)
 					for (int x = start; x <= end; ++x)

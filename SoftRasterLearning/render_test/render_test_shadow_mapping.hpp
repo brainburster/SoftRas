@@ -38,12 +38,23 @@ struct Shader_Shadow_Mapping
 		shadow_uv *= 0.5f;
 		shadow_uv += 0.5f;
 		shadow_uv *= 512.f;
-		int s_u = gmath::utility::Clamp((int)shadow_uv.x, 0, 511);
-		int s_v = gmath::utility::Clamp((int)shadow_uv.y, 0, 511);
-		float depth0 = -shadow_map->Get(s_u, s_v);
-		//float bias = ndl * 0.005f;
-		float depth = farg_pos_light_space.z;// -bias;
-		float shadow = depth < depth0 ? 1.0f : 0.03f;
+		float shadow = 0.f;
+
+		for (int j = -1; j < 2; ++j)
+		{
+			for (int i = -1; i < 2; ++i)
+			{
+				int s_u = gmath::utility::Clamp((int)shadow_uv.x + i, 0, 511);
+				int s_v = gmath::utility::Clamp((int)shadow_uv.y + j, 0, 511);
+				float depth0 = -shadow_map->Get(s_u, s_v);
+				//float bias = ndl * 0.005f;
+				float depth = farg_pos_light_space.z;// -bias;
+				shadow += depth < depth0 ? 1.0f : 0.03f;
+			}
+		}
+
+		shadow /= 9;
+
 		return core::Vec4(final_color * shadow, 1.f);
 	}
 };
@@ -111,11 +122,6 @@ public:
 	void HandleInput(const framework::IRenderEngine& engine) override
 	{
 		camera->HandleInput(engine);
-
-		if (framework::IsKeyPressed<VK_CONTROL, 'R'>())
-		{
-			cube->transform.rotation += core::Vec3{ 1, 1, 1 }*0.01f;
-		}
 	}
 
 	virtual const framework::ICamera* GetMainCamera() const override
