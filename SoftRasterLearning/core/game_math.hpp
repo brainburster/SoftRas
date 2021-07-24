@@ -322,6 +322,51 @@ namespace gmath
 	};
 
 	template<>
+	struct alignas(16) Quaternions<float>
+	{
+		union
+		{
+			struct
+			{
+				float x;
+				float y;
+				float z;
+				float w;
+			};
+			__m128 data_m128;
+		};
+
+		Quaternions();
+		Quaternions(Vec4<float>);
+		Quaternions(Vec3<float>);
+		Quaternions(Vec3<float>, float);
+		Quaternions(float, float, float, float);
+		Quaternions(__m128 data);
+		operator __m128() const noexcept;
+		//转换为欧拉角
+		Vec3<float> ToEulerAngles() const;
+
+		//转换为旋转矩阵
+		Mat4x4<float> ToMat4() const;
+
+		//转换为旋转矩阵
+		Mat3x3<float> ToMat3() const;
+
+		//乘四元数
+		Quaternions  __vectorcall operator*(Quaternions rhs) const;
+		//归一化
+		Quaternions __vectorcall Normalize() const;
+		//求逆
+		Quaternions __vectorcall Inverse() const;
+		//乘向量
+		Vec4<float> __vectorcall operator*(Vec4<float> rhs) const;
+		//线性插值
+		Quaternions Lerp(Quaternions rhs, float t) const;
+		//球面插值
+		Quaternions SLerp(Quaternions rhs, float t) const;
+	};
+
+	template<>
 	struct alignas(16) Vec3<float>
 	{
 		union

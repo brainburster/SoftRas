@@ -70,7 +70,7 @@ struct Shader_PBR
 				Vec3 H = V + L;
 				H = H.Normalize();
 
-				float distance = (light->GetPosition() - v.position_ws).Length() * 0.01f;
+				float distance = (light->GetPosition() - v.position_ws).Length() * 0.1f;
 				float attenuation = (light->GetLightCategory() == framework::ELightCategory::DirectionalLight) ? (1.0f) : (1.0f / (distance * distance));
 				Vec3 radiance = light->GetColor() * attenuation; //ÈëÉäµÄradiance
 

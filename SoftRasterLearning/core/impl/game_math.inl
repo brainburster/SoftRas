@@ -234,7 +234,7 @@ namespace gmath
 
 	float _vectorcall Vec3<float>::Length() const noexcept
 	{
-		return _mm_dp_ps(data_m128, data_m128, 0x7f).m128_f32[0];
+		return _mm_sqrt_ps(_mm_dp_ps(data_m128, data_m128, 0x7f)).m128_f32[0];
 	}
 
 	__forceinline Vec3<float> _vectorcall Vec3<float>::Pow(float rhs) const noexcept
@@ -635,26 +635,31 @@ namespace gmath
 	}
 }
 
-//四元数
+//四元数 部分sse加速
 namespace gmath
 {
-	template<typename T> Quaternions<T>::Quaternions() :x{ 0 }, y{ 0 }, z{ 0 }, w{ 1 } {}
-	template<typename T> Quaternions<T>::Quaternions(Vec4<T> vec4) : x{ vec4.x }, y{ vec4.y }, z{ vec4.z }, w{ vec4.w }{}
-	template<typename T> Quaternions<T>::Quaternions(Vec3<T> vec3) : x{ vec3.x }, y{ vec3.y }, z{ vec3.z }, w{ 0 }{}
-	template<typename T> Quaternions<T>::Quaternions(Vec3<T> a, float r) : x{ a.x * sin(r / 2) }, y{ a.y * sin(r / 2) }, z{ a.z * sin(r / 2) }, w{ cos(r / 2) }{}
-	template<typename T> Quaternions<T>::Quaternions(float x, float y, float z, float w) : x{ x }, y{ y }, z{ z }, w{ w } {}
+	inline Quaternions<float>::Quaternions() :x{ 0 }, y{ 0 }, z{ 0 }, w{ 1 } {}
+	inline Quaternions<float>::Quaternions(Vec4<float> vec4) : data_m128(vec4.data_m128) {}
+	inline Quaternions<float>::Quaternions(Vec3<float> vec3) : data_m128(_mm_and_ps(vec3.data_m128, vec3.mask3.mask)) {}
+	inline Quaternions<float>::Quaternions(Vec3<float> a, float r) : x{ a.x * sin(r / 2) }, y{ a.y * sin(r / 2) }, z{ a.z * sin(r / 2) }, w{ cos(r / 2) }{}
+	inline Quaternions<float>::Quaternions(float x, float y, float z, float w) : x{ x }, y{ y }, z{ z }, w{ w } {}
+	inline Quaternions<float>::Quaternions(__m128 data) : data_m128{ data } {}
+	inline Quaternions<float>::operator __m128() const noexcept
+	{
+		return data_m128;
+	}
 	//转换为欧拉角
-	template<typename T> Vec3<T> Quaternions<T>::ToEulerAngles() const
+	inline Vec3<float> Quaternions<float>::ToEulerAngles() const
 	{
 		return {
-			atan2(2 * (w * x + y * z),1 - 2(x * x + y * y)),
+			atan2(2 * (w * x + y * z),1 - 2 * (x * x + y * y)),
 			asin(2 * (w * y - z * x)),
 			atan2(2 * (w * z + x * y),1 - 2 * (y * y + z * z))
 		};
 	}
 
 	//转换为旋转矩阵
-	template<typename T> Mat4x4<T> Quaternions<T>::ToMat4() const
+	inline Mat4x4<float> Quaternions<float>::ToMat4() const
 	{
 		return {
 			1.f - 2.f * y * y - 2.f * z * z, 2.f * x * y - 2.f * z * w, 2.f * x * z + 2.f * y * w, 0.f,
@@ -665,7 +670,7 @@ namespace gmath
 	}
 
 	//转换为旋转矩阵
-	template<typename T> Mat3x3<T> Quaternions<T>::ToMat3() const
+	inline Mat3x3<float> Quaternions<float>::ToMat3() const
 	{
 		return {
 			1.f - 2.f * y * y - 2.f * z * z, 2.f * x * y - 2.f * z * w, 2.f * x * z + 2.f * y * w,
@@ -675,7 +680,122 @@ namespace gmath
 	}
 
 	//乘四元数
-	template<typename T> Quaternions<T> Quaternions<T>::operator*(const Quaternions& rhs) const
+	inline Quaternions<float>  __vectorcall Quaternions<float>::operator*(Quaternions rhs) const
+	{
+		//貌似是负优化
+		__m128 xxxx = _mm_shuffle_ps(data_m128, data_m128, _MM_SHUFFLE(0, 0, 0, 0));
+		__m128 yyyy = _mm_shuffle_ps(data_m128, data_m128, _MM_SHUFFLE(1, 1, 1, 1));
+		__m128 zzzz = _mm_shuffle_ps(data_m128, data_m128, _MM_SHUFFLE(2, 2, 2, 2));
+		__m128 wwww = _mm_shuffle_ps(data_m128, data_m128, _MM_SHUFFLE(3, 3, 3, 3));
+		xxxx = _mm_mul_ps(xxxx, Vec4<float>{1, -1, 1, -1});
+		yyyy = _mm_mul_ps(yyyy, Vec4<float>{1, 1, -1, -1});
+		zzzz = _mm_mul_ps(zzzz, Vec4<float>{-1, 1, 1, -1});
+		__m128 rhs_wzyx = _mm_shuffle_ps(rhs, rhs, _MM_SHUFFLE(0, 1, 2, 3));
+		__m128 rhs_zwxy = _mm_shuffle_ps(rhs, rhs, _MM_SHUFFLE(1, 0, 3, 2));
+		__m128 rhs_yxwz = _mm_shuffle_ps(rhs, rhs, _MM_SHUFFLE(2, 3, 0, 1));
+		rhs_wzyx = _mm_mul_ps(rhs_wzyx, xxxx);
+		rhs_zwxy = _mm_mul_ps(rhs_zwxy, yyyy);
+		rhs_yxwz = _mm_mul_ps(rhs_yxwz, zzzz);
+		rhs_wzyx = _mm_add_ps(_mm_mul_ps(wwww, rhs), rhs_wzyx);
+		rhs_wzyx = _mm_add_ps(rhs_wzyx, rhs_zwxy);
+		rhs_wzyx = _mm_add_ps(rhs_wzyx, rhs_yxwz);
+
+		return rhs_wzyx;
+		//return {
+		//	w * rhs.x + x * rhs.w + y * rhs.z - z * rhs.y,
+		//	w * rhs.y - x * rhs.z + y * rhs.w + z * rhs.x,
+		//	w * rhs.z + x * rhs.y - y * rhs.x + z * rhs.w,
+		//	w * rhs.w - x * rhs.x - y * rhs.y - z * rhs.z
+		//};
+	}
+
+	//归一化
+	inline Quaternions<float>__vectorcall Quaternions<float>::Normalize() const
+	{
+		//auto len = x * x + y * y + z * z + w * w;
+		//return { x / len,y / len,z / len,w / len };
+		auto len = _mm_dp_ps(data_m128, data_m128, 0xff);
+		return _mm_div_ps(data_m128, len);
+	}
+	//求逆
+	inline Quaternions<float> __vectorcall Quaternions<float>::Inverse() const
+	{
+		//auto len = x * x + y * y + z * z + w * w;
+		//len = len * len;
+		//return { -x / len ,-y / len,-z / len,w / len };
+		auto len = _mm_dp_ps(data_m128, data_m128, 0xff);
+		len = _mm_mul_ps(len, len);
+		len = _mm_div_ps(data_m128, len);
+		return _mm_mul_ps(len, Vec4<float>{-1, -1, -1, 1});
+	}
+	//乘向量
+	inline Vec4<float> __vectorcall Quaternions<float>::operator*(Vec4<float> rhs) const
+	{
+		return ((*this) * Quaternions<float>{ rhs }*(this->Inverse())).data_m128;
+	}
+	//线性插值
+	inline Quaternions<float> Quaternions<float>::Lerp(Quaternions rhs, float t) const
+	{
+		return { (1.f - t) * x + t * rhs.x,(1.f - t) * y + t * rhs.y,(1.f - t) * z + t * rhs.z,(1.f - t) * w + t * rhs.w };
+	}
+	//球面插值
+	inline Quaternions<float> Quaternions<float>::SLerp(Quaternions rhs, float t) const
+	{
+		auto len1 = sqrt(x * x + y * y + z * z + w * w);
+		auto len2 = sqrt(rhs.x * rhs.x + rhs.y * rhs.y + rhs.z * rhs.z + rhs.w * rhs.w);
+		auto cos_theta = (x * rhs.x + y * rhs.y + z * rhs.z + w * rhs.w) / (len1 * len2);
+		auto theta = acos(cos_theta);
+
+		return  {
+			(sin((1.0f - t) * theta) / sin(theta)) * x + (sin(t * theta) / sin(theta)) * rhs.x,
+			(sin((1.0f - t) * theta) / sin(theta)) * y + (sin(t * theta) / sin(theta)) * rhs.y,
+			(sin((1.0f - t) * theta) / sin(theta)) * z + (sin(t * theta) / sin(theta)) * rhs.z,
+			(sin((1.0f - t) * theta) / sin(theta)) * w + (sin(t * theta) / sin(theta)) * rhs.w
+		};
+	}
+}
+
+//四元数
+namespace gmath
+{
+	template<typename T>inline Quaternions<T>::Quaternions() :x{ 0 }, y{ 0 }, z{ 0 }, w{ 1 } {}
+	template<typename T>inline Quaternions<T>::Quaternions(Vec4<T> vec4) : x{ vec4.x }, y{ vec4.y }, z{ vec4.z }, w{ vec4.w }{}
+	template<typename T> Quaternions<T>::Quaternions(Vec3<T> vec3) : x{ vec3.x }, y{ vec3.y }, z{ vec3.z }, w{ 0 }{}
+	template<typename T>inline Quaternions<T>::Quaternions(Vec3<T> a, float r) : x{ a.x * sin(r / 2) }, y{ a.y * sin(r / 2) }, z{ a.z * sin(r / 2) }, w{ cos(r / 2) }{}
+	template<typename T>inline Quaternions<T>::Quaternions(float x, float y, float z, float w) : x{ x }, y{ y }, z{ z }, w{ w } {}
+	//转换为欧拉角
+	template<typename T>inline Vec3<T> Quaternions<T>::ToEulerAngles() const
+	{
+		return {
+			atan2(2 * (w * x + y * z),1 - 2 * (x * x + y * y)),
+			asin(2 * (w * y - z * x)),
+			atan2(2 * (w * z + x * y),1 - 2 * (y * y + z * z))
+		};
+	}
+
+	//转换为旋转矩阵
+	template<typename T>inline Mat4x4<T> Quaternions<T>::ToMat4() const
+	{
+		return {
+			1.f - 2.f * y * y - 2.f * z * z, 2.f * x * y - 2.f * z * w, 2.f * x * z + 2.f * y * w, 0.f,
+			2.f * x * y + 2.f * z * w, 1.f - 2.f * x * x - 2.f * z * z, 2.f * y * z - 2.f * x * w, 0.f,
+			2.f * x * z - 2.f * y * w, 2.f * y * z + 2.f * x * w, 1.f - 2.f * x * x - 2.f * y * y, 0.f,
+			0.f, 0.f, 0.f, 1.f
+		};
+	}
+
+	//转换为旋转矩阵
+	template<typename T>inline Mat3x3<T> Quaternions<T>::ToMat3() const
+	{
+		return {
+			1.f - 2.f * y * y - 2.f * z * z, 2.f * x * y - 2.f * z * w, 2.f * x * z + 2.f * y * w,
+			2.f * x * y + 2.f * z * w, 1.f - 2.f * x * x - 2.f * z * z, 2.f * y * z - 2.f * x * w,
+			2.f * x * z - 2.f * y * w, 2.f * y * z + 2.f * x * w, 1.f - 2.f * x * x - 2.f * y * y,
+		};
+	}
+
+	//乘四元数
+	template<typename T>inline Quaternions<T> Quaternions<T>::operator*(const Quaternions& rhs) const
 	{
 		return {
 			w * rhs.x + x * rhs.w + y * rhs.z - z * rhs.y,
@@ -686,31 +806,31 @@ namespace gmath
 	}
 
 	//归一化
-	template<typename T> Quaternions<T> Quaternions<T>::Normalize() const
+	template<typename T>inline Quaternions<T> Quaternions<T>::Normalize() const
 	{
 		auto len = x * x + y * y + z * z + w * w;
 		return { x / len,y / len,z / len,w / len };
 	}
 	//求逆
-	template<typename T> Quaternions<T> Quaternions<T>::Inverse() const
+	template<typename T>inline Quaternions<T> Quaternions<T>::Inverse() const
 	{
 		auto len = x * x + y * y + z * z + w * w;
 		len = len * len;
 		return { -x / len ,-y / len,-z / len,w / len };
 	}
 	//乘向量
-	template<typename T> Vec4<T> Quaternions<T>::operator*(const Vec4<T>& rhs) const
+	template<typename T>inline Vec4<T> Quaternions<T>::operator*(const Vec4<T>& rhs) const
 	{
 		auto ret = (*this) * Quaternions<T>{ rhs } *(this->Inverse());
 		return { ret.x,ret.y,ret.z,ret.w };
 	}
 	//线性插值
-	template<typename T> Quaternions<T> Quaternions<T>::Lerp(Quaternions rhs, float t) const
+	template<typename T>inline Quaternions<T> Quaternions<T>::Lerp(Quaternions rhs, float t) const
 	{
 		return { (1.f - t) * x + t * rhs.x,(1.f - t) * y + t * rhs.y,(1.f - t) * z + t * rhs.z,(1.f - t) * w + t * rhs.w };
 	}
 	//球面插值
-	template<typename T> Quaternions<T> Quaternions<T>::SLerp(Quaternions rhs, float t) const
+	template<typename T>inline Quaternions<T> Quaternions<T>::SLerp(Quaternions rhs, float t) const
 	{
 		auto len1 = sqrt(x * x + y * y + z * z + w * w);
 		auto len2 = sqrt(rhs.x * rhs.x + rhs.y * rhs.y + rhs.z * rhs.z + rhs.w * rhs.w);
