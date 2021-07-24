@@ -96,7 +96,7 @@ namespace core::pbr
 
 		Vec3 N = Vec3(0.0, 0.0, 1.0f);
 
-		const size_t SAMPLE_COUNT = 256u;
+		const size_t SAMPLE_COUNT = 1024u;
 		for (size_t i = 0u; i < SAMPLE_COUNT; ++i)
 		{
 			Vec2 Xi = Hammersley(i, SAMPLE_COUNT);
@@ -214,7 +214,7 @@ namespace core::pbr
 						Vec3 R = N;
 						Vec3 V = R;
 
-						const size_t SAMPLE_COUNT = 256;
+						const size_t SAMPLE_COUNT = 1024u;
 						float totalWeight = 0.0f;
 						Vec3 prefilteredColor = 0.0f;
 						for (size_t i = 0u; i < SAMPLE_COUNT; ++i)
@@ -282,7 +282,7 @@ namespace core::pbr
 					Vec3 right = up.Cross(normal);
 					up = normal.Cross(right);
 
-					float sampleDelta = 0.1f;
+					float sampleDelta = 0.05f;
 					float nrSamples = 0.0f;
 
 					Vec3 irradiance = {};

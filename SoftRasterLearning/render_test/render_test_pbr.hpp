@@ -70,7 +70,7 @@ struct Shader_PBR
 				Vec3 H = V + L;
 				H = H.Normalize();
 
-				float distance = (light->GetPosition() - v.position_ws).Length() * 0.1f;
+				float distance = (light->GetPosition() - v.position_ws).Length();
 				float attenuation = (light->GetLightCategory() == framework::ELightCategory::DirectionalLight) ? (1.0f) : (1.0f / (distance * distance));
 				Vec3 radiance = light->GetColor() * attenuation; //入射的radiance
 
@@ -147,29 +147,29 @@ public:
 		//创建光源
 		auto light0 = std::make_shared<framework::PointLight>();
 		light0->transform.position = { -8.f,16.f,-8.f };
-		light0->color = 2.f;
+		light0->color = 16.0f;
 		auto light1 = std::make_shared<framework::PointLight>();
 		light1->transform.position = { 16.f,16.f,8.f };
-		light1->color = 2.f;
+		light1->color = 16.0f;
 		auto light2 = std::make_shared<framework::PointLight>();
 		light2->transform.position = { 16.f,-10.f,8.f };
-		light2->color = 2.f;
+		light2->color = 16.0f;
 		auto light3 = std::make_shared<framework::DirectionalLight>();
 		light3->transform.position = { 8.f,16.f,16.f };
 		light3->dirction = { 0,0.5f,0.5f };
-		light3->color = 1.5f;
+		light3->color = 0.4f;
 
 		//创建8x8个球体，x轴roughness增大,y轴metallic增大
-		objects.reserve(60);
+		objects.reserve(32);
 		spheres.reserve(25);
-		for (size_t j = 0; j < 5; j++)
+		for (size_t j = 0; j < 3; j++)
 		{
-			for (size_t i = 0; i < 5; i++)
+			for (size_t i = 0; i < 7; i++)
 			{
 				auto material = std::make_shared<Material_PBR>();
 				material->albedo = { 0.91f,0.92f,0.92f };
-				material->metalness = i / 5.f;
-				material->roughness = j / 5.f;
+				material->metalness = j / 2.f;
+				material->roughness = i / 6.f;
 				material->IBL = &ibl;
 				auto sphere = Spawn<framework::MaterialEntity>();
 				sphere->transform.position = { i * 2.4f,j * 2.4f,0 };
@@ -186,7 +186,7 @@ public:
 		}
 
 		//创建摄像机
-		camera = std::make_shared<framework::TargetCamera>(spheres[2 + 2 * 5], 30.f, 0.f, 0.1f);
+		camera = std::make_shared<framework::TargetCamera>(spheres[3 + 1 * 7], 30.f, 0.f, 0.1f);
 		skybox = std::make_shared<framework::Skybox>();
 
 		//..
