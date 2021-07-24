@@ -116,8 +116,19 @@ namespace core
 		}
 	};
 
+	enum ERenderFlag
+	{
+		RF_CULL_FRONT = 1,
+		RF_CULL_BACK = 2,
+		RF_CULL_CVV_SIMPLE = 4,
+		RF_CULL_CVV_CLIP = 8,
+		RF_MULTI_THREAD = 16,
+		//...
+		RF_DEFAULT = RF_CULL_BACK | RF_CULL_CVV_CLIP | RF_MULTI_THREAD
+	};
+
 	//渲染器类
-	template<typename Shader = Shader_Default>
+	template<typename Shader = Shader_Default, size_t render_flag = RF_DEFAULT>
 	class Renderer
 	{
 	private:
@@ -159,33 +170,43 @@ namespace core
 
 		void DrawTriangle(attribute_t* p0, attribute_t* p1, attribute_t* p2)
 		{
-			//本地空间 => 裁剪空间 clip space
-			varying_t triangle[8] = {
-				{ shader.VS(*p0) },
-				{ shader.VS(*p1) },
-				{ shader.VS(*p2) }
-			};
-
-			//简单CVV剔除
-			//if (SimpleCull(triangle)) return;
-			//CVV剔除
-			if (CVVCull(triangle)) return;
-			//CVV裁剪
-			varying_t polygon[8] = {};
-			size_t len = CVVClip(triangle, polygon);
-
-			if (len < 3)
+			if constexpr (render_flag & RF_CULL_CVV_SIMPLE)
 			{
-				return;
+				//本地空间 => 裁剪空间 clip space
+				varying_t triangle[3] = {
+					{ shader.VS(*p0) },
+					{ shader.VS(*p1) },
+					{ shader.VS(*p2) }
+				};
+				//简单CVV剔除
+				if (SimpleCull(triangle)) return;
+				RasterizeTriangle(triangle, triangle + 1, triangle + 2);
 			}
+			else if constexpr (render_flag & RF_CULL_CVV_CLIP) {
+				//本地空间 => 裁剪空间 clip space
+				varying_t triangle[8] = {
+					{ shader.VS(*p0) },
+					{ shader.VS(*p1) },
+					{ shader.VS(*p2) }
+				};
+				//CVV剔除
+				if (CVVCull(triangle)) return;
+				//CVV裁剪
+				varying_t polygon[8] = {};
+				size_t len = CVVClip(triangle, polygon);
+				if (len < 3)
+				{
+					return;
+				}
 
-			//渲染第一个三角形
-			RasterizeTriangle(polygon, polygon + 1, polygon + 2);
+				//渲染第一个三角形
+				RasterizeTriangle(polygon, polygon + 1, polygon + 2);
 
-			//渲染后面的三角形
-			for (size_t i = 3; i < len; ++i)
-			{
-				RasterizeTriangle(polygon, polygon + i - 1, polygon + i);
+				//渲染后面的三角形
+				for (size_t i = 3; i < len; ++i)
+				{
+					RasterizeTriangle(polygon, polygon + i - 1, polygon + i);
+				}
 			}
 		}
 	protected:
@@ -203,10 +224,21 @@ namespace core
 			//转化为屏幕坐标 screen space
 			TransToScreenSpace(p, 3);
 
-			//剔除
-			if (IsBackface(p))
+			if constexpr (render_flag & RF_CULL_BACK)
 			{
-				return;
+				//剔除背面
+				if (IsBackface(p))
+				{
+					return;
+				}
+			}
+			if constexpr (render_flag & RF_CULL_FRONT)
+			{
+				//剔除前面
+				if (!IsBackface(p))
+				{
+					return;
+				}
 			}
 
 			//生成AABB包围盒
@@ -292,10 +324,20 @@ namespace core
 				int start = (int)x1 - 1;
 				int end = (int)x2 + 1;
 
-#pragma omp parallel for num_threads(4)
-				for (int x = start; x <= end; ++x)
+				if constexpr (render_flag & RF_MULTI_THREAD)
 				{
-					RasterizePixel(x, (int)y, p, p0, p1, p2);
+#pragma omp parallel for num_threads(4)
+					for (int x = start; x <= end; ++x)
+					{
+						RasterizePixel(x, (int)y, p, p0, p1, p2);
+					}
+				}
+				else
+				{
+					for (int x = start; x <= end; ++x)
+					{
+						RasterizePixel(x, (int)y, p, p0, p1, p2);
+					}
 				}
 			}
 		}

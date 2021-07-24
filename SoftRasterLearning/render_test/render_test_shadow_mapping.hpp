@@ -41,8 +41,8 @@ struct Shader_Shadow_Mapping
 		int s_u = gmath::utility::Clamp((int)shadow_uv.x, 0, 511);
 		int s_v = gmath::utility::Clamp((int)shadow_uv.y, 0, 511);
 		float depth0 = -shadow_map->Get(s_u, s_v);
-		float bias = ndl * 0.005f;
-		float depth = farg_pos_light_space.z - bias;
+		//float bias = ndl * 0.005f;
+		float depth = farg_pos_light_space.z;// -bias;
 		float shadow = depth < depth0 ? 1.0f : 0.03f;
 		return core::Vec4(final_color * shadow, 1.f);
 	}
@@ -167,7 +167,7 @@ public:
 			if (const auto* entity = dynamic_cast<framework::Entity*>(object.get()))
 			{
 				Shader_Shadow_Gen shader{};
-				core::Renderer<Shader_Shadow_Gen> renderer = { shadow_ctx, shader };
+				core::Renderer<Shader_Shadow_Gen, core::RF_DEFAULT & ~core::RF_CULL_BACK | core::RF_CULL_FRONT> renderer = { shadow_ctx, shader };
 				shader.mvp = light->GetLightMartrix() * entity->transform.GetModelMatrix();
 				renderer.DrawTriangles(&entity->model->mesh[0], entity->model->mesh.size());
 			}
