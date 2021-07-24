@@ -498,7 +498,7 @@ namespace gmath
 	}
 }
 
-//mat4x4 sse加速
+//mat3x3 sse加速
 namespace gmath
 {
 	inline Mat3x3<float>::Mat3x3(__m128 c1, __m128 c2, __m128 c3) :
@@ -601,24 +601,37 @@ namespace gmath
 			return *this;
 		}
 
-		//手算 A* / |A|（的转置）
+		//A* / |A|
+		//Mat3x3<float> _inverse = Mat3x3<float>{
+		//	//第一行
+		//	 (data[5] * data[10] - data[9] * data[6]) / det,
+		//	-(data[1] * data[10] - data[9] * data[2]) / det,
+		//	(data[1] * data[6] - data[5] * data[2]) / det,
+		//	//第二行
+		//	-(data[4] * data[10] - data[8] * data[6]) / det,
+		//	(data[0] * data[10] - data[8] * data[2]) / det,
+		//	-(data[0] * data[6] - data[4] * data[2]) / det,
+		//	//第三行
+		//	(data[4] * data[9] - data[8] * data[5]) / det,
+		//	-(data[0] * data[9] - data[8] * data[1]) / det,
+		//	(data[0] * data[5] - data[4] * data[1]) / det,
+		//};
+		//转置
+		//_inverse = _inverse.Transpose();
 		Mat3x3<float> _inverse = Mat3x3<float>{
 			//第一行
 			 (data[5] * data[10] - data[9] * data[6]) / det,
-			-(data[1] * data[10] - data[9] * data[2]) / det,
-			(data[1] * data[6] - data[5] * data[2]) / det,
-			//第二行
 			-(data[4] * data[10] - data[8] * data[6]) / det,
-			(data[0] * data[10] - data[8] * data[2]) / det,
-			-(data[0] * data[6] - data[4] * data[2]) / det,
-			//第三行
 			(data[4] * data[9] - data[8] * data[5]) / det,
+			//第二行
+			-(data[1] * data[10] - data[9] * data[2]) / det,
+			(data[0] * data[10] - data[8] * data[2]) / det,
 			-(data[0] * data[9] - data[8] * data[1]) / det,
+			//第三行
+			(data[1] * data[6] - data[5] * data[2]) / det,
+			-(data[0] * data[6] - data[4] * data[2]) / det,
 			(data[0] * data[5] - data[4] * data[1]) / det,
 		};
-
-		//转置
-		_inverse = _inverse.Transpose();
 
 		//矩阵中可能出现-0.0f，但不重要, 因为矩阵中的元素不会被除
 		return _inverse;
