@@ -32,7 +32,7 @@ namespace core
 				for (int x = 0; x < w; ++x)
 				{
 					//color = color.Sqrt();
-					screen_buffer_view.Set((size_t)x, y, TransFloat4colorToUint32color(back_buffer_view.Get(x, y).Sqrt()).color);
+					screen_buffer_view.Set((size_t)x, y, TransFloat4colorToUint32color(back_buffer_view.Get(x, y).Pow(1.f / gamma)).color);
 				}
 			}
 		}
