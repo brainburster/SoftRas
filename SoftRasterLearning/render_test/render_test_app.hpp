@@ -86,8 +86,8 @@ protected:
 		auto _right = loader::bmp::LoadFromFile(L".\\resource\\pictures\\cubemap\\right.bmp");
 		auto _top = loader::bmp::LoadFromFile(L".\\resource\\pictures\\cubemap\\top.bmp");
 		auto _bottom = loader::bmp::LoadFromFile(L".\\resource\\pictures\\cubemap\\bottom.bmp");
-
-		framework::SetResource(L"cube_map", std::make_shared<core::CubeMap>(_front, _back, _top, _bottom, _left, _right));
+		auto _cubemap = std::make_shared<core::CubeMap>(_front, _back, _top, _bottom, _left, _right);
+		framework::SetResource(L"cube_map", _cubemap);
 		framework::SetResource(L"sphere", _sphere);
 		framework::SetResource(L"box", _box);
 		framework::SetResource(L"tex0", _tex);
@@ -95,9 +95,7 @@ protected:
 		framework::SetResource(L"sunlight", _sunlight_icon);
 		framework::SetResource(L"bulblight", _bulblight_icon);
 
-		//预设了栈空间是连续的，debug模式下无法正常工作
-		//auto* env_tex = reinterpret_cast<decltype(_front)*>(&_front);
-		decltype(_front) env_tex[6] = { _front, _back, _left, _right, _top, _bottom };
+		auto* env_tex = reinterpret_cast<decltype(_front)*>(_cubemap.get());
 		for (size_t i = 0; i < 6; i++)
 		{
 			auto& data = env_tex[i]->GetData();

@@ -114,14 +114,17 @@ namespace framework
 
 		void OnMouseMove(const IRenderEngine& engine)
 		{
-			const auto& _input_state = engine.GetInputState();
-			const auto& _mouse_state = _input_state.mouse_state;
+			auto& _input_state = const_cast<framework::InputState&>(engine.GetInputState());
+			auto& _mouse_state = _input_state.mouse_state;
+			float delta_time = (float)engine.GetEngineState().delta_count;
 
 			if (_mouse_state.button[0] && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
 			{
 				using gmath::utility::Clamp;
-				AddYaw(_mouse_state.dx * camera_speed);
-				AddPitch(-_mouse_state.dy * camera_speed);
+				AddYaw(_mouse_state.dx * camera_speed * delta_time);
+				AddPitch(-_mouse_state.dy * camera_speed * delta_time);
+				_input_state.mouse_state.dx = 0;
+				_input_state.mouse_state.dy = 0;
 			}
 
 			Vec3 front = GetFront();
@@ -130,16 +133,23 @@ namespace framework
 
 			if ((_mouse_state.button[1] || _mouse_state.button[2]) && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
 			{
-				offset += camera_speed * right * (float)-_mouse_state.dx * distance * 0.005f;
-				offset += camera_speed * up * (float)_mouse_state.dy * distance * 0.005f;
+				offset += camera_speed * right * (float)-_mouse_state.dx * delta_time * distance * drag_speed;
+				offset += camera_speed * up * (float)_mouse_state.dy * delta_time * distance * drag_speed;
+				_input_state.mouse_state.dx = 0;
+				_input_state.mouse_state.dy = 0;
 			}
 		}
 
 		void OnMouseWheel(const IRenderEngine& engine)
 		{
-			const auto& _input_state = engine.GetInputState();
-			const auto& _mouse_state = _input_state.mouse_state;
-			AddDistance((float)_input_state.mouse_state.scroll * scroll_speed * distance * 0.01f);
+			auto& _input_state = const_cast<framework::InputState&>(engine.GetInputState());
+			auto& _mouse_state = _input_state.mouse_state;
+			float delta_time = (float)engine.GetEngineState().delta_count;
+			if (_input_state.mouse_state.scroll)
+			{
+				AddDistance((float)_input_state.mouse_state.scroll * delta_time * distance * scroll_speed);
+			}
+			_input_state.mouse_state.scroll = 0;
 		}
 
 		void HandleInput(const IRenderEngine& engine) override
@@ -148,16 +158,8 @@ namespace framework
 			const auto& _mouse_state = _input_state.mouse_state;
 			float delta = (float)engine.GetEngineState().delta_count;
 
-			//using gmath::Utility::Clamp;
-
-			//if (_mouse_state.button[0] && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
-			//{
-			//	using gmath::Utility::Clamp;
-			//	AddYaw(_mouse_state.dx * delta * camera_speed);
-			//	AddPitch(_mouse_state.dy * delta * camera_speed);
-			//}
-
-			//AddDistance((float)_input_state.mouse_state.scroll * delta * scroll_speed);
+			OnMouseMove(engine);
+			OnMouseWheel(engine);
 
 			if (_input_state.key['W'])
 			{
@@ -169,19 +171,19 @@ namespace framework
 			}
 			if (_input_state.key['A'])
 			{
-				AddYaw(-delta * move_speed * 10);
+				AddYaw(-delta * move_speed);
 			}
 			if (_input_state.key['D'])
 			{
-				AddYaw(delta * move_speed * 10);
+				AddYaw(delta * move_speed);
 			}
 			if (_input_state.key['Q'])
 			{
-				AddPitch(-delta * move_speed * 10);
+				AddPitch(-delta * move_speed);
 			}
 			if (_input_state.key['E'])
 			{
-				AddPitch(delta * move_speed * 10);
+				AddPitch(delta * move_speed);
 			}
 			if (_input_state.key_pressed['F'])
 			{
@@ -205,8 +207,9 @@ namespace framework
 		float _far;
 
 		//speed
-		float camera_speed = 0.5f;
-		float move_speed = 0.02f;
-		float scroll_speed = 0.05f;
+		float camera_speed = 0.035f;
+		float move_speed = 0.2f;
+		float scroll_speed = 0.00005f;
+		float drag_speed = 0.006f;
 	};
 }

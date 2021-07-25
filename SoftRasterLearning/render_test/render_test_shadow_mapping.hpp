@@ -135,12 +135,12 @@ public:
 		cube2->transform.scale = core::Vec3(15.f, 0.1f, 15.f);
 		auto cube3 = Spawn<framework::MaterialEntity>();
 		cube3->model = framework::GetResource<core::Model>(L"box").value();
-		cube3->transform.position = core::Vec4{ -1.f,0.0f,-1.f };
-		cube3->transform.scale = core::Vec3(1.f, 7.f, 1.f);
-		wall = Spawn<framework::MaterialEntity>();
+		cube3->transform.position = core::Vec4{ -1.f,0.5f,-1.f };
+		cube3->transform.scale = core::Vec3(1.f, 6.f, 1.f);
+		wall = std::make_shared<framework::MaterialEntity>();
 		wall->model = framework::GetResource<core::Model>(L"box").value();
-		wall->transform.position = core::Vec4{ 0.f,3.f,-14.f };
-		wall->transform.scale = 0;// core::Vec3(15.f, 8.f, 0.1f);
+		wall->transform.position = core::Vec4{ 0.f,3.f,-15.f };
+		wall->transform.scale = core::Vec3(15.f, 8.f, 0.1f);
 
 		cube->material = material;
 		cube2->material = material;
@@ -148,7 +148,7 @@ public:
 		wall->material = material;
 
 		//...
-		camera = std::make_shared<framework::TargetCamera>(cube3, 20.f, 0.f, -30.f);
+		camera = std::make_shared<framework::TargetCamera>(cube3, 30.f, 30.f, -45.f);
 		//
 		light_d = std::make_shared<framework::DirectionalLight>();
 		light_d->color = { 1.f,1.f,1.f };
@@ -175,13 +175,11 @@ public:
 			{
 				light = light_d;
 				material->light = light.get();
-				wall->transform.scale = 0;
 			}
 			else
 			{
 				light = light_p;
 				material->light = light.get();
-				wall->transform.scale = core::Vec3(15.f, 8.f, 0.1f);
 			}
 		}
 	}
@@ -235,7 +233,7 @@ public:
 			if (const auto* entity = dynamic_cast<framework::Entity*>(object.get()))
 			{
 				Shader_Shadow_Gen shader{};
-				constexpr size_t flag = core::RF_DEFAULT & ~core::RF_CULL_BACK | core::RF_CULL_FRONT & ~core::RF_ENABLE_SIMPLE_AA;
+				constexpr size_t flag = core::RF_DEFAULT & ~core::RF_CULL_BACK | core::RF_CULL_FRONT;
 				core::Renderer<Shader_Shadow_Gen, flag> renderer = { shadow_ctx, shader };
 				shader.mvp = light->GetLightMartrix() * entity->transform.GetModelMatrix();
 				renderer.DrawTriangles(&entity->model->mesh[0], entity->model->mesh.size());
@@ -243,8 +241,10 @@ public:
 		}
 
 		Scene::RenderFrame(engine);
+
 		if (light.get() == light_p.get())
 		{
+			wall->Render(engine);
 			light_p->Render(engine);
 		}
 		else

@@ -128,7 +128,7 @@ inline void Material_PBR::Render(const framework::Entity& entity, framework::IRe
 	shader.model = entity.transform.GetModelMatrix();
 	shader.cam_pos_ws = engine.GetMainCamera()->GetPosition();
 	//渲染
-	core::Renderer<Shader_PBR> renderer = { engine.GetCtx(), shader };
+	core::Renderer<Shader_PBR, core::RF_DEFAULT_AA> renderer = { engine.GetCtx(), shader };
 	renderer.DrawTriangles(&entity.model->mesh[0], entity.model->mesh.size());
 }
 
@@ -159,7 +159,7 @@ public:
 		light3->dirction = { 0,0.5f,0.5f };
 		light3->color = 0.4f;
 
-		//创建8x8个球体，x轴roughness增大,y轴metallic增大
+		//创建3x7个球体，x轴roughness增大,y轴metallic增大
 		objects.reserve(32);
 		spheres.reserve(25);
 		for (size_t j = 0; j < 3; j++)
@@ -197,7 +197,6 @@ public:
 		lights.push_back(light3);
 
 		//创建预计算环境光照贴图
-		//ibl.init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
 		std::thread t{ [&]() {
 			ibl.init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
 			skybox->cube_map = ibl.diffuse_map;//framework::GetResource<core::CubeMap>(L"cube_map").value();//ibl.diffuse_map;
@@ -258,13 +257,7 @@ public:
 
 		//画家算法对光源（透明物体进行排序）
 		std::sort(lights.begin(), lights.end(), [&](auto l1, auto l2) {
-			//简单排序，通过摄像机的距离
-			//auto c_p = camera->GetPosition();
-			//auto d1 = (l1->transform.position - c_p).Length();
-			//auto d2 = (l2->transform.position - c_p).Length();
-			//return d1 > d2;
-
-			//稍微复杂一点，转换到NDC空间
+			//转换到NDC空间
 			auto vp = camera->GetProjectionViewMatrix();
 			auto p1 = vp * l1->transform.position.ToHomoCoord();
 			auto p2 = vp * l2->transform.position.ToHomoCoord();

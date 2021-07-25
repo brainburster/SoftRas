@@ -97,8 +97,8 @@ namespace framework
 
 			while (!dc_wnd.app_should_close())
 			{
-				//dc_wnd.PeekMsg();
-				dc_wnd.GetMsg();
+				dc_wnd.PeekMsg();
+				//dc_wnd.GetMsg();
 				//...
 			}
 
@@ -134,7 +134,7 @@ namespace framework
 				track_mouse_event.hwndTrack = dc_wnd.Hwnd();
 				TrackMouseEvent(&track_mouse_event);
 
-				OnMouseMove();
+				//OnMouseMove();
 
 				return true;
 				});
@@ -176,7 +176,7 @@ namespace framework
 
 			dc_wnd.RegisterWndProc(WM_MOUSEWHEEL, [&](auto wParam, auto lParam) {
 				input_state.mouse_state.scroll = (short)HIWORD(wParam);
-				OnMouseWheel();
+				//OnMouseWheel();
 				return true;
 				});
 		}

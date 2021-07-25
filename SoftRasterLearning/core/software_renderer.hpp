@@ -127,7 +127,8 @@ namespace core
 		RF_ENABLE_BLEND = 64,
 		RF_ENABLE_DEPTH_TEST = 128,
 		//...
-		RF_DEFAULT = RF_CULL_BACK | RF_CULL_CVV_CLIP | RF_ENABLE_MULTI_THREAD | RF_ENABLE_BLEND | RF_ENABLE_DEPTH_TEST | RF_ENABLE_SIMPLE_AA
+		RF_DEFAULT = RF_CULL_BACK | RF_CULL_CVV_CLIP | RF_ENABLE_MULTI_THREAD | RF_ENABLE_BLEND | RF_ENABLE_DEPTH_TEST,// | RF_ENABLE_SIMPLE_AA
+		RF_DEFAULT_AA = RF_DEFAULT | RF_ENABLE_SIMPLE_AA
 	};
 
 	//渲染器类
@@ -284,11 +285,11 @@ namespace core
 				}
 			}
 			using gmath::utility::Clamp;
-			float y1 = Clamp(q[2].y, 1.f, context.back_buffer_view.h - 2.f);
-			float y2 = Clamp(q[0].y, 1.f, context.back_buffer_view.h - 2.f);
+			float y1 = Clamp(q[2].y, 1.f, context.back_buffer_view.h - 1.f);
+			float y2 = Clamp(q[0].y, 1.f, context.back_buffer_view.h - 1.f);
 
 			//从上到下扫描
-			for (float y = y2 + 1; y >= y1 - 1; --y)
+			for (float y = y2; y >= y1 - 1; --y)
 			{
 				//隔行扫描
 				//if (((size_t)y & 1) == context.interlaced_scanning_flag) continue;
@@ -324,8 +325,8 @@ namespace core
 					x1 = left;
 					x2 = right;
 				}
-				int start = (int)x1 - 1;
-				int end = (int)x2 + 1;
+				int start = (int)x1;
+				int end = (int)x2;
 
 				if constexpr (bool(render_flag & RF_ENABLE_MULTI_THREAD))
 				{
