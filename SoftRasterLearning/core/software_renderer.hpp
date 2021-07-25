@@ -39,7 +39,7 @@ namespace core
 
 		void Viewport(size_t w, size_t h, Color color = { 0,0,0,1 })
 		{
-			depth_buffer.resize(w * h, -inf);
+			depth_buffer.resize(w * h, inf);
 			back_buffer.resize(w * h, color);
 
 			back_buffer_view = { &back_buffer[0],w , h };
@@ -57,7 +57,7 @@ namespace core
 				for (size_t x = 0; x < w; ++x)
 				{
 					back_buffer[x + y * w] = color;
-					depth_buffer[x + y * w] = -inf;
+					depth_buffer[x + y * w] = inf;
 				}
 			}
 
@@ -122,9 +122,12 @@ namespace core
 		RF_CULL_BACK = 2,
 		RF_CULL_CVV_SIMPLE = 4,
 		RF_CULL_CVV_CLIP = 8,
-		RF_MULTI_THREAD = 16,
+		RF_ENABLE_MULTI_THREAD = 16,
+		RF_ENABLE_SIMPLE_AA = 32,
+		RF_ENABLE_BLEND = 64,
+		RF_ENABLE_DEPTH_TEST = 128,
 		//...
-		RF_DEFAULT = RF_CULL_BACK | RF_CULL_CVV_CLIP | RF_MULTI_THREAD
+		RF_DEFAULT = RF_CULL_BACK | RF_CULL_CVV_CLIP | RF_ENABLE_MULTI_THREAD | RF_ENABLE_BLEND | RF_ENABLE_DEPTH_TEST | RF_ENABLE_SIMPLE_AA
 	};
 
 	//渲染器类
@@ -324,27 +327,136 @@ namespace core
 				int start = (int)x1 - 1;
 				int end = (int)x2 + 1;
 
-				if constexpr (bool(render_flag & RF_MULTI_THREAD))
+				if constexpr (bool(render_flag & RF_ENABLE_MULTI_THREAD))
 				{
 #pragma omp parallel for num_threads(4)
 					for (int x = start; x <= end; ++x)
 					{
-						RasterizePixel(x, (int)y, p, p0, p1, p2);
+						PixelProcessing(x, (int)y, p, p0, p1, p2);
 					}
 				}
 				else
 				{
 					for (int x = start; x <= end; ++x)
 					{
-						RasterizePixel(x, (int)y, p, p0, p1, p2);
+						PixelProcessing(x, (int)y, p, p0, p1, p2);
 					}
 				}
 			}
 		}
 
-		void RasterizePixel(int x, int y, Vec2* triangle, varying_t* p0, varying_t* p1, varying_t* p2)
+		void PixelProcessing_AA(int x, int y, Vec2* triangle, varying_t* p0, varying_t* p1, varying_t* p2)
 		{
-			//取中心像素的重心坐标
+			//简易抗锯齿
+			float cover_count = 0;
+			constexpr size_t Mn = 2;
+			const Vec2 simpler[4] = { Vec2{-0.25f,0.25f},Vec2{0.25f,-0.25f} ,Vec2{0.25f,0.25f},Vec2{-0.25f,-0.25f}, };
+
+			//三角形边缘像素用此插值求颜色
+			Vec3 edge_weight = -1.f;
+			for (size_t i = 0; i < Mn; ++i)
+			{
+				for (size_t j = 0; j < Mn; ++j)
+				{
+					Vec3 temp = GetInterpolationWeight(
+						(float)x + 0.5f + simpler[i * Mn + j].x,
+						(float)y + 0.5f + simpler[i * Mn + j].y,
+						triangle);
+
+					if (temp.x > -epsilon && temp.y > -epsilon && temp.z > -epsilon)
+					{
+						++cover_count;
+						if (edge_weight.x < 0)
+						{
+							edge_weight = temp;
+						}
+					}
+				}
+			}
+
+			if (!cover_count)
+			{
+				return;
+			}
+
+			//取中心像素的中心坐标的三角形重心坐标, 用此插值进行深度测试
+			Vec3 weight = GetInterpolationWeight(x + 0.5f, y + 0.5f, triangle);
+
+			//对插值进行透视修复
+			weight.x /= p0->position.w;
+			weight.y /= p1->position.w;
+			weight.z /= p2->position.w;
+			weight /= (weight.x + weight.y + weight.z);
+
+			//求插值
+			Vec4 pos = p0->position * weight.x + p1->position * weight.y + p2->position * weight.z;
+			float depth = pos.z / pos.w;
+			float depth0 = context.depth_buffer_view.Get(x, y);
+
+			if (fabs(depth - depth0) < 0.0005f / pos.w)
+			{
+				cover_count = 1e8f;
+			}
+			else
+			{
+				//深度测试
+				if constexpr (bool(render_flag & RF_ENABLE_DEPTH_TEST))
+				{
+					if (depth > depth0)
+					{
+						return;
+					}
+				}
+			}
+
+			varying_t interp = {};
+			if (cover_count < Mn * Mn)
+			{
+				//对插值进行透视修复
+				edge_weight.x /= p0->position.w;
+				edge_weight.y /= p1->position.w;
+				edge_weight.z /= p2->position.w;
+				edge_weight /= (edge_weight.x + edge_weight.y + edge_weight.z);
+
+				interp = *p0 * edge_weight.x + *p1 * edge_weight.y + *p2 * edge_weight.z;
+			}
+			else
+			{
+				interp = *p0 * weight.x + *p1 * weight.y + *p2 * weight.z;
+			}
+
+			Color color = shader.FS(interp);
+			Color color0 = context.back_buffer_view.Get(x, y);
+
+			using gmath::utility::Lerp;
+			using gmath::utility::BlendColor;
+
+			if (cover_count < Mn * Mn)
+			{
+				float t = cover_count / (Mn * Mn);
+				//float a = color.a;
+				//color = Lerp(color0, color, t * t);
+				//color.a = a;
+				color.a = color.a * (t * t);
+			}
+
+			if constexpr (bool(render_flag & RF_ENABLE_BLEND))
+			{
+				//颜色混合
+				if (color.a < (1.f - epsilon))
+				{
+					color = BlendColor(color0, color);
+				}
+			}
+
+			//写入fragment_buffer
+			context.back_buffer_view.Set(x, y, color);
+			//写入depth_buffer
+			context.depth_buffer_view.Set(x, y, depth);
+		}
+
+		void PixelProcessing_NoAA(int x, int y, Vec2* triangle, varying_t* p0, varying_t* p1, varying_t* p2)
+		{
 			Vec3 weight = GetInterpolationWeight(x + 0.5f, y + 0.5f, triangle);
 
 			//判断是否在三角形内
@@ -361,32 +473,44 @@ namespace core
 
 			//求插值
 			varying_t interp = *p0 * weight.x + *p1 * weight.y + *p2 * weight.z;
-			float depth = -interp.position.z / interp.position.w;
-			float depth0 = context.depth_buffer_view.Get(x, y);
+			float depth = interp.position.z / interp.position.w;
 
 			//深度测试
-
-			if (depth < depth0)
+			if constexpr (bool(render_flag & RF_ENABLE_DEPTH_TEST))
 			{
-				return;
+				float depth0 = context.depth_buffer_view.Get(x, y);
+				if (depth > depth0)
+				{
+					return;
+				}
+				//写入depth_buffer
+				context.depth_buffer_view.Set(x, y, depth);
 			}
 
 			Color color = shader.FS(interp);
-			Color color0 = context.back_buffer_view.Get(x, y);
 
-			using gmath::utility::Lerp;
-			using gmath::utility::BlendColor;
-
-			//颜色混合
-			if (color.a < (1.f - epsilon))
+			if constexpr (bool(render_flag & RF_ENABLE_BLEND))
 			{
-				color = BlendColor(color0, color);
+				//颜色混合
+				if (color.a < (1.f - epsilon))
+				{
+					Color color0 = context.back_buffer_view.Get(x, y);
+					color = gmath::utility::BlendColor(color0, color);
+				}
 			}
-
 			//写入fragment_buffer
 			context.back_buffer_view.Set(x, y, color);
-			//写入depth_buffer
-			context.depth_buffer_view.Set(x, y, depth);
+		}
+		void PixelProcessing(int x, int y, Vec2* triangle, varying_t* p0, varying_t* p1, varying_t* p2)
+		{
+			if constexpr (bool(render_flag & RF_ENABLE_SIMPLE_AA))
+			{
+				PixelProcessing_AA(x, y, triangle, p0, p1, p2);
+			}
+			else
+			{
+				PixelProcessing_NoAA(x, y, triangle, p0, p1, p2);
+			}
 		}
 
 		bool SimpleCull(varying_t triangle[3])
