@@ -253,6 +253,23 @@ namespace gmath
 		return _mm_sub_ps(data_m128, _mm_mul_ps(_mm_mul_ps(_mm_dp_ps(data_m128, normal, 0x7f), normal), rhs_2));
 	}
 
+	__forceinline Quaternions<float> _vectorcall Vec3<float>::EularAngleToQuaternions() const noexcept
+	{
+		float sa = sin(x / 2);
+		float sb = sin(y / 2);
+		float sc = sin(z / 2);
+		float ca = cos(x / 2);
+		float cb = cos(y / 2);
+		float cc = cos(z / 2);
+
+		return {
+			sa * cb * cc - ca * sb * sc,
+			ca * sb * cc + sa * cb * sa,
+			ca * sb * cc + sa * cb * sc,
+			ca * cb * cc + sa * sb * sc
+		};
+	}
+
 	__forceinline Vec3<float> _vectorcall  Vec3<float>::operator-()const noexcept
 	{
 		__m128 neg1 = _mm_set_ps1(-1.f);

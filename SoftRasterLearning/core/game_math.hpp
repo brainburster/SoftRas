@@ -415,6 +415,7 @@ namespace gmath
 		Vec3 _vectorcall Pow(float rhs) const noexcept;
 		Vec3  _vectorcall Sqrt() const noexcept;
 		Vec3 _vectorcall Reflect(Vec3 normal) const noexcept;
+		Quaternions<float> _vectorcall EularAngleToQuaternions() const noexcept;
 
 		Vec3 _vectorcall operator-() const noexcept;
 		Vec3& _vectorcall operator+=(Vec3 rhs) noexcept;
