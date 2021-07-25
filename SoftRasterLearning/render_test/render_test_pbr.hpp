@@ -10,7 +10,7 @@
 class Material_PBR : public framework::IMaterial
 {
 public:
-	core::pbr::IBL* IBL = nullptr;
+	std::shared_ptr<core::pbr::IBL> ibl;
 	std::vector<std::shared_ptr<framework::ILight>> lights;
 	core::Vec3 albedo;
 	float metalness = 0;
@@ -45,7 +45,7 @@ struct Shader_PBR
 		Vec3 albedo = material->albedo;
 		float metalness = material->metalness;
 		float roughness = material->roughness;
-		auto IBL = material->IBL;
+		auto& IBL = material->ibl;
 		Vec3 N = v.normal_ws.Normalize(); //插值之后不一定是归一化的
 		Vec3 V = cam_pos_ws - v.position_ws;
 		float d_cam = V.Length();
@@ -139,8 +139,9 @@ private:
 	std::vector<std::shared_ptr<framework::Object>> lights;
 	std::shared_ptr<framework::TargetCamera> camera;
 	std::shared_ptr<framework::Skybox> skybox;
-	std::atomic_bool b_ibl_init_ok = false;
-	core::pbr::IBL ibl{};
+	std::shared_ptr<core::pbr::IBL> ibl;
+	bool b_show_light = true;
+	bool b_show_skybox = true;
 public:
 	void Init(framework::IRenderEngine& engine) override
 	{
@@ -170,7 +171,7 @@ public:
 				material->albedo = { 0.91f,0.92f,0.92f };
 				material->metalness = j / 2.f;
 				material->roughness = i / 6.f;
-				material->IBL = &ibl;
+				material->ibl = framework::GetResource<core::pbr::IBL>(L"env_map").value();
 				auto sphere = Spawn<framework::MaterialEntity>();
 				sphere->transform.position = { i * 2.4f,j * 2.4f,0 };
 				sphere->model = framework::GetResource<core::Model>(L"sphere").value();
@@ -188,21 +189,13 @@ public:
 		//创建摄像机
 		camera = std::make_shared<framework::TargetCamera>(spheres[3 + 1 * 7], 30.f, 0.f, 0.1f);
 		skybox = std::make_shared<framework::Skybox>();
-
+		skybox->cube_map = framework::GetResource<core::pbr::IBL>(L"env_map").value()->diffuse_map;
 		//..
 		lights.reserve(4);
 		lights.push_back(light0);
 		lights.push_back(light1);
 		lights.push_back(light2);
 		lights.push_back(light3);
-
-		//创建预计算环境光照贴图
-		std::thread t{ [&]() {
-			ibl.init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
-			skybox->cube_map = ibl.diffuse_map;//framework::GetResource<core::CubeMap>(L"cube_map").value();//ibl.diffuse_map;
-			b_ibl_init_ok = true;
-		} };
-		t.detach();
 	}
 
 	void HandleInput(const framework::IRenderEngine& engine) override
@@ -214,15 +207,41 @@ public:
 			{
 				auto* material = static_cast<Material_PBR*>(sphere->material.get());
 				material->b_enable_light = !material->b_enable_light;
+				b_show_light = !b_show_light;
 			}
 		}
-		if (engine.GetInputState().key_pressed['I'])
+		if (engine.GetInputState().key_pressed['I'] || engine.GetInputState().key_pressed['B'])
 		{
 			for (auto& sphere : spheres)
 			{
 				auto* material = static_cast<Material_PBR*>(sphere->material.get());
 				material->b_enable_ibl = !material->b_enable_ibl;
+				b_show_skybox = !b_show_skybox;
 			}
+		}
+		if (engine.GetInputState().key_pressed['1'])
+		{
+			skybox->cube_map = framework::GetResource<core::pbr::IBL>(L"env_map").value()->diffuse_map;
+		}
+		else if (engine.GetInputState().key_pressed['2'])
+		{
+			skybox->cube_map = framework::GetResource<core::pbr::IBL>(L"env_map").value()->specular_maps[0];
+		}
+		else if (engine.GetInputState().key_pressed['3'])
+		{
+			skybox->cube_map = framework::GetResource<core::pbr::IBL>(L"env_map").value()->specular_maps[1];
+		}
+		else if (engine.GetInputState().key_pressed['4'])
+		{
+			skybox->cube_map = framework::GetResource<core::pbr::IBL>(L"env_map").value()->specular_maps[2];
+		}
+		else if (engine.GetInputState().key_pressed['5'])
+		{
+			skybox->cube_map = framework::GetResource<core::pbr::IBL>(L"env_map").value()->specular_maps[3];
+		}
+		else if (engine.GetInputState().key_pressed[VK_OEM_3])
+		{
+			skybox->cube_map = framework::GetResource<core::CubeMap>(L"cube_map").value();
 		}
 	}
 
@@ -250,23 +269,26 @@ public:
 	{
 		Scene::RenderFrame(engine);
 
-		if (b_ibl_init_ok)
+		if (b_show_skybox)
 		{
 			skybox->Render(engine);
 		}
 
-		//画家算法对光源（透明物体进行排序）
-		std::sort(lights.begin(), lights.end(), [&](auto l1, auto l2) {
-			//转换到NDC空间
-			auto vp = camera->GetProjectionViewMatrix();
-			auto p1 = vp * l1->transform.position.ToHomoCoord();
-			auto p2 = vp * l2->transform.position.ToHomoCoord();
-			return p1.z / p1.w > p2.z / p2.w;
-			});
-
-		for (auto& light : lights)
+		if (b_show_light)
 		{
-			light->Render(engine);
+			//画家算法对光源（透明物体进行排序）
+			std::sort(lights.begin(), lights.end(), [&](auto l1, auto l2) {
+				//转换到NDC空间
+				auto vp = camera->GetProjectionViewMatrix();
+				auto p1 = vp * l1->transform.position.ToHomoCoord();
+				auto p2 = vp * l2->transform.position.ToHomoCoord();
+				return p1.z / p1.w > p2.z / p2.w;
+				});
+
+			for (auto& light : lights)
+			{
+				light->Render(engine);
+			}
 		}
 	}
 };

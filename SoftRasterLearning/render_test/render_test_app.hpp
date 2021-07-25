@@ -87,6 +87,9 @@ protected:
 		auto _top = loader::bmp::LoadFromFile(L".\\resource\\pictures\\cubemap\\top.bmp");
 		auto _bottom = loader::bmp::LoadFromFile(L".\\resource\\pictures\\cubemap\\bottom.bmp");
 		auto _cubemap = std::make_shared<core::CubeMap>(_front, _back, _top, _bottom, _left, _right);
+		auto _env_map = std::make_shared<core::pbr::IBL>();
+
+		framework::SetResource(L"env_map", _env_map);
 		framework::SetResource(L"cube_map", _cubemap);
 		framework::SetResource(L"sphere", _sphere);
 		framework::SetResource(L"box", _box);
@@ -100,14 +103,18 @@ protected:
 		{
 			auto& data = env_tex[i]->GetData();
 			std::transform(data.begin(), data.end(), data.begin(), [](core::Vec4 color) {
-				//提高动态范围，使ldr环境贴图能够作为ibl使用，不过原来的高亮度信息已经损失了，没办法复原了
-				//return (color.b > 0.92f) ? (color * 2.f).Pow(2.f) : color;
 				//使用sinh函数提亮
-				return core::Vec4{ _mm_sinh_ps(color * 2.6f) } / 2.6f; //应该可以把原来接近1的亮度提高到2.6, 而低亮度信息几乎不变
+				return core::Vec4{ _mm_sinh_ps(color * 3.6f) } / 3.6f; //应该可以把原来接近1的亮度提高到4, 而低亮度信息几乎不变
 				});
 		}
-		SoftRasterApp::Init();
 		//...
+		//创建预计算环境光照贴图
+		std::thread t{ [&]() {
+			_env_map->init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
+		} };
+		t.detach();
+		//...
+		SoftRasterApp::Init();
 		scene = std::make_shared<RenderTestScene>();
 	}
 };

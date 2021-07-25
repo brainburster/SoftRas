@@ -54,13 +54,19 @@ struct Shader_Shadow_Mapping
 
 		int s_u = gmath::utility::Clamp((int)shadow_uv.x, 0, 1023);
 		int s_v = gmath::utility::Clamp((int)shadow_uv.y, 0, 1023);
-		const float w_light = 10.f;
+		const float w_light = 20.f;
 
 		float d_blocker = shadow_map->Get(s_u, s_v);
 		float d_receiver = farg_pos_light_space.z;
+		if (light_vec.w > 0.1f)
+		{
+			//如果是点光源，透视投影导致深度被压缩，需要从NDC转换回世界坐标
+			d_blocker = 200.f / (1000.1f - d_blocker * (999.9f)); //这里提前知道了近远平面是0.1,1000
+			d_receiver = 200.f / (1000.1f - d_receiver * (999.9f));
+		}
 		float w_penumbra = (d_receiver - d_blocker) * w_light / d_blocker;
-		int core_size = gmath::utility::Clamp((int)w_penumbra, 0, 7);
-		//float bias = max(0.05f * (1.0f - ndl), 0.005f);
+		int core_size = gmath::utility::Clamp((int)w_penumbra, 0, 20);
+
 		for (int j = -core_size / 2; j <= core_size / 2; ++j)
 		{
 			for (int i = -core_size / 2; i <= core_size / 2; ++i)
@@ -69,7 +75,7 @@ struct Shader_Shadow_Mapping
 				int s_v = gmath::utility::Clamp((int)shadow_uv.y + j, 0, 1023);
 				float depth0 = shadow_map->Get(s_u, s_v);
 				float depth = farg_pos_light_space.z;
-				shadow += depth < depth0 ? 1.0f : 0.0f;
+				shadow += depth < depth0 ? 1.0f : 0.f;
 			}
 		}
 
@@ -78,7 +84,7 @@ struct Shader_Shadow_Mapping
 			shadow /= core_size * core_size;
 		}
 		//shadow = d_blocker > d_receiver ? 1.0f : 0.0f;
-		return core::Vec4(final_color * shadow, 1.f);
+		return core::Vec4(final_color * shadow + 0.03f, 1.f);
 	}
 };
 
@@ -87,7 +93,7 @@ class Material_Shadow_Mapping : public framework::IMaterial
 public:
 	std::shared_ptr<core::Texture> tex0;
 	core::Buffer2DView<float>* shadow_map = nullptr;
-	framework::ILight* light;
+	framework::ILight* light = nullptr;
 
 	void Render(const framework::Entity& entity, framework::IRenderEngine& engine) override
 	{
@@ -161,7 +167,7 @@ public:
 		light_p->transform.position = { 0.f,8.f,4.f };
 
 		shadow_ctx.Viewport(1024, 1024);
-		light = light_d;
+		light = light_p;
 		material->shadow_map = &shadow_ctx.depth_buffer_view;
 		material->light = light.get();
 	}
