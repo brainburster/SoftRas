@@ -28,7 +28,7 @@ namespace framework
 
 		virtual Vec3 GetDirection() const
 		{
-			return { 0.f };
+			return Vec3(transform.rotation.EularAngleToQuaternions() * Vec4 { 0.f, 0.f, -1.f, 0.f }).Normalize();
 		}
 
 		virtual float GetCutOff() const
@@ -38,8 +38,11 @@ namespace framework
 
 		virtual Mat4 GetLightMartrix() const
 		{
-			//点光源的光照矩阵需要计算6个面的，不太想在软光栅里做，以后再说吧
-			return {};
+			using namespace gmath::utility;
+			Vec3 front = GetDirection();
+			Vec3 right = front.Cross({ 0,1,0 });
+			Vec3 up = right.Cross(front);
+			return Projection(90.f, 1.f, 0.1f, 1000.f) * View(transform.position, front, up);
 		}
 
 		virtual void Render(framework::IRenderEngine& engine) const override
