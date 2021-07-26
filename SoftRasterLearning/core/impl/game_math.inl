@@ -3,17 +3,17 @@
 //vec4 sse加速
 namespace gmath
 {
-	inline Vec4<float>::Vec4(float v) : x{ v }, y{ v }, z{ v }, w{ v }{}
+	constexpr Vec4<float>::Vec4(float v) : x{ v }, y{ v }, z{ v }, w{ v }{}
 
-	inline Vec4<float>::Vec4(float x, float y, float z, float w) : x{ x }, y{ y }, z{ z }, w{ w }{}
+	constexpr Vec4<float>::Vec4(float x, float y, float z, float w) : x{ x }, y{ y }, z{ z }, w{ w }{}
 
-	inline Vec4<float>::Vec4(const Vec2<float>& vec2, float z, float w) : x{ vec2.x }, y{ vec2.y }, z{ z }, w{ w }{}
+	constexpr Vec4<float>::Vec4(const Vec2<float>& vec2, float z, float w) : x{ vec2.x }, y{ vec2.y }, z{ z }, w{ w }{}
 
-	inline Vec4<float>::Vec4(Vec3<float> vec3, float w) : x{ vec3.x }, y{ vec3.y }, z{ vec3.z }, w{ w }{}
+	constexpr Vec4<float>::Vec4(Vec3<float> vec3, float w) : x{ vec3.x }, y{ vec3.y }, z{ vec3.z }, w{ w }{}
 
-	inline Vec4<float>::Vec4(__m128 data) : data_m128{ data } {}
+	constexpr Vec4<float>::Vec4(__m128 data) : data_m128{ data } {}
 
-	inline Vec4<float>::operator __m128() const noexcept
+	constexpr Vec4<float>::operator __m128() const noexcept
 	{
 		return data_m128;
 	}
@@ -174,22 +174,22 @@ namespace gmath
 //vec3 sse加速
 namespace gmath
 {
-	inline Vec3<float>::Vec3(float v) :x{ v }, y{ v }, z{ v }, _w{ 0 }{}
-	inline Vec3<float>::Vec3(float x, float y, float z) : x{ x }, y{ y }, z{ z }, _w{ 0 }{}
-	inline Vec3<float>::Vec3(Vec4<float> vec4) :
+	constexpr Vec3<float>::Vec3(float v) :x{ v }, y{ v }, z{ v }, _w{ 0 }{}
+	constexpr Vec3<float>::Vec3(float x, float y, float z) : x{ x }, y{ y }, z{ z }, _w{ 0 }{}
+	constexpr Vec3<float>::Vec3(Vec4<float> vec4) :
 		x{ vec4.x },
 		y{ vec4.y },
 		z{ vec4.z },
 		_w{ 0 }{};
-	inline Vec3<float>::Vec3(Vec2<float> vec2, float z) :
+	constexpr Vec3<float>::Vec3(Vec2<float> vec2, float z) :
 		x{ vec2.x },
 		y{ vec2.y },
 		z{ z },
 		_w{ 0 }
 	{}
-	inline Vec3<float>::Vec3(__m128 data) : data_m128{ data } {/* _w = 0; */ }
+	constexpr Vec3<float>::Vec3(__m128 data) : data_m128{ data } {/* _w = 0; */ }
 
-	inline Vec3<float>::operator __m128() const noexcept
+	constexpr Vec3<float>::operator __m128() const noexcept
 	{
 		return data_m128;
 	}
@@ -405,7 +405,9 @@ namespace gmath
 //mat4x4 sse加速
 namespace gmath
 {
-	inline Mat4x4<float>::Mat4x4(float _0, float _1, float _2, float _3, float _4, float _5, float _6, float _7, float _8, float _9, float _10, float _11, float _12, float _13, float _14, float _15) :
+	constexpr Mat4x4<float>::Mat4x4() :data{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 } {}
+
+	constexpr Mat4x4<float>::Mat4x4(float _0, float _1, float _2, float _3, float _4, float _5, float _6, float _7, float _8, float _9, float _10, float _11, float _12, float _13, float _14, float _15) :
 		data{
 		_0,_4,_8,_12,
 		_1,_5,_9,_13,
@@ -414,7 +416,7 @@ namespace gmath
 	}
 	{}
 
-	inline Mat4x4<float>::Mat4x4(__m128 c1, __m128 c2, __m128 c3, __m128 c4) :
+	constexpr Mat4x4<float>::Mat4x4(__m128 c1, __m128 c2, __m128 c3, __m128 c4) :
 		column{ c1,c2,c3,c4 }
 	{
 	}
@@ -518,11 +520,12 @@ namespace gmath
 //mat3x3 sse加速
 namespace gmath
 {
-	inline Mat3x3<float>::Mat3x3(__m128 c1, __m128 c2, __m128 c3) :
+	constexpr Mat3x3<float>::Mat3x3() : data{ 1,0,0,0,0,1,0,0,0,0,1,0 } {};
+	constexpr Mat3x3<float>::Mat3x3(__m128 c1, __m128 c2, __m128 c3) :
 		column{ c1,c2,c3 }
 	{
 	}
-	inline Mat3x3<float>::Mat3x3(float a, float b, float c, float d, float e, float f, float g, float h, float i) :
+	constexpr Mat3x3<float>::Mat3x3(float a, float b, float c, float d, float e, float f, float g, float h, float i) :
 		data{
 		a,d,g,0,
 		b,e,h,0,
@@ -608,33 +611,16 @@ namespace gmath
 	//求逆
 	inline Mat3x3<float> Mat3x3<float>::Inverse() const
 	{
-		//暂时不用sse改造, 因为基本只在顶点着色器使用
+		//暂时不用sse改造, 因为效率不一定会高
 		float det = data[0] * data[5] * data[10] + data[4] * data[9] * data[2] + data[8] * data[1] * data[6] -
 			data[2] * data[5] * data[8] - data[6] * data[9] * data[0] - data[10] * data[1] * data[4];
 
-		if (fabs(det) <= 1e-20)
+		if (fabs(det) <= 0)
 		{
-			//不可求逆,返回自身
 			return *this;
 		}
 
 		//A* / |A|
-		//Mat3x3<float> _inverse = Mat3x3<float>{
-		//	//第一行
-		//	 (data[5] * data[10] - data[9] * data[6]) / det,
-		//	-(data[1] * data[10] - data[9] * data[2]) / det,
-		//	(data[1] * data[6] - data[5] * data[2]) / det,
-		//	//第二行
-		//	-(data[4] * data[10] - data[8] * data[6]) / det,
-		//	(data[0] * data[10] - data[8] * data[2]) / det,
-		//	-(data[0] * data[6] - data[4] * data[2]) / det,
-		//	//第三行
-		//	(data[4] * data[9] - data[8] * data[5]) / det,
-		//	-(data[0] * data[9] - data[8] * data[1]) / det,
-		//	(data[0] * data[5] - data[4] * data[1]) / det,
-		//};
-		//转置
-		//_inverse = _inverse.Transpose();
 		Mat3x3<float> _inverse = Mat3x3<float>{
 			//第一行
 			 (data[5] * data[10] - data[9] * data[6]) / det,
@@ -650,7 +636,6 @@ namespace gmath
 			(data[0] * data[5] - data[4] * data[1]) / det,
 		};
 
-		//矩阵中可能出现-0.0f，但不重要, 因为矩阵中的元素不会被除
 		return _inverse;
 	}
 
@@ -668,16 +653,17 @@ namespace gmath
 //四元数 部分sse加速
 namespace gmath
 {
-	inline Quaternions<float>::Quaternions() :x{ 0 }, y{ 0 }, z{ 0 }, w{ 1 } {}
-	inline Quaternions<float>::Quaternions(Vec4<float> vec4) : data_m128(vec4.data_m128) {}
+	constexpr Quaternions<float>::Quaternions() :x{ 0 }, y{ 0 }, z{ 0 }, w{ 1 } {}
+	constexpr Quaternions<float>::Quaternions(Vec4<float> vec4) : data_m128(vec4.data_m128) {}
 	inline Quaternions<float>::Quaternions(Vec3<float> vec3) : data_m128(_mm_and_ps(vec3.data_m128, vec3.mask3.mask)) {}
 	inline Quaternions<float>::Quaternions(Vec3<float> a, float r) : x{ a.x * sin(r / 2) }, y{ a.y * sin(r / 2) }, z{ a.z * sin(r / 2) }, w{ cos(r / 2) }{}
-	inline Quaternions<float>::Quaternions(float x, float y, float z, float w) : x{ x }, y{ y }, z{ z }, w{ w } {}
-	inline Quaternions<float>::Quaternions(__m128 data) : data_m128{ data } {}
-	inline Quaternions<float>::operator __m128() const noexcept
+	constexpr Quaternions<float>::Quaternions(float x, float y, float z, float w) : x{ x }, y{ y }, z{ z }, w{ w } {}
+	constexpr Quaternions<float>::Quaternions(__m128 data) : data_m128{ data } {}
+	constexpr Quaternions<float>::operator __m128() const noexcept
 	{
 		return data_m128;
 	}
+
 	//转换为欧拉角
 	inline Vec3<float> Quaternions<float>::ToEulerAngles() const
 	{
@@ -712,7 +698,6 @@ namespace gmath
 	//乘四元数
 	inline Quaternions<float>  __vectorcall Quaternions<float>::operator*(Quaternions rhs) const
 	{
-		//貌似是负优化
 		__m128 xxxx = _mm_shuffle_ps(data_m128, data_m128, _MM_SHUFFLE(0, 0, 0, 0));
 		__m128 yyyy = _mm_shuffle_ps(data_m128, data_m128, _MM_SHUFFLE(1, 1, 1, 1));
 		__m128 zzzz = _mm_shuffle_ps(data_m128, data_m128, _MM_SHUFFLE(2, 2, 2, 2));
@@ -788,11 +773,11 @@ namespace gmath
 //四元数
 namespace gmath
 {
-	template<typename T>inline Quaternions<T>::Quaternions() :x{ 0 }, y{ 0 }, z{ 0 }, w{ 1 } {}
-	template<typename T>inline Quaternions<T>::Quaternions(Vec4<T> vec4) : x{ vec4.x }, y{ vec4.y }, z{ vec4.z }, w{ vec4.w }{}
-	template<typename T> Quaternions<T>::Quaternions(Vec3<T> vec3) : x{ vec3.x }, y{ vec3.y }, z{ vec3.z }, w{ 0 }{}
-	template<typename T>inline Quaternions<T>::Quaternions(Vec3<T> a, float r) : x{ a.x * sin(r / 2) }, y{ a.y * sin(r / 2) }, z{ a.z * sin(r / 2) }, w{ cos(r / 2) }{}
-	template<typename T>inline Quaternions<T>::Quaternions(float x, float y, float z, float w) : x{ x }, y{ y }, z{ z }, w{ w } {}
+	template<typename T> inline Quaternions<T>::Quaternions() :x{ 0 }, y{ 0 }, z{ 0 }, w{ 1 } {}
+	template<typename T> inline Quaternions<T>::Quaternions(Vec4<T> vec4) : x{ vec4.x }, y{ vec4.y }, z{ vec4.z }, w{ vec4.w }{}
+	template<typename T> inline Quaternions<T>::Quaternions(Vec3<T> vec3) : x{ vec3.x }, y{ vec3.y }, z{ vec3.z }, w{ 0 }{}
+	template<typename T> inline Quaternions<T>::Quaternions(Vec3<T> a, float r) : x{ a.x * sin(r / 2) }, y{ a.y * sin(r / 2) }, z{ a.z * sin(r / 2) }, w{ cos(r / 2) }{}
+	template<typename T> inline Quaternions<T>::Quaternions(float x, float y, float z, float w) : x{ x }, y{ y }, z{ z }, w{ w } {}
 	//转换为欧拉角
 	template<typename T>inline Vec3<T> Quaternions<T>::ToEulerAngles() const
 	{
@@ -991,26 +976,26 @@ namespace gmath
 		return Vec3{ y * b.z - z * b.y,z * b.x - x * b.z,x * b.y - y * b.x };
 	}
 
-	template<typename T> T Vec3<T>::Length() const
+	template<typename T>inline T Vec3<T>::Length() const
 	{
 		return  pow(x * x + y * y + z * z, 0.5f);;
 	}
 
-	template<typename T> Vec3<T> Vec3<T>::Reflect(Vec3 normal) const
+	template<typename T>inline Vec3<T> Vec3<T>::Reflect(Vec3 normal) const
 	{
 		return *this - normal.Dot(*this) * 2.f * normal;
 	}
 
-	template<typename T> Vec3<T> Vec3<T>::Pow(T rhs) const
+	template<typename T>inline Vec3<T> Vec3<T>::Pow(T rhs) const
 	{
 		return { pow(x, rhs), pow(y, rhs), pow(z, rhs) };
 	}
-	template<typename T> Vec3<T> Vec3<T>::Sqrt() const
+	template<typename T>inline Vec3<T> Vec3<T>::Sqrt() const
 	{
 		return { sqrt(x), sqrt(y), sqrt(z) };
 	}
 
-	template<typename T> Quaternions<T> Vec3<T>::EularAngleToQuaternions() const
+	template<typename T>inline Quaternions<T> Vec3<T>::EularAngleToQuaternions() const
 	{
 		T sa = sin(x / 2);
 		T sb = sin(y / 2);
@@ -1091,8 +1076,8 @@ namespace gmath
 
 namespace gmath
 {
-	template<typename T> inline Vec2<T>::Vec2(T v) : x{ v }, y{ v } {}
-	template<typename T> inline Vec2<T>::Vec2(T x, T y) : x{ x }, y{ y } {}
+	template<typename T> constexpr Vec2<T>::Vec2(T v) : x{ v }, y{ v } {}
+	template<typename T> constexpr Vec2<T>::Vec2(T x, T y) : x{ x }, y{ y } {}
 	template<typename T> inline Vec2<T>::Vec2(const Vec4<T>& vec4) : x{ vec4.x }, y{ vec4.y }{}
 	template<typename T> inline Vec2<T>::Vec2(const Vec3<T>& vec3) : x{ vec3.x }, y{ vec3.y }{}
 
@@ -1138,7 +1123,7 @@ namespace gmath
 		return { lhs.x / rhs, lhs.y / rhs };
 	}
 
-	template<typename T>  Vec2<T> operator*(const  Vec2<T>& lhs, const  Vec2<T>& rhs)
+	template<typename T> inline Vec2<T> operator*(const  Vec2<T>& lhs, const  Vec2<T>& rhs)
 	{
 		return { lhs.x * rhs.x,lhs.y * rhs.y };
 	}

@@ -106,8 +106,8 @@ namespace gmath
 		T x;
 		T y;
 
-		Vec2(T v = 0);
-		Vec2(T x, T y);
+		constexpr Vec2(T v = 0);
+		constexpr Vec2(T x, T y);
 		Vec2(const Vec4<T>& vec4);
 		Vec2(const Vec3<T>& vec3);
 		Vec2(const Vec2& vec2) = default;
@@ -284,14 +284,14 @@ namespace gmath
 			__m128 data_m128;
 		};
 
-		Vec4(float v = 0);
-		Vec4(float x, float y, float z, float w = 1.f);
-		Vec4(const Vec2<float>& vec2, float z = 0, float w = 0);
-		Vec4(Vec3<float> vec3, float w = 0);
-		Vec4(const Vec4& vec4) = default;
+		constexpr Vec4(float v = 0);
+		constexpr Vec4(float x, float y, float z, float w = 1.f);
+		constexpr Vec4(const Vec2<float>& vec2, float z = 0, float w = 0);
+		constexpr Vec4(Vec3<float> vec3, float w = 0);
+		constexpr Vec4(const Vec4& vec4) = default;
 
-		Vec4(__m128 data);
-		operator __m128() const noexcept;
+		constexpr Vec4(__m128 data);
+		constexpr operator __m128() const noexcept;
 
 		Vec4 _vectorcall Pow(float rhs) const noexcept;
 		Vec4 _vectorcall Sqrt() const noexcept;
@@ -336,13 +336,13 @@ namespace gmath
 			__m128 data_m128;
 		};
 
-		Quaternions();
-		Quaternions(Vec4<float>);
+		constexpr Quaternions();
+		constexpr Quaternions(Vec4<float>);
 		Quaternions(Vec3<float>);
 		Quaternions(Vec3<float>, float);
-		Quaternions(float, float, float, float);
-		Quaternions(__m128 data);
-		operator __m128() const noexcept;
+		constexpr Quaternions(float, float, float, float);
+		constexpr Quaternions(__m128 data);
+		constexpr operator __m128() const noexcept;
 		//×ª»»ÎªÅ·À­½Ç
 		Vec3<float> ToEulerAngles() const;
 
@@ -399,13 +399,13 @@ namespace gmath
 			__m128 mask;
 		} mask3 = { {  0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000  } };
 
-		Vec3(float v = 0);
-		Vec3(float x, float y, float z);
-		Vec3(Vec4<float> vec4);
-		Vec3(Vec2<float> vec2, float z = 0);
-		Vec3(const Vec3<float>&) = default;
-		Vec3(__m128 data);
-		operator __m128() const noexcept;
+		constexpr Vec3(float v = 0);
+		constexpr Vec3(float x, float y, float z);
+		constexpr Vec3(Vec4<float> vec4);
+		constexpr Vec3(Vec2<float> vec2, float z = 0);
+		constexpr Vec3(const Vec3<float>&) = default;
+		constexpr Vec3(__m128 data);
+		constexpr operator __m128() const noexcept;
 
 		Vec4<float> ToHomoCoord() const noexcept;
 		Vec3 Normalize() const noexcept;
@@ -450,11 +450,11 @@ namespace gmath
 			__m128 column[4];
 		};
 		//ÐÞ¸ÄÎªÁÐ¾ØÕó
-		Mat4x4(float _0, float _1, float _2, float _3, float _4, float _5, float _6, float _7, float _8, float _9, float _10, float _11, float _12, float _13, float _14, float _15);
+		constexpr Mat4x4(float _0, float _1, float _2, float _3, float _4, float _5, float _6, float _7, float _8, float _9, float _10, float _11, float _12, float _13, float _14, float _15);
 
-		Mat4x4(__m128 c1, __m128 c2, __m128 c3, __m128 c4);
+		constexpr Mat4x4(__m128 c1, __m128 c2, __m128 c3, __m128 c4);
 
-		Mat4x4() = default;
+		constexpr Mat4x4();
 
 		//¾ØÕó³Ë·¨
 		Mat4x4<float> operator*(const Mat4x4<float>& rhs) const;
@@ -478,9 +478,9 @@ namespace gmath
 			__m128 column[3];
 		};
 
-		Mat3x3() = default;
-		Mat3x3(__m128, __m128, __m128);
-		Mat3x3(float a, float b, float c, float d, float e, float f, float g, float h, float i);
+		constexpr Mat3x3();
+		constexpr Mat3x3(__m128, __m128, __m128);
+		constexpr Mat3x3(float a, float b, float c, float d, float e, float f, float g, float h, float i);
 
 		//³Ë¾ØÕó
 		Mat3x3<float> operator*(const Mat3x3& rhs) const;
