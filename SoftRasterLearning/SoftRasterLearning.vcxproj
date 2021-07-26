@@ -163,6 +163,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="core\buffer_view.hpp" />
+    <ClInclude Include="core\context.hpp" />
     <ClInclude Include="core\core_api.hpp" />
     <ClInclude Include="core\cube_map.hpp" />
     <ClInclude Include="core\dc_wnd.hpp" />

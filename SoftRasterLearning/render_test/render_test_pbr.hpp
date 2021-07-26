@@ -128,7 +128,7 @@ inline void Material_PBR::Render(const framework::Entity& entity, framework::IRe
 	shader.model = entity.transform.GetModelMatrix();
 	shader.cam_pos_ws = engine.GetMainCamera()->GetPosition();
 	//‰÷»æ
-	core::Renderer<Shader_PBR, core::RF_DEFAULT_AA> renderer = { engine.GetCtx(), shader };
+	core::Renderer<Shader_PBR> renderer = { engine.GetCtx(), shader };
 	renderer.DrawTriangles(&entity.model->mesh[0], entity.model->mesh.size());
 }
 

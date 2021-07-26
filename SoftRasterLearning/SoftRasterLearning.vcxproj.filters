@@ -143,6 +143,9 @@
     <ClInclude Include="core\pbr.hpp">
       <Filter>头文件\core</Filter>
     </ClInclude>
+    <ClInclude Include="core\context.hpp">
+      <Filter>头文件\core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="core\impl\game_math.inl">

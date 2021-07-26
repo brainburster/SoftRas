@@ -64,12 +64,13 @@ struct Shader_Shadow_Mapping
 			d_blocker = 200.f / (1000.1f - d_blocker * (999.9f)); //这里提前知道了近远平面是0.1,1000
 			d_receiver = 200.f / (1000.1f - d_receiver * (999.9f));
 		}
-		float w_penumbra = (d_receiver - d_blocker) * w_light / d_blocker;
-		int core_size = gmath::utility::Clamp((int)w_penumbra, 0, 20);
 
-		for (int j = -core_size / 2; j <= core_size / 2; ++j)
+		float w_penumbra = (d_receiver - d_blocker) * w_light / d_blocker;
+		int kernal_size = gmath::utility::Clamp((int)w_penumbra, 0, 20);
+
+		for (int j = -kernal_size / 2; j <= kernal_size / 2; ++j)
 		{
-			for (int i = -core_size / 2; i <= core_size / 2; ++i)
+			for (int i = -kernal_size / 2; i <= kernal_size / 2; ++i)
 			{
 				int s_u = gmath::utility::Clamp((int)shadow_uv.x + i, 0, 1023);
 				int s_v = gmath::utility::Clamp((int)shadow_uv.y + j, 0, 1023);
@@ -79,12 +80,14 @@ struct Shader_Shadow_Mapping
 			}
 		}
 
-		if (core_size)
+		if (kernal_size)
 		{
-			shadow /= core_size * core_size;
+			shadow /= kernal_size * kernal_size;
+			shadow = min(shadow * 2.1f, 0.95f);
 		}
+		shadow += 0.03f;
 		//shadow = d_blocker > d_receiver ? 1.0f : 0.0f;
-		return core::Vec4(final_color * shadow + 0.03f, 1.f);
+		return core::Vec4(final_color * shadow, 1.f);
 	}
 };
 
@@ -98,7 +101,7 @@ public:
 	void Render(const framework::Entity& entity, framework::IRenderEngine& engine) override
 	{
 		Shader_Shadow_Mapping shader{};
-		core::Renderer<Shader_Shadow_Mapping> renderer = { engine.GetCtx(), shader };
+		core::Renderer<Shader_Shadow_Mapping, core::RF_DEFAULT_AA> renderer = { engine.GetCtx(), shader };
 		shader.tex0 = tex0.get();
 		shader.shadow_map = shadow_map;
 		shader.model = entity.transform.GetModelMatrix();
@@ -141,7 +144,7 @@ public:
 		cube2->transform.scale = core::Vec3(15.f, 0.1f, 15.f);
 		auto cube3 = Spawn<framework::MaterialEntity>();
 		cube3->model = framework::GetResource<core::Model>(L"box").value();
-		cube3->transform.position = core::Vec4{ -1.f,0.5f,-1.f };
+		cube3->transform.position = core::Vec4{ -1.f,1.f,-1.f };
 		cube3->transform.scale = core::Vec3(1.f, 6.f, 1.f);
 		wall = std::make_shared<framework::MaterialEntity>();
 		wall->model = framework::GetResource<core::Model>(L"box").value();
