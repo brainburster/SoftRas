@@ -1,104 +1,9 @@
 #pragma once
 
-#include "dc_wnd.hpp"
-#include "buffer_view.hpp"
-#include "game_math.hpp"
-#include "types_and_defs.hpp"
-#include "omp.h"
+#include "context.hpp"
 
 namespace core
 {
-	//渲染上下文
-	class Context
-	{
-	public:
-		Buffer2DView<Color> back_buffer_view;
-		Buffer2DView<float> depth_buffer_view;
-		//size_t interlaced_scanning_flag = 3;
-
-		void CopyToBuffer(Buffer2DView<uint32>& screen_buffer_view)
-		{
-			if (!back_buffer_view.buffer)
-			{
-				return;
-			}
-
-			auto w = screen_buffer_view.w;
-			auto h = screen_buffer_view.h;
-
-			for (size_t y = 0; y < h; ++y)
-			{
-#pragma omp parallel for num_threads(4)
-				for (int x = 0; x < w; ++x)
-				{
-					//color = color.Sqrt();
-					screen_buffer_view.Set((size_t)x, y, TransFloat4colorToUint32color(back_buffer_view.Get(x, y).Pow(1.f / gamma)).color);
-				}
-			}
-		}
-
-		void Viewport(size_t w, size_t h, Color color = { 0,0,0,1 })
-		{
-			depth_buffer.resize(w * h, inf);
-			back_buffer.resize(w * h, color);
-
-			back_buffer_view = { &back_buffer[0],w , h };
-			depth_buffer_view = { &depth_buffer[0],w , h };
-		}
-
-		void Clear(Color color = { 0,0,0,1 })
-		{
-			auto w = back_buffer_view.w;
-			auto h = back_buffer_view.h;
-
-			//for (size_t y = interlaced_scanning_flag; y < h; y += 2)
-			for (size_t y = 0; y < h; ++y)
-			{
-				for (size_t x = 0; x < w; ++x)
-				{
-					back_buffer[x + y * w] = color;
-					depth_buffer[x + y * w] = inf;
-				}
-			}
-
-			//interlaced_scanning_flag = (interlaced_scanning_flag + 1) & 1;
-		}
-
-		static Color32 TransFloat4colorToUint32color(const Color& color)
-		{
-			using gmath::utility::Clamp;
-			//交换r,b通道
-			return Color32{
-				(unsigned char)(Clamp(color.b) * 255),
-				(unsigned char)(Clamp(color.g) * 255),
-				(unsigned char)(Clamp(color.r) * 255),
-				(unsigned char)(Clamp(color.a) * 255)
-			};
-		}
-		Context() : back_buffer{}, depth_buffer{}, back_buffer_view{ nullptr }, depth_buffer_view{ nullptr }{};
-		Context(const Context&) = default;
-		Context& operator=(const Context&) noexcept = default;
-		Context(Context&& other) noexcept :
-			back_buffer{ std::move(other.back_buffer) },
-			depth_buffer{ std::move(other.depth_buffer) },
-			back_buffer_view{ std::move(other.back_buffer_view) },
-			depth_buffer_view{ std::move(other.depth_buffer_view) }
-		{}
-		Context& operator=(Context&& other) noexcept
-		{
-			if (this == &other) return *this;
-			back_buffer = std::move(other.back_buffer);
-			depth_buffer = std::move(other.depth_buffer);
-			back_buffer_view = std::move(other.back_buffer_view);
-			depth_buffer_view = std::move(other.depth_buffer_view);
-		}
-		//void SwapBackBuffer(std::vector<Color>& other) { std::swap(back_buffer, other); }
-		//void SwapDepthBuffer(std::vector<float>& other) { std::swap(depth_buffer, other); };
-	protected:
-		std::vector<Color> back_buffer;
-		std::vector<float> depth_buffer;
-	};
-
 	//默认着色器
 	class Shader_Default
 	{
@@ -127,7 +32,7 @@ namespace core
 		RF_ENABLE_BLEND = 64,
 		RF_ENABLE_DEPTH_TEST = 128,
 		//...
-		RF_DEFAULT = RF_CULL_BACK | RF_CULL_CVV_CLIP | RF_ENABLE_MULTI_THREAD | RF_ENABLE_BLEND | RF_ENABLE_DEPTH_TEST,// | RF_ENABLE_SIMPLE_AA
+		RF_DEFAULT = RF_CULL_BACK | RF_CULL_CVV_CLIP | RF_ENABLE_MULTI_THREAD | RF_ENABLE_BLEND | RF_ENABLE_DEPTH_TEST,
 		RF_DEFAULT_AA = RF_DEFAULT | RF_ENABLE_SIMPLE_AA
 	};
 
@@ -215,7 +120,6 @@ namespace core
 		}
 	protected:
 
-		//使用线扫描的方法
 		void RasterizeTriangle(varying_t* p0, varying_t* p1, varying_t* p2)
 		{
 			//获得ndc下的三角形三个顶点 (clip space => ndc)
@@ -350,48 +254,56 @@ namespace core
 		{
 			//简易抗锯齿
 			float cover_count = 0;
-			constexpr size_t Mn = 2;
-			const Vec2 simpler[4] = { Vec2{-0.25f,0.25f},Vec2{0.25f,-0.25f} ,Vec2{0.25f,0.25f},Vec2{-0.25f,-0.25f}, };
+			constexpr size_t Mn = 9;
 
-			//三角形边缘像素用此插值求颜色
-			Vec3 edge_weight = -1.f;
+			constexpr Vec2 simpler[9] = {
+				 Vec2{-.15f,.35f},Vec2{.35f,.15f},Vec2{.15f,-.35f},Vec2{-.35f,-.15f},
+				 Vec2{-.45f,.05f},Vec2{.05f,.45f},Vec2{.45f,-.05f},Vec2{-.05f,-.45f},
+				 Vec2{.0f,.0f}
+			};
+
+			constexpr float simpler_weight[9] = {
+				5,5,5,5,
+				4,4,4,4,
+				9
+			};
+
+			constexpr float simpler_weight_sum[9] = {
+				5,10,15,20,
+				24,28,32,36,
+				45
+			};
+
 			for (size_t i = 0; i < Mn; ++i)
 			{
-				for (size_t j = 0; j < Mn; ++j)
-				{
-					Vec3 temp = GetInterpolationWeight(
-						(float)x + 0.5f + simpler[i * Mn + j].x,
-						(float)y + 0.5f + simpler[i * Mn + j].y,
-						triangle);
+				Vec3 temp = GetInterpolationWeight(
+					(float)x + 0.5f + simpler[i].x,
+					(float)y + 0.5f + simpler[i].y,
+					triangle);
 
-					if (temp.x > -epsilon && temp.y > -epsilon && temp.z > -epsilon)
-					{
-						++cover_count;
-						if (edge_weight.x < 0)
-						{
-							edge_weight = temp;
-						}
-					}
+				if (temp.x > -epsilon && temp.y > -epsilon && temp.z > -epsilon)
+				{
+					cover_count += simpler_weight[i];
 				}
 			}
 
-			if (!cover_count)
+			if (cover_count < epsilon)
 			{
 				return;
 			}
 
-			//取中心像素的中心坐标的三角形重心坐标, 用此插值进行深度测试
+			//取中心像素的中心坐标的三角形重心坐标
 			Vec3 weight = GetInterpolationWeight(x + 0.5f, y + 0.5f, triangle);
 
-			//对插值进行透视修复
+			//对重心坐标进行透视修复
 			weight.x /= p0->position.w;
 			weight.y /= p1->position.w;
 			weight.z /= p2->position.w;
 			weight /= (weight.x + weight.y + weight.z);
 
-			//求插值
+			//求z轴插值
 			Vec4 pos = p0->position * weight.x + p1->position * weight.y + p2->position * weight.z;
-			float depth = pos.z / pos.w;
+			float depth = pos.z / pos.w; //储存归一化z值
 			float depth0 = context.depth_buffer_view.Get(x, y);
 
 			if (fabs(depth - depth0) < 0.0005f / pos.w)
@@ -410,35 +322,19 @@ namespace core
 				}
 			}
 
-			varying_t interp = {};
-			if (cover_count < Mn * Mn)
-			{
-				//对插值进行透视修复
-				edge_weight.x /= p0->position.w;
-				edge_weight.y /= p1->position.w;
-				edge_weight.z /= p2->position.w;
-				edge_weight /= (edge_weight.x + edge_weight.y + edge_weight.z);
-
-				interp = *p0 * edge_weight.x + *p1 * edge_weight.y + *p2 * edge_weight.z;
-			}
-			else
-			{
-				interp = *p0 * weight.x + *p1 * weight.y + *p2 * weight.z;
-			}
-
+			varying_t interp = *p0 * weight.x + *p1 * weight.y + *p2 * weight.z;
 			Color color = shader.FS(interp);
 			Color color0 = context.back_buffer_view.Get(x, y);
 
 			using gmath::utility::Lerp;
 			using gmath::utility::BlendColor;
 
-			if (cover_count < Mn * Mn)
+			if (cover_count < simpler_weight_sum[Mn - 1])
 			{
-				float t = cover_count / (Mn * Mn);
-				//float a = color.a;
-				//color = Lerp(color0, color, t * t);
-				//color.a = a;
-				color.a = color.a * (t * t);
+				float t = cover_count / simpler_weight_sum[Mn - 1];
+				float a = color.a;
+				color = Lerp(color0, color, t);
+				color.a = a;
 			}
 
 			if constexpr (bool(render_flag & RF_ENABLE_BLEND))
