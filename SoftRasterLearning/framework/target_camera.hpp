@@ -112,44 +112,29 @@ namespace framework
 			return pos;
 		}
 
-		void OnMouseMove(const IRenderEngine& engine)
+		virtual void OnMouseMotion(const struct MouseMotion& motion) override
 		{
-			auto& _input_state = const_cast<framework::InputState&>(engine.GetInputState());
-			auto& _mouse_state = _input_state.mouse_state;
-			float delta_time = (float)engine.GetEngineState().delta_count;
-
-			if (_mouse_state.button[0] && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
+			if (motion.MotionType == WM_MOUSEMOVE)
 			{
-				using gmath::utility::Clamp;
-				AddYaw(_mouse_state.dx * camera_speed * delta_time);
-				AddPitch(-_mouse_state.dy * camera_speed * delta_time);
-				_input_state.mouse_state.dx = 0;
-				_input_state.mouse_state.dy = 0;
+				if (motion.data.button[0] && abs(motion.data.dx) < 100 && abs(motion.data.dy) < 100)
+				{
+					using gmath::utility::Clamp;
+					AddYaw(motion.data.dx * camera_speed);
+					AddPitch(-motion.data.dy * camera_speed);
+				}
+				else if ((motion.data.button[1] || motion.data.button[2]) && abs(motion.data.dx) < 100 && abs(motion.data.dy) < 100)
+				{
+					Vec3 front = GetFront();
+					Vec3 right = GetRight();
+					Vec3 up = right.Cross(front).Normalize();
+					offset += camera_speed * right * (float)-motion.data.dx * distance * drag_speed;
+					offset += camera_speed * up * (float)motion.data.dy * distance * drag_speed;
+				}
 			}
-
-			Vec3 front = GetFront();
-			Vec3 right = front.Cross({ 0,1,0 }).Normalize();
-			Vec3 up = right.Cross(front).Normalize();
-
-			if ((_mouse_state.button[1] || _mouse_state.button[2]) && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
+			else if (motion.MotionType == WM_MOUSEWHEEL)
 			{
-				offset += camera_speed * right * (float)-_mouse_state.dx * delta_time * distance * drag_speed;
-				offset += camera_speed * up * (float)_mouse_state.dy * delta_time * distance * drag_speed;
-				_input_state.mouse_state.dx = 0;
-				_input_state.mouse_state.dy = 0;
+				AddDistance((float)motion.data.scroll * distance * scroll_speed);
 			}
-		}
-
-		void OnMouseWheel(const IRenderEngine& engine)
-		{
-			auto& _input_state = const_cast<framework::InputState&>(engine.GetInputState());
-			auto& _mouse_state = _input_state.mouse_state;
-			float delta_time = (float)engine.GetEngineState().delta_count;
-			if (_input_state.mouse_state.scroll)
-			{
-				AddDistance((float)_input_state.mouse_state.scroll * delta_time * distance * scroll_speed);
-			}
-			_input_state.mouse_state.scroll = 0;
 		}
 
 		void HandleInput(const IRenderEngine& engine) override
@@ -158,24 +143,21 @@ namespace framework
 			const auto& _mouse_state = _input_state.mouse_state;
 			float delta = (float)engine.GetEngineState().delta_count;
 
-			OnMouseMove(engine);
-			OnMouseWheel(engine);
-
 			if (_input_state.key['W'])
-			{
-				AddDistance(-move_speed * delta);
-			}
-			if (_input_state.key['S'])
 			{
 				AddDistance(move_speed * delta);
 			}
+			if (_input_state.key['S'])
+			{
+				AddDistance(-move_speed * delta);
+			}
 			if (_input_state.key['A'])
 			{
-				AddYaw(-delta * move_speed);
+				AddYaw(delta * move_speed);
 			}
 			if (_input_state.key['D'])
 			{
-				AddYaw(delta * move_speed);
+				AddYaw(-delta * move_speed);
 			}
 			if (_input_state.key['Q'])
 			{
@@ -191,6 +173,15 @@ namespace framework
 			}
 		}
 
+		void SetYaw(float yaw) { this->yaw = yaw; }
+		void SetPitch(float pitch) { this->pitch = pitch; };
+		void SetDistance(float distance) { this->distance = distance; };
+		void SetOffset(float offset) { this->offset = offset; };
+
+		float GetYaw() { return yaw; };
+		float GetPitch() { return pitch; };
+		float GetDistance() { return distance; };
+		Vec3 GetOffset() { return offset; };
 	private:
 		//view
 		//Vec3 position;
@@ -207,9 +198,9 @@ namespace framework
 		float _far;
 
 		//speed
-		float camera_speed = 0.035f;
+		float camera_speed = 0.35f;
 		float move_speed = 0.2f;
-		float scroll_speed = 0.00005f;
-		float drag_speed = 0.006f;
+		float scroll_speed = 0.002f;
+		float drag_speed = 0.01f;
 	};
 }

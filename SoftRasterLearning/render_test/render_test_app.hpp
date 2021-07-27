@@ -47,16 +47,6 @@ public:
 	{
 		return sub_scenes[sub_scene_id]->GetMainCamera();
 	}
-
-	virtual void OnMouseMove(const framework::IRenderEngine& engine) override
-	{
-		sub_scenes[sub_scene_id]->OnMouseMove(engine);
-	}
-
-	virtual void OnMouseWheel(const framework::IRenderEngine& engine) override
-	{
-		sub_scenes[sub_scene_id]->OnMouseWheel(engine);
-	}
 };
 
 class RenderTestApp final : public framework::SoftRasterApp

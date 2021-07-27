@@ -12,8 +12,6 @@ namespace framework
 		virtual void Init(IRenderEngine& engine) = 0;
 		virtual void Update(const IRenderEngine&) = 0;
 		virtual void HandleInput(const IRenderEngine&) = 0;
-		virtual void OnMouseMove(const IRenderEngine&) = 0;
-		virtual void OnMouseWheel(const IRenderEngine&) = 0;
 		virtual void RenderFrame(IRenderEngine&) = 0;
 		virtual const ICamera* GetMainCamera() const = 0;
 	};
@@ -51,8 +49,6 @@ namespace framework
 		virtual void Init(IRenderEngine& engine) override {};
 		virtual void Update(const IRenderEngine&) override {};
 		virtual void HandleInput(const IRenderEngine&) override {};
-		virtual void OnMouseMove(const IRenderEngine&) override {};
-		virtual void OnMouseWheel(const IRenderEngine&) override {};
 		virtual void RenderFrame(IRenderEngine& engine) override
 		{
 			for (auto& object : objects)

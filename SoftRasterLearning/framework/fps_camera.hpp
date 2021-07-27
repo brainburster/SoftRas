@@ -36,11 +36,6 @@ namespace framework
 		Vec3 GetFront() const override
 		{
 			using gmath::utility::radians;
-			//Vec3 front = {};
-			//front.x = cos(radians(yaw)) * cos(radians(pitch));
-			//front.y = sin(radians(pitch));
-			//front.z = sin(radians(yaw)) * cos(radians(pitch));
-			//return front;
 			core::Quat quat = { {0,1,0}, radians(-yaw) };
 			quat = quat * core::Quat{ {1,0,0}, radians(pitch) };
 			quat.Normalize();
@@ -93,7 +88,7 @@ namespace framework
 		{
 			using namespace gmath::utility;
 			Vec3 front = GetFront();
-			Vec3 right = front.Cross({ 0,1,0 });
+			Vec3 right = GetRight();
 			Vec3 up = right.Cross(front);
 			return View(position, front, up);
 		}
@@ -103,35 +98,21 @@ namespace framework
 			return position;
 		}
 
-		void OnMouseMove(const IRenderEngine& engine)
+		virtual void OnMouseMotion(const typename framework::MouseMotion& motion) override
 		{
-			const auto& _input_state = engine.GetInputState();
-			const auto& _mouse_state = _input_state.mouse_state;
-			float delta = (float)engine.GetEngineState().delta_count;
-
-			if (_mouse_state.button[0] && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
+			if (motion.MotionType == WM_MOUSEMOVE)
 			{
-				using gmath::utility::Clamp;
-				AddYaw(_mouse_state.dx * camera_speed);
-				AddPitch(-_mouse_state.dy * camera_speed);
+				if (motion.data.button[0] && abs(motion.data.dx) < 100 && abs(motion.data.dy) < 100)
+				{
+					using gmath::utility::Clamp;
+					AddYaw(motion.data.dx * camera_speed);
+					AddPitch(-motion.data.dy * camera_speed);
+				}
 			}
-
-			Vec3 front = GetFront();
-			Vec3 right = front.Cross({ 0,1,0 }).Normalize();
-			Vec3 up = right.Cross(front).Normalize();
-
-			if ((_mouse_state.button[1] || _mouse_state.button[2]) && abs(_mouse_state.dx) < 100 && abs(_mouse_state.dy) < 100)
+			else if (motion.MotionType == WM_MOUSEWHEEL)
 			{
-				AddPosition(move_speed * 0.1f * right * delta * (float)-_mouse_state.dx);
-				AddPosition(move_speed * 0.1f * up * delta * (float)_mouse_state.dy);
+				AddFovy((float)motion.data.scroll * scroll_speed);
 			}
-		}
-
-		void OnMouseWheel(const IRenderEngine& engine)
-		{
-			const auto& _input_state = engine.GetInputState();
-			const auto& _mouse_state = _input_state.mouse_state;
-			AddFovy((float)_input_state.mouse_state.scroll * scroll_speed);
 		}
 
 		void HandleInput(const IRenderEngine& engine) override
@@ -141,7 +122,7 @@ namespace framework
 			float delta = (float)engine.GetEngineState().delta_count;
 
 			Vec3 front = GetFront();
-			Vec3 right = front.Cross({ 0,1,0 }).Normalize();
+			Vec3 right = GetRight();
 			Vec3 up = right.Cross(front).Normalize();
 
 			if (_input_state.key['W'])
@@ -170,6 +151,10 @@ namespace framework
 			}
 		}
 
+		void SetYaw(float yaw) { this->yaw = yaw; }
+		void SetPitch(float pitch) { this->pitch = pitch; };
+		float GetYaw() { return yaw; };
+		float GetPitch() { return pitch; };
 	private:
 		//view
 		Vec3 position;

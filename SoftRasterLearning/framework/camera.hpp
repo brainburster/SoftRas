@@ -21,5 +21,6 @@ namespace framework
 		virtual Vec3 GetPosition() const = 0;
 
 		virtual void HandleInput(const class IRenderEngine& engine) = 0;
+		virtual void OnMouseMotion(const struct MouseMotion& motion) = 0;
 	};
 }

@@ -1,11 +1,13 @@
 #pragma once
 
+#include <thread>
+#include <mutex>
+#include <queue>
+
 #include "../core/dc_wnd.hpp"
 #include "../core/software_renderer.hpp"
 #include "scene.hpp"
 #include "render_engine.hpp"
-#include <thread>
-#include <mutex>
 
 namespace framework
 {
@@ -14,7 +16,7 @@ namespace framework
 	protected:
 		InputState input_state;
 		EngineState engine_state;
-
+		std::queue<MouseMotion, std::list<MouseMotion>> mouse_motions;
 		core::DC_WND dc_wnd;
 		core::Context ctx;
 		std::shared_ptr<IScene> scene;
@@ -135,6 +137,7 @@ namespace framework
 				TrackMouseEvent(&track_mouse_event);
 
 				//OnMouseMove();
+				mouse_motions.push({ WM_MOUSEMOVE,input_state.mouse_state });
 
 				return true;
 				});
@@ -176,6 +179,7 @@ namespace framework
 
 			dc_wnd.RegisterWndProc(WM_MOUSEWHEEL, [&](auto wParam, auto lParam) {
 				input_state.mouse_state.scroll = (short)HIWORD(wParam);
+				mouse_motions.push({ WM_MOUSEWHEEL,input_state.mouse_state });
 				//OnMouseWheel();
 				return true;
 				});
@@ -229,6 +233,12 @@ namespace framework
 		virtual void HandleInput() override
 		{
 			TranslateInput();
+			while (mouse_motions.size())
+			{
+				auto& motion = mouse_motions.front();
+				const_cast<ICamera*>(GetMainCamera())->OnMouseMotion(motion);
+				mouse_motions.pop();
+			}
 			scene->HandleInput(*this);
 		}
 
@@ -242,16 +252,6 @@ namespace framework
 		//每帧结束后的清理工作
 		virtual void EndFrame() override
 		{
-		}
-
-		virtual void OnMouseMove() override
-		{
-			scene->OnMouseMove(*this);
-		}
-
-		virtual void OnMouseWheel() override
-		{
-			scene->OnMouseWheel(*this);
 		}
 	};
 }

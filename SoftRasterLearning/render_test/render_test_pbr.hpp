@@ -137,7 +137,9 @@ class Scene_Render_PBR : public framework::Scene
 private:
 	std::vector<std::shared_ptr<framework::MaterialEntity>> spheres;
 	std::vector<std::shared_ptr<framework::Object>> lights;
-	std::shared_ptr<framework::TargetCamera> camera;
+	std::shared_ptr<framework::ICamera> camera;
+	std::shared_ptr<framework::FPSCamera> fps_camera;
+	std::shared_ptr<framework::TargetCamera> target_camera;
 	std::shared_ptr<framework::Skybox> skybox;
 	std::shared_ptr<core::pbr::IBL> ibl;
 	bool b_show_light = true;
@@ -187,7 +189,9 @@ public:
 		}
 
 		//´´½¨ÉãÏñ»ú
-		camera = std::make_shared<framework::TargetCamera>(spheres[3 + 1 * 7], 30.f, 0.f, 0.1f);
+		target_camera = std::make_shared<framework::TargetCamera>(spheres[3 + 1 * 7], 30.f, 0.f, 0.1f);
+		fps_camera = std::make_shared <framework::FPSCamera>();
+		camera = target_camera;
 		skybox = std::make_shared<framework::Skybox>();
 		skybox->cube_map = framework::GetResource<core::pbr::IBL>(L"env_map").value()->diffuse_map;
 		//..
@@ -243,6 +247,21 @@ public:
 		{
 			skybox->cube_map = framework::GetResource<core::CubeMap>(L"cube_map").value();
 		}
+		if (engine.GetInputState().key_pressed['P'] || engine.GetInputState().key_pressed['F'])
+		{
+			if (camera == target_camera)
+			{
+				fps_camera->SetPosition(target_camera->GetPosition());
+				fps_camera->SetYaw(target_camera->GetYaw());
+				fps_camera->SetPitch(target_camera->GetPitch());
+
+				camera = fps_camera;
+			}
+			else
+			{
+				camera = target_camera;
+			}
+		}
 	}
 
 	virtual const framework::ICamera* GetMainCamera() const override
@@ -253,16 +272,6 @@ public:
 	virtual void Update(const framework::IRenderEngine& engine) override
 	{
 		size_t count = engine.GetEngineState().frame_count;
-	}
-
-	virtual void OnMouseMove(const framework::IRenderEngine& engine) override
-	{
-		return camera->OnMouseMove(engine);
-	}
-
-	virtual void OnMouseWheel(const framework::IRenderEngine& engine) override
-	{
-		return camera->OnMouseWheel(engine);
 	}
 
 	virtual void RenderFrame(framework::IRenderEngine& engine)override

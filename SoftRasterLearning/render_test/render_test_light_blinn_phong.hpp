@@ -119,14 +119,4 @@ public:
 		size_t time = engine.GetEngineState().total_time;
 		light->transform.position = core::Vec3{ (sin(time / 500.f)) * 2, 0.f, (-cos(time / 500.f)) * 2 };
 	}
-
-	virtual void OnMouseMove(const framework::IRenderEngine& engine) override
-	{
-		return camera->OnMouseMove(engine);
-	}
-
-	virtual void OnMouseWheel(const framework::IRenderEngine& engine) override
-	{
-		return camera->OnMouseWheel(engine);
-	}
 };

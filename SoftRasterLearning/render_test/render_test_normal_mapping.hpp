@@ -156,14 +156,4 @@ public:
 	{
 		return camera.get();
 	}
-
-	virtual void OnMouseMove(const framework::IRenderEngine& engine) override
-	{
-		return camera->OnMouseMove(engine);
-	}
-
-	virtual void OnMouseWheel(const framework::IRenderEngine& engine) override
-	{
-		return camera->OnMouseWheel(engine);
-	}
 };

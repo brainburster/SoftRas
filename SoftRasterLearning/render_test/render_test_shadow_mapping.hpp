@@ -157,7 +157,7 @@ public:
 		wall->material = material;
 
 		//...
-		camera = std::make_shared<framework::TargetCamera>(cube3, 30.f, 30.f, -45.f);
+		camera = std::make_shared<framework::TargetCamera>(cube3, 50.f, 30.f, -45.f);
 		//
 		light_d = std::make_shared<framework::DirectionalLight>();
 		light_d->color = { 1.f,1.f,1.f };
@@ -196,16 +196,6 @@ public:
 	virtual const framework::ICamera* GetMainCamera() const override
 	{
 		return camera.get();
-	}
-
-	virtual void OnMouseMove(const framework::IRenderEngine& engine) override
-	{
-		return camera->OnMouseMove(engine);
-	}
-
-	virtual void OnMouseWheel(const framework::IRenderEngine& engine) override
-	{
-		return camera->OnMouseWheel(engine);
 	}
 
 	virtual void Update(const framework::IRenderEngine& engine) override
