@@ -145,11 +145,11 @@ namespace framework
 
 			if (_input_state.key['W'])
 			{
-				AddDistance(move_speed * delta);
+				AddDistance(-move_speed * delta);
 			}
 			if (_input_state.key['S'])
 			{
-				AddDistance(-move_speed * delta);
+				AddDistance(move_speed * delta);
 			}
 			if (_input_state.key['A'])
 			{

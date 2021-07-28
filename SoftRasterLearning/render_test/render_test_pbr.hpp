@@ -77,12 +77,12 @@ struct Shader_PBR
 				float NdotL = max(N.Dot(L), 0.0f);
 				float NdotH = max(N.Dot(H), 0.0f);
 
-				Vec3 F = pbr::GetF0(albedo, metalness);
-				F = pbr::FresnelSchlickRoughness(F, NdotV, roughness);
+				Vec3 F0 = pbr::GetF0(albedo, metalness);
+				Vec3 F = pbr::FresnelSchlickRoughness(F0, NdotV, roughness);
 				float D = pbr::DistributionGGX(NdotH, roughness);
 				float G = pbr::GeometrySmith(NdotV, NdotL, roughness);
 				Vec3 specular = pbr::SpecularCooKTorrance(D, F, G, NdotV, NdotL);
-				auto Ks = F;
+				auto Ks = pbr::FresnelSchlick(F0, NdotV);
 				Vec3 Kd = (Vec3(1.f) - Ks) * (1.f - metalness);
 				Lo += ((Kd * albedo) / core::pi + specular) * radiance * NdotL;
 			}
@@ -92,9 +92,9 @@ struct Shader_PBR
 		//计算环境光
 		if (IBL && material->b_enable_ibl)
 		{
-			Vec3 F = pbr::GetF0(albedo, metalness);
-			F = pbr::FresnelSchlickRoughness(F, NdotV, roughness);
-			Vec3 Ks = F;
+			Vec3 F0 = pbr::GetF0(albedo, metalness);
+			Vec3 F = pbr::FresnelSchlickRoughness(F0, NdotV, roughness);
+			Vec3 Ks = pbr::FresnelSchlick(F0, NdotV);
 			Vec3 Kd = 1.0f - Ks;
 			Kd *= 1.0f - metalness;
 			Vec3 irradiance = IBL->diffuse_map->Sample(N);

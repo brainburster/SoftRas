@@ -23,7 +23,7 @@ public:
 		varying.position = mvp * v.position.ToHomoCoord();
 		varying.position_ws = m * v.position.ToHomoCoord();
 		varying.uv = v.uv;
-		varying.normal_ws = m.ToMat3x3() * v.normal;
+		varying.normal_ws = (m.ToMat3x3() * v.normal).Normalize();
 		return varying;
 	}
 
