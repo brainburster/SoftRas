@@ -61,6 +61,7 @@ protected:
 
 	void Init() override
 	{
+		auto _bunny = loader::obj::LoadFromFile(L".\\resource\\models\\bunny.obj");
 		auto _sphere = loader::obj::LoadFromFile(L".\\resource\\models\\sphere.obj");
 		auto _box = loader::obj::LoadFromFile(L".\\resource\\models\\box.obj");
 
@@ -81,6 +82,7 @@ protected:
 
 		framework::SetResource(L"env_map", _env_map);
 		framework::SetResource(L"cube_map", _cubemap);
+		framework::SetResource(L"bunny", _bunny);
 		framework::SetResource(L"sphere", _sphere);
 		framework::SetResource(L"box", _box);
 		framework::SetResource(L"tex0", _tex);

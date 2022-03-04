@@ -146,6 +146,10 @@ public:
 		cube3->model = framework::GetResource<core::Model>(L"box").value();
 		cube3->transform.position = core::Vec4{ -1.f,1.f,-1.f };
 		cube3->transform.scale = core::Vec3(1.f, 6.f, 1.f);
+		auto bunny = Spawn<framework::MaterialEntity>();
+		bunny->model = framework::GetResource<core::Model>(L"bunny").value();
+		bunny->transform.position = core::Vec4{ 5.f,-6.f,-5.f };
+		bunny->transform.scale = core::Vec3(30.f, 30.f, 30.f);
 		wall = std::make_shared<framework::MaterialEntity>();
 		wall->model = framework::GetResource<core::Model>(L"box").value();
 		wall->transform.position = core::Vec4{ 0.f,3.f,-15.f };
@@ -154,6 +158,7 @@ public:
 		cube->material = material;
 		cube2->material = material;
 		cube3->material = material;
+		bunny->material = material;
 		wall->material = material;
 
 		//...
