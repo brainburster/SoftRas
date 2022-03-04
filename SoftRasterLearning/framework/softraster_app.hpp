@@ -111,19 +111,19 @@ namespace framework
 		//为windwos消息添加回调函数，调用一次
 		virtual void HookInput() override
 		{
-			dc_wnd.RegisterWndProc(WM_KEYDOWN, [&](auto wParam, auto lParam) {
+			dc_wnd.AddWndProc(WM_KEYDOWN, [&](auto wParam, auto lParam) {
 				unsigned char key_id = (unsigned char)LOWORD(wParam);
 				input_state.key[key_id] = true;
 				return true;
 				});
 
-			dc_wnd.RegisterWndProc(WM_KEYUP, [&](auto wParam, auto lParam) {
+			dc_wnd.AddWndProc(WM_KEYUP, [&](auto wParam, auto lParam) {
 				unsigned char key_id = (unsigned char)LOWORD(wParam);
 				input_state.key[key_id] = false;
 				return true;
 				});
 
-			dc_wnd.RegisterWndProc(WM_MOUSEMOVE, [&](auto wParam, auto lParam) {
+			dc_wnd.AddWndProc(WM_MOUSEMOVE, [&](auto wParam, auto lParam) {
 				input_state.mouse_state.dx = (short)LOWORD(lParam) - input_state.mouse_state.x;
 				input_state.mouse_state.dy = (short)HIWORD(lParam) - input_state.mouse_state.y;
 				input_state.mouse_state.x = (short)LOWORD(lParam);
@@ -142,42 +142,42 @@ namespace framework
 				return true;
 				});
 
-			dc_wnd.RegisterWndProc(WM_MOUSELEAVE, [&](auto wParam, auto lParam) {
+			dc_wnd.AddWndProc(WM_MOUSELEAVE, [&](auto wParam, auto lParam) {
 				input_state.mouse_state = { 0 };
 				return true;
 				});
 
-			dc_wnd.RegisterWndProc(WM_LBUTTONDOWN, [&](auto wParam, auto lParam) {
+			dc_wnd.AddWndProc(WM_LBUTTONDOWN, [&](auto wParam, auto lParam) {
 				input_state.mouse_state.button[0] = true;
 				return true;
 				});
 
-			dc_wnd.RegisterWndProc(WM_LBUTTONUP, [&](auto wParam, auto lParam) {
+			dc_wnd.AddWndProc(WM_LBUTTONUP, [&](auto wParam, auto lParam) {
 				input_state.mouse_state.button[0] = false;
 				return true;
 				});
 
-			dc_wnd.RegisterWndProc(WM_RBUTTONDOWN, [&](auto wParam, auto lParam) {
+			dc_wnd.AddWndProc(WM_RBUTTONDOWN, [&](auto wParam, auto lParam) {
 				input_state.mouse_state.button[2] = true;
 				return true;
 				});
 
-			dc_wnd.RegisterWndProc(WM_RBUTTONUP, [&](auto wParam, auto lParam) {
+			dc_wnd.AddWndProc(WM_RBUTTONUP, [&](auto wParam, auto lParam) {
 				input_state.mouse_state.button[2] = false;
 				return true;
 				});
 
-			dc_wnd.RegisterWndProc(WM_MBUTTONDOWN, [&](auto wParam, auto lParam) {
+			dc_wnd.AddWndProc(WM_MBUTTONDOWN, [&](auto wParam, auto lParam) {
 				input_state.mouse_state.button[1] = true;
 				return true;
 				});
 
-			dc_wnd.RegisterWndProc(WM_MBUTTONUP, [&](auto wParam, auto lParam) {
+			dc_wnd.AddWndProc(WM_MBUTTONUP, [&](auto wParam, auto lParam) {
 				input_state.mouse_state.button[1] = false;
 				return true;
 				});
 
-			dc_wnd.RegisterWndProc(WM_MOUSEWHEEL, [&](auto wParam, auto lParam) {
+			dc_wnd.AddWndProc(WM_MOUSEWHEEL, [&](auto wParam, auto lParam) {
 				input_state.mouse_state.scroll = (short)HIWORD(wParam);
 				mouse_motions.push({ WM_MOUSEWHEEL,input_state.mouse_state });
 				//OnMouseWheel();
@@ -188,7 +188,7 @@ namespace framework
 		//初始化
 		virtual void Init() override
 		{
-			dc_wnd.WndClassName(L"softraster_wnd_cls").WndName(L"软光栅学习").Size(800, 600).AddWndStyle(~WS_MAXIMIZEBOX).Init();
+			dc_wnd.WndClassName(L"softraster_wnd_cls").WndName(L"空格切换场景").Size(800, 600).RemoveWndStyle(WS_MAXIMIZEBOX).Init();
 			ctx.Viewport(800, 600);
 		}
 		//

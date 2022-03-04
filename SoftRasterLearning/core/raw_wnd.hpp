@@ -6,12 +6,11 @@
 #include <map>
 #include <tuple>
 
-namespace core
-{
 #define $_str(x) #x
 #define $str(x) $_str(x)
 #define $get_location_str() TEXT("\nfile:"$str(__FILE__)"\nfunction:" $str(__FUNCTION__)"\nline:"$str(__LINE__))
-
+namespace core
+{
 	class Wnd_Base
 	{
 	public:
@@ -146,6 +145,16 @@ namespace core
 		{
 		}
 
+		UINT getWidth()
+		{
+			return m_width;
+		}
+
+		UINT getHeight()
+		{
+			return m_height;
+		}
+
 	protected:
 		HWND m_hwnd;
 		HINSTANCE m_hinst;
@@ -154,9 +163,8 @@ namespace core
 		DWORD m_wnd_style;
 		string m_wnd_name;
 		string m_wnd_class_name;
-#pragma warning(disable:26495)
+
 		Wnd_Base() = default;
-#pragma warning(default:26495)
 	private:
 		Wnd_Base(const Wnd_Base&) = delete;
 		Wnd_Base& operator=(const Wnd_Base&) = delete;
@@ -206,7 +214,13 @@ namespace core
 		}
 		Concrete& AddWndStyle(DWORD wnd_style) noexcept
 		{
-			m_wnd_style &= wnd_style;
+			m_wnd_style |= wnd_style;
+			return static_cast<Concrete&>(*this);
+		}
+
+		Concrete& RemoveWndStyle(DWORD wnd_style) noexcept
+		{
+			m_wnd_style &= ~wnd_style;
 			return static_cast<Concrete&>(*this);
 		}
 
@@ -226,7 +240,7 @@ namespace core
 		}
 
 		template<typename callback_t = MSG_Handler>
-		Concrete& RegisterWndProc(UINT message, callback_t&& callback)
+		Concrete& AddWndProc(UINT message, callback_t&& callback)
 		{
 			const MSG_ID msg_id = { m_hwnd, message };
 			if (MsgMap().find(msg_id) == MsgMap().end())
@@ -310,6 +324,5 @@ namespace core
 		Wnd(const Wnd&) = delete;
 		Wnd& operator=(const Wnd&) = delete;
 	};
-
 	class Wnd_Default : public Wnd<Wnd_Default> {};
 }

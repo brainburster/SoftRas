@@ -13,7 +13,7 @@ namespace core::pbr
 	}
 
 	//受到粗糙度影响的菲涅耳方程，因为粗糙微平面会遮蔽反射光
-	core::Vec3 FresnelSchlickRoughness(core::Vec3 F0, float ndotv, float roughness)
+	inline Vec3 FresnelSchlickRoughness(core::Vec3 F0, float ndotv, float roughness)
 	{
 		return F0 + (_mm_max_ps(core::Vec3(1.0f - roughness), F0) - F0) * pow(1.0f - ndotv, 5.0f);
 	}

@@ -232,7 +232,7 @@ namespace gmath
 		return ret.m128_f32[0];
 	}
 
-	float _vectorcall Vec3<float>::Length() const noexcept
+	__forceinline float _vectorcall Vec3<float>::Length() const noexcept
 	{
 		return _mm_sqrt_ps(_mm_dp_ps(data_m128, data_m128, 0x7f)).m128_f32[0];
 	}
