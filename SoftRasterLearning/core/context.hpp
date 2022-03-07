@@ -46,9 +46,9 @@ namespace core
 			auto w = screen_buffer_view.w;
 			auto h = screen_buffer_view.h;
 
-			for (size_t y = 0; y < h; ++y)
-			{
 #pragma omp parallel for num_threads(4)
+			for (int y = 0; y < h; ++y)
+			{
 				for (int x = 0; x < w; ++x)
 				{
 					screen_buffer_view.Set((size_t)x, y, TransFloat4colorToUint32color(back_buffer_view.Get(x, y).Pow(1.f / gamma)).color);

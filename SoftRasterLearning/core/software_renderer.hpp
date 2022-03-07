@@ -189,11 +189,12 @@ namespace core
 				}
 			}
 			using gmath::utility::Clamp;
-			float y1 = Clamp(q[2].y, 1.f, context.back_buffer_view.h - 1.f);
-			float y2 = Clamp(q[0].y, 1.f, context.back_buffer_view.h - 1.f);
+			int y1 = (int)Clamp(q[2].y, 1.f, context.back_buffer_view.h - 1.f);
+			int y2 = (int)Clamp(q[0].y, 1.f, context.back_buffer_view.h - 1.f);
 
 			//从上到下扫描
-			for (float y = y2; y >= y1 - 1; --y)
+#pragma omp parallel for num_threads(8)
+			for (int y = y2; y >= y1 - 1; --y)
 			{
 				//隔行扫描
 				//if (((size_t)y & 1) == context.interlaced_scanning_flag) continue;
@@ -203,16 +204,16 @@ namespace core
 				//float b = q[0].y - k * q[0].x;
 				//float x1 = ((float)y - b) / k;
 
-				float x1 = (y + 0.5f - q[0].y) * (q[2].x - q[0].x) / (q[2].y - q[0].y) + q[0].x;
+				float x1 = ((float)y + 0.5f - q[0].y) * (q[2].x - q[0].x) / (q[2].y - q[0].y) + q[0].x;
 				float x2 = 0;
 
-				if (y + 0.5f > q[1].y)
+				if (y > q[1].y - 0.5f)
 				{
-					x2 = (y + 0.5f - q[0].y) * (q[1].x - q[0].x) / (q[1].y - q[0].y) + q[0].x;
+					x2 = ((float)y + 0.5f - q[0].y) * (q[1].x - q[0].x) / (q[1].y - q[0].y) + q[0].x;
 				}
 				else
 				{
-					x2 = (y + 0.5f - q[1].y) * (q[2].x - q[1].x) / (q[2].y - q[1].y) + q[1].x;
+					x2 = ((float)y + 0.5f - q[1].y) * (q[2].x - q[1].x) / (q[2].y - q[1].y) + q[1].x;
 				}
 
 				x1 = Clamp(x1, 1.f, (float)context.back_buffer_view.w - 2.f);
@@ -234,17 +235,17 @@ namespace core
 
 				if constexpr (bool(render_flag & RF_ENABLE_MULTI_THREAD))
 				{
-#pragma omp parallel for num_threads(4)
+					//#pragma omp parallel for num_threads(4)
 					for (int x = start; x <= end; ++x)
 					{
-						PixelProcessing(x, (int)y, p, p0, p1, p2);
+						PixelProcessing(x, y, p, p0, p1, p2);
 					}
 				}
 				else
 				{
 					for (int x = start; x <= end; ++x)
 					{
-						PixelProcessing(x, (int)y, p, p0, p1, p2);
+						PixelProcessing(x, y, p, p0, p1, p2);
 					}
 				}
 			}

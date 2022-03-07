@@ -58,27 +58,31 @@ namespace loader::bmp
 		}
 
 		core::Texture texture;
+		const size_t width = bmp_info.width;
+		const size_t height = bmp_info.height;
+		texture.SetSize(width, height);
 
-		texture.SetSize(bmp_info.width, bmp_info.width);
-		size_t channel = bmp_info.bitCount == 32 ? 4 : 3;
-		size_t size = (size_t)bmp_info.width * bmp_info.width;
-		size_t size_of_byte = size * channel;
+		const size_t channel = bmp_info.bitCount == 32 ? 4 : 3;
+		const size_t size = width * height;
+		const size_t size_of_byte = size * channel;
 
 		std::vector<core::uint8> buffer{};
 		buffer.resize(size_of_byte, 0);
 		bmp_file.read((char*)&buffer[0], buffer.size());
-		std::vector<core::Vec4>& tex_data = texture.GetData();
 
 		for (size_t i = 0; i < size; ++i)
 		{
-			tex_data[i] = core::Vec4{
-				(float)buffer[i * channel + 2] / 255,
-				(float)buffer[i * channel + 1] / 255,
-				(float)buffer[i * channel] / 255,
-				(channel < 4) ? (1.f) : ((float)buffer[i * channel + 3] / 255)
+			size_t x = i % width;
+			size_t y = i / width;
+			texture.GetRef(x, y) = core::Vec4{
+					(float)buffer[i * channel + 2] / 255,
+					(float)buffer[i * channel + 1] / 255,
+					(float)buffer[i * channel] / 255,
+					(channel < 4) ? (1.f) : ((float)buffer[i * channel + 3] / 255)
 			};
 		}
 
+		std::vector<core::Vec4>& tex_data = texture.GetData();
 		if (b_gamma_conrrection) {
 			std::transform(tex_data.begin(), tex_data.end(), tex_data.begin(),
 				[](core::Vec4 color) {

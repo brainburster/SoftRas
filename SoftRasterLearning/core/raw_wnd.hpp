@@ -164,7 +164,10 @@ namespace core
 		string m_wnd_name;
 		string m_wnd_class_name;
 
+#pragma warning(disable:26495)
 		Wnd_Base() = default;
+#pragma warning(default:26495)
+
 	private:
 		Wnd_Base(const Wnd_Base&) = delete;
 		Wnd_Base& operator=(const Wnd_Base&) = delete;

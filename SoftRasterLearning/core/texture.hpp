@@ -1,27 +1,46 @@
 #pragma once
 
 #include "types_and_defs.hpp"
+//#include <vector>
 
 namespace core
 {
 	class Texture
 	{
 	public:
-		Texture() :_w(0), _h(0) {}
+		Texture() :_w{ 0 }, _h{ 0 }, order{ 0 } {}
 		Texture(const Texture&) = delete;
 		Texture& operator=(const Texture& other) = delete;
-		Texture(Texture&& other) noexcept : _data{ std::move(other._data) }, _w{ other._w }, _h{ other._h } {}
+		Texture(Texture&& other) noexcept : _data{ std::move(other._data) }, _w{ other._w }, _h{ other._h }, order{ other.order } {}
 		Texture& operator=(Texture&& other) noexcept
 		{
 			if (this == &other) { return *this; }
 			memcpy(this, &other, sizeof(Texture));
 			memset(&other, 0, sizeof(Texture));
 		}
-		Texture(size_t w, size_t h)
+		Texture(size_t w, size_t h) :_w{ w }, _h{ h }, order{ 0 }
 		{
-			this->_w = w;
-			this->_h = h;
-			_data.resize(w * h);
+			size_t x_order = (size_t)ceil(log2(w));
+			size_t y_order = (size_t)ceil(log2(h));
+			order = max(x_order, y_order);
+			_data.resize((size_t)pow(2, x_order)* (size_t)pow(2, y_order));
+			//_data.resize(w * h);
+		}
+		template<typename T>
+		Texture(size_t w, size_t h, T* buffer) :_w{ w }, _h{ h }, order{ 0 }
+		{
+			size_t x_order = ceil(log2(w));
+			size_t y_order = ceil(log2(h));
+			order = max(x_order, y_order);
+			_data.resize(pow(2, x_order)* pow(2, y_order));
+			const size_t size = w * h;
+#pragma omp parallel for num_threads(4)
+			for (int i = 0; i < size; ++i)
+			{
+				const int x = i % w;
+				const int y = i / w;
+				GetRef(x, y) = buffer[i];
+			};
 		}
 
 		Vec4 Get(size_t x, size_t y)
@@ -30,8 +49,8 @@ namespace core
 			x = Clamp(x, 0, _w - 1);
 			y = Clamp(y, 0, _h - 1);
 
-			size_t i = x + y * _w;
-
+			//const size_t i = x + y * _w;
+			const size_t i = GetMortonCode(x, y);
 			return _data[i];
 		}
 
@@ -41,8 +60,8 @@ namespace core
 			x = Clamp(x, 0, _w - 1);
 			y = Clamp(y, 0, _h - 1);
 
-			size_t i = x + y * _w;
-
+			//const size_t i = x + y * _w;
+			const size_t i = GetMortonCode(x, y);
 			return _data[i];
 		}
 
@@ -86,12 +105,43 @@ namespace core
 		{
 			this->_w = w;
 			this->_h = h;
-			_data.resize(w * h);
+			size_t x_order = (size_t)ceil(log2(w));
+			size_t y_order = (size_t)ceil(log2(h));
+			order = max(x_order, y_order);
+			_data.resize((size_t)pow(2, x_order) * (size_t)pow(2, y_order));
+			//_data.resize(w * h);
 		}
-
+	private:
+		//计算二维z型曲线的morton code
+		size_t GetMortonCode(size_t x, size_t y)
+		{
+			int z = 0;
+			for (int j = 0; j < order; ++j) {
+				int mask = 1 << j;
+				if (x & mask)
+					z |= 1 << (0 + j * 2);
+				if (y & mask)
+					z |= 1 << (1 + j * 2);
+			}
+			return z;
+		}
+		//计算二维z型曲线的x,y值
+		void GetXYformMortonCode(size_t value, size_t& x, size_t& y)
+		{
+			x = y = 0;
+			for (int j = 0; j < order; ++j) {
+				int mask = 1 << j * 2;
+				if (value & mask)
+					y |= 1LL << j;
+				mask <<= 1;
+				if (value & mask)
+					x |= 1LL << j;
+			}
+		}
 	private:
 		std::vector<Vec4> _data;
 		size_t _w;
 		size_t _h;
+		size_t order;
 	};
 }
