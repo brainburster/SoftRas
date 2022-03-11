@@ -1,7 +1,3 @@
-//#pragma once
-
-//#include "../pbr.hpp"
-
 namespace core::pbr
 {
 	//菲涅尔方程F（schlick近似） F0 + (1-F0)(1-(n·v))^5
@@ -77,11 +73,11 @@ namespace core::pbr
 		brdf_map = std::make_shared<Texture>(256, 256);
 	}
 
-	inline void IBL::init(const CubeMap& env)
+	inline void IBL::Init(const CubeMap& env)
 	{
-		init_diffuse_map(env);
-		init_specular_maps(env);
-		init_brdf_map();
+		InitDiffuseMap(env);
+		InitSpecularMaps(env);
+		InitBrdfMap();
 	}
 
 	inline Vec2 IBL::IntegrateBRDF(float NdotV, float roughness)
@@ -96,7 +92,7 @@ namespace core::pbr
 
 		Vec3 N = Vec3(0.0, 0.0, 1.0f);
 
-		const size_t SAMPLE_COUNT = 1024u;
+		const size_t SAMPLE_COUNT = 512u;
 		for (size_t i = 0u; i < SAMPLE_COUNT; ++i)
 		{
 			Vec2 Xi = Hammersley(i, SAMPLE_COUNT);
@@ -122,7 +118,7 @@ namespace core::pbr
 		return Vec2(A, B);
 	}
 
-	inline void IBL::init_brdf_map()
+	inline void IBL::InitBrdfMap()
 	{
 		const size_t w = brdf_map->GetWidth();
 		const size_t h = brdf_map->GetHeight();
@@ -135,7 +131,7 @@ namespace core::pbr
 		}
 	}
 
-	inline float IBL::RadicalInverse_VdC(size_t bits)
+	inline float IBL::RadicalInverseVdC(size_t bits)
 	{
 		bits = (bits << 16u) | (bits >> 16u);
 		bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
@@ -147,7 +143,7 @@ namespace core::pbr
 
 	inline Vec2 IBL::Hammersley(size_t i, size_t N)
 	{
-		return Vec2(float(i) / float(N), RadicalInverse_VdC(i));
+		return Vec2(float(i) / float(N), RadicalInverseVdC(i));
 	}
 
 	//获得根据roughness随机生成的切线空间半球采样
@@ -174,7 +170,7 @@ namespace core::pbr
 		return sampleVec.Normalize();
 	}
 
-	inline void IBL::init_specular_maps(const CubeMap& env)
+	inline void IBL::InitSpecularMaps(const CubeMap& env)
 	{
 		const Vec3 r = { 1,0,0 };
 		const Vec3 u = { 0,1,0 };
@@ -214,7 +210,7 @@ namespace core::pbr
 						Vec3 R = N;
 						Vec3 V = R;
 
-						const size_t SAMPLE_COUNT = 1024u;
+						const size_t SAMPLE_COUNT = 512u;
 						float totalWeight = 0.0f;
 						Vec3 prefilteredColor = 0.0f;
 						for (size_t i = 0u; i < SAMPLE_COUNT; ++i)
@@ -239,7 +235,7 @@ namespace core::pbr
 		}
 	}
 
-	inline void IBL::init_diffuse_map(const CubeMap& env)
+	inline void IBL::InitDiffuseMap(const CubeMap& env)
 	{
 		auto* diffuse_arrary = reinterpret_cast<std::shared_ptr<Texture>*>(diffuse_map.get());
 		const Vec3 r = { 1,0,0 };

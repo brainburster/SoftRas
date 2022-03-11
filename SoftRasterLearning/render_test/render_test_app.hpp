@@ -102,7 +102,7 @@ protected:
 		//...
 		//创建预计算环境光照贴图
 		std::thread t{ [&]() {
-			_env_map->init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
+			_env_map->Init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
 		} };
 		t.detach();
 		//...

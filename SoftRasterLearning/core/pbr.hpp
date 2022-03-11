@@ -37,19 +37,24 @@ namespace core::pbr
 	struct IBL
 	{
 		std::shared_ptr<CubeMap> diffuse_map; //漫反射部分卷积
-		std::vector<std::shared_ptr<CubeMap>> specular_maps; //镜面反射部分卷积
 		std::shared_ptr<Texture> brdf_map; //BRDF积分图
+		std::vector<std::shared_ptr<CubeMap>> specular_maps; //镜面反射部分卷积
+		struct FileHeader
+		{
+			size_t diffuse_map_size;
+			size_t brdf_map_size;
+			size_t num_of_specular_mas;
+		};
 		IBL();
-		void init(const CubeMap& env);
-
+		void Init(const CubeMap& env);
 		Vec2 IntegrateBRDF(float NdotV, float roughness);
-		void init_brdf_map();
-		float RadicalInverse_VdC(size_t bits);
+		void InitBrdfMap();
+		float RadicalInverseVdC(size_t bits);
 		Vec2 Hammersley(size_t i, size_t N);
 		//获得根据roughness随机生成的切线空间半球采样
 		Vec3 ImportanceSampleGGX(Vec2 Xi, Vec3 N, float roughness);
-		void init_specular_maps(const CubeMap& env);
-		void init_diffuse_map(const CubeMap& env);
+		void InitSpecularMaps(const CubeMap& env);
+		void InitDiffuseMap(const CubeMap& env);
 	};
 }
 

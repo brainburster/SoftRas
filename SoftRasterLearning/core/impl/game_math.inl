@@ -1,5 +1,3 @@
-#pragma once
-
 //vec4 sse¼ÓËÙ
 namespace gmath
 {
