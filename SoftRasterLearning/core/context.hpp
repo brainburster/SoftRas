@@ -13,10 +13,10 @@ namespace core
 	class Context
 	{
 	protected:
-		std::vector<Color> back_buffer;
+		std::vector<FsOut> back_buffer;
 		std::vector<float> depth_buffer;
 	public:
-		Buffer2DView<Color> back_buffer_view;
+		Buffer2DView<FsOut> back_buffer_view;
 		Buffer2DView<float> depth_buffer_view;
 
 		Context() : back_buffer{}, depth_buffer{}, back_buffer_view{ nullptr }, depth_buffer_view{ nullptr }{};

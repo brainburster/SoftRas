@@ -10,12 +10,14 @@ namespace core
 	public:
 		using VS_IN = Vertex_Default;
 		using VS_OUT = Vertex_Default;
+		using FS_OUT = Color;
+
 		VS_OUT VS(const VS_IN& v)
 		{
 			return v;
 		}
 
-		Color FS(const VS_OUT& v)
+		FS_OUT FS(const VS_OUT& v)
 		{
 			return v.color;
 		}
@@ -252,6 +254,7 @@ namespace core
 
 		void PixelProcessing_AA(int x, int y, Vec2* triangle, vs_out_t* p0, vs_out_t* p1, vs_out_t* p2)
 		{
+			static_assert(std::is_same_v<Color, fs_out_t>, "Error: 不支持GBuffer");
 			//简易抗锯齿
 			float cover_count = 0;
 			constexpr size_t Mn = 9;
@@ -384,23 +387,23 @@ namespace core
 				context.depth_buffer_view.Set(x, y, depth);
 			}
 
-			Color color = shader.FS(interp);
+			fs_out_t fs_out = shader.FS(interp);
 
-			if constexpr (bool(render_flag & RF_ENABLE_BLEND))
+			if constexpr (bool(render_flag & RF_ENABLE_BLEND) && std::is_same_v<Color, fs_out_t>)
 			{
 				//颜色混合
-				if (color.a < (1.f - epsilon))
+				if (fs_out.a < (1.f - epsilon))
 				{
 					Color color0 = context.back_buffer_view.Get(x, y);
-					color = gmath::utility::BlendColor(color0, color);
+					fs_out = gmath::utility::BlendColor(color0, fs_out);
 				}
 			}
 			//写入fragment_buffer
-			context.back_buffer_view.Set(x, y, color);
+			context.back_buffer_view.Set(x, y, fs_out);
 		}
 		void PixelProcessing(int x, int y, Vec2* triangle, vs_out_t* p0, vs_out_t* p1, vs_out_t* p2)
 		{
-			if constexpr (bool(render_flag & RF_ENABLE_SIMPLE_AA))
+			if constexpr (bool(render_flag & RF_ENABLE_SIMPLE_AA) && std::is_same_v<Color, fs_out_t>)
 			{
 				PixelProcessing_AA(x, y, triangle, p0, p1, p2);
 			}
