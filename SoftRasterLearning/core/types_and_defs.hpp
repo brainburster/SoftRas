@@ -1,7 +1,7 @@
 #pragma once
 
 #include "game_math.hpp"
-#include "shader_varying.hpp"
+#include "vs_out.hpp"
 #include <vector>
 
 namespace core
@@ -23,14 +23,14 @@ namespace core
 	static constexpr float gamma = 2.2f;//2.2f;
 	static constexpr float inf = 1e20f;
 
-	//默认的顶点类,只有位置和颜色2个属性, 继承 core::shader_varying_float<T> 可作为PS的输入
-	struct Vertex_Default : core::shader_varying_float<Vertex_Default>
+	//默认的顶点类,只有位置和颜色2个属性, 继承 core::vs_out_base<T> 可作为PS的输入
+	struct Vertex_Default : core::vs_out_base<Vertex_Default>
 	{
 		Position position;
 		Color color;
 	};
 
-	//抄的gsl的实现https://github.com/microsoft/GSL/blob/main/include/gsl/util#L98
+	//narrrow_case, 抄的gsl的实现https://github.com/microsoft/GSL/blob/main/include/gsl/util#L98
 	template <class T, class U>
 	//[[gsl::suppress(type.1)]]
 	constexpr T narrow_cast(U&& u) noexcept

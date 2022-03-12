@@ -24,7 +24,7 @@ namespace framework
 				{1,1,1,1}
 			};
 
-			struct varying_t : core::shader_varying_float<varying_t>
+			struct vs_out_t : core::vs_out_base<vs_out_t>
 			{
 				core::Vec4 position;
 				core::Vec2 uv;
@@ -34,14 +34,14 @@ namespace framework
 			{
 				std::shared_ptr <core::Texture> tex0;
 				core::Mat mvp = {};
-				varying_t VS(const core::Vec4& point) const
+				vs_out_t VS(const core::Vec4& point) const
 				{
-					varying_t v{};
+					vs_out_t v{};
 					v.position = mvp * core::Vec4(point.x, point.y, 0, 1);
 					v.uv = core::Vec2(point.z, point.w);
 					return v;
 				}
-				core::Color FS(const varying_t& v) const
+				core::Color FS(const vs_out_t& v) const
 				{
 					//±¾µØ¿Õ¼ä
 					core::Color color = core::Texture::Sample(tex0.get(), v.uv);

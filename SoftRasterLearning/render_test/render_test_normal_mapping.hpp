@@ -4,7 +4,8 @@
 #include "../framework/framework.hpp"
 #include "../loader/bmp_loader.hpp"
 #include "../loader/obj_loader.hpp"
-#include "varying_type.hpp"
+#include "vs_out_type.hpp"
+
 
 class Shader_Normal
 {
@@ -17,7 +18,7 @@ public:
 	core::Vec3 light_color = { 2.f,2.f,2.f };
 	core::Vec3 camera_position_ws = { 0,0,5.f };
 
-	Varying_Light_ts VS(const core::Model_Vertex& v) const
+	VsOut_Light_ts VS(const core::Model_Vertex& v) const
 	{
 		using namespace core;
 
@@ -32,24 +33,24 @@ public:
 		Mat3 TBN = { tangent, bitangent, normal };
 		TBN = TBN.Transpose();
 
-		Varying_Light_ts varying{};
-		varying.position = mvp * v.position.ToHomoCoord();
+		VsOut_Light_ts vs_out{};
+		vs_out.position = mvp * v.position.ToHomoCoord();
 		Vec3 position_ws = model * v.position.ToHomoCoord();
 
 		Vec3 view_dir = (camera_position_ws - position_ws).Normalize();
 		Vec3 light_dir = (light_position_ws - position_ws).Normalize();
 		Vec3 half_dir = (view_dir + light_dir).Normalize();
 
-		varying.view_dir_ts = (TBN * view_dir).Normalize();
-		varying.light_dir_ts = (TBN * light_dir).Normalize();
-		varying.half_dir_ts = (TBN * half_dir).Normalize();
+		vs_out.view_dir_ts = (TBN * view_dir).Normalize();
+		vs_out.light_dir_ts = (TBN * light_dir).Normalize();
+		vs_out.half_dir_ts = (TBN * half_dir).Normalize();
 
-		varying.uv = v.uv;
+		vs_out.uv = v.uv;
 
-		return varying;
+		return vs_out;
 	}
 
-	core::Vec4 FS(const Varying_Light_ts& v) const
+	core::Vec4 FS(const VsOut_Light_ts& v) const
 	{
 		using namespace core;
 

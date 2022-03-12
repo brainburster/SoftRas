@@ -179,7 +179,7 @@
     <ClInclude Include="core\model.hpp" />
     <ClInclude Include="core\pbr.hpp" />
     <ClInclude Include="core\raw_wnd.hpp" />
-    <ClInclude Include="core\shader_varying.hpp" />
+    <ClInclude Include="core\vs_out.hpp" />
     <ClInclude Include="core\software_renderer.hpp" />
     <ClInclude Include="core\texture.hpp" />
     <ClInclude Include="core\types_and_defs.hpp" />
@@ -206,7 +206,7 @@
     <ClInclude Include="render_test\render_test_skybox.hpp" />
     <ClInclude Include="render_test\render_test_shadow_mapping.hpp" />
     <ClInclude Include="render_test\render_test_light_blinn_phong.hpp" />
-    <ClInclude Include="render_test\varying_type.hpp" />
+    <ClInclude Include="render_test\vs_out_type.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="core\impl\game_math.inl">

@@ -6,7 +6,7 @@
 #include "../framework/framework.hpp"
 #include "../loader/bmp_loader.hpp"
 #include "../loader/obj_loader.hpp"
-#include "varying_type.hpp"
+#include "vs_out_type.hpp"
 
 //æµ√Ê∑¥…‰shader
 class Shader_Mirror
@@ -18,7 +18,7 @@ public:
 	core::Texture* normal_map = nullptr;
 	core::Vec3 camera_position_ws = { 0,0,5.f };
 
-	Varying_Light_ws VS(const core::Model_Vertex& v) const
+	VsOut_Light_ws VS(const core::Model_Vertex& v) const
 	{
 		using namespace core;
 		Mat3 normal_mat = m.ToMat3x3().Inverse().Transpose();
@@ -28,16 +28,16 @@ public:
 		Vec3 bitangent = normal.Cross(tangent).Normalize();
 		gmath::Mat3x3 TBN = { tangent, bitangent,normal };
 
-		Varying_Light_ws varying{};
-		varying.position = mvp * v.position.ToHomoCoord();
-		varying.position_ws = m * v.position.ToHomoCoord();
-		varying.uv = v.uv;
-		varying.normal_ws = v.tangent;
-		varying.TBN = TBN;
-		return varying;
+		VsOut_Light_ws vs_out{};
+		vs_out.position = mvp * v.position.ToHomoCoord();
+		vs_out.position_ws = m * v.position.ToHomoCoord();
+		vs_out.uv = v.uv;
+		vs_out.normal_ws = v.tangent;
+		vs_out.TBN = TBN;
+		return vs_out;
 	}
 
-	core::Vec4 FS(const Varying_Light_ws& v) const
+	core::Vec4 FS(const VsOut_Light_ws& v) const
 	{
 		using namespace core;
 		Vec3 V = Vec3(camera_position_ws - v.position_ws).Normalize();

@@ -4,7 +4,7 @@
 #include "../framework/framework.hpp"
 #include "../loader/bmp_loader.hpp"
 #include "../loader/obj_loader.hpp"
-#include "varying_type.hpp"
+#include "vs_out_type.hpp"
 
 struct Shader_Shadow_Mapping
 {
@@ -16,17 +16,17 @@ struct Shader_Shadow_Mapping
 	core::Vec4 light_vec;
 	core::Vec3 light_color;
 
-	Varying_Light_ws VS(const core::Model_Vertex& v) const
+	VsOut_Light_ws VS(const core::Model_Vertex& v) const
 	{
-		Varying_Light_ws varying;
-		varying.position = mvp * core::Vec4{ v.position, 1.0f };
-		varying.position_ws = model * core::Vec4{ v.position, 1.0f };
-		varying.uv = v.uv;
-		varying.normal_ws = core::Vec3(model * v.normal).Normalize();
-		return varying;
+		VsOut_Light_ws vs_out;
+		vs_out.position = mvp * core::Vec4{ v.position, 1.0f };
+		vs_out.position_ws = model * core::Vec4{ v.position, 1.0f };
+		vs_out.uv = v.uv;
+		vs_out.normal_ws = core::Vec3(model * v.normal).Normalize();
+		return vs_out;
 	}
 
-	core::Vec4 FS(const Varying_Light_ws& v) const
+	core::Vec4 FS(const VsOut_Light_ws& v) const
 	{
 		//计算颜色
 		core::Vec3 base_color = { 0.8f,0.8f,0.8f };
@@ -216,16 +216,16 @@ public:
 		struct Shader_Shadow_Gen
 		{
 			core::Mat mvp = {};
-			struct alignas(16) varying_t : core::shader_varying_float<varying_t>
+			struct alignas(16) vs_out_t : core::vs_out_base<vs_out_t>
 			{
 				core::Vec4 position;
 			};
-			varying_t VS(const core::Model_Vertex& v) const
+			vs_out_t VS(const core::Model_Vertex& v) const
 			{
 				return { {},mvp * core::Vec4{ v.position, 1.0f } };
 			}
 
-			core::Vec4 FS(const varying_t& v) const
+			core::Vec4 FS(const vs_out_t& v) const
 			{
 				//最后的颜色不重要只需要深度贴图
 				return { 0,0,0,0 };

@@ -63,7 +63,7 @@ namespace framework
 				{1.f, -1.f, 1.f}
 			};
 
-			struct varying_t : core::shader_varying_float<varying_t>
+			struct vs_out_t : core::vs_out_base<vs_out_t>
 			{
 				core::Vec4 position;
 				core::Vec4 position_ls;
@@ -73,15 +73,15 @@ namespace framework
 			{
 				std::shared_ptr<core::CubeMap> cube_map;
 				core::Mat mvp = {};
-				varying_t VS(const core::Vec4& point) const
+				vs_out_t VS(const core::Vec4& point) const
 				{
-					varying_t v{};
+					vs_out_t v{};
 					v.position = mvp * point;
 					v.position.z = v.position.w - 0.0001f;
 					v.position_ls = point;
 					return v;
 				}
-				core::Color FS(const varying_t& v) const
+				core::Color FS(const vs_out_t& v) const
 				{
 					//±¾µØ¿Õ¼ä
 					core::Color color = cube_map->Sample(v.position_ls);

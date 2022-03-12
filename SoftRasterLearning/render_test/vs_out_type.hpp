@@ -2,8 +2,8 @@
 
 #include "../core/types_and_defs.hpp"
 
-//简单varying
-struct Varying_Simple : core::shader_varying_float<Varying_Simple>
+//简单VsOut
+struct VsOut_Simple : core::vs_out_base<VsOut_Simple>
 {
 	core::Position position;
 	core::Vec2 uv;
@@ -11,7 +11,7 @@ struct Varying_Simple : core::shader_varying_float<Varying_Simple>
 };
 
 //世界空间光照
-struct Varying_Light_ws : core::shader_varying_float<Varying_Light_ws>
+struct VsOut_Light_ws : core::vs_out_base<VsOut_Light_ws>
 {
 	core::Position position; //clip space
 	core::Vec3 position_ws;
@@ -21,7 +21,7 @@ struct Varying_Light_ws : core::shader_varying_float<Varying_Light_ws>
 };
 
 //切线空间光照
-struct Varying_Light_ts : core::shader_varying_float<Varying_Light_ts>
+struct VsOut_Light_ts : core::vs_out_base<VsOut_Light_ts>
 {
 	core::Position position; //clip space
 	core::Vec3 light_dir_ts; // tangent space

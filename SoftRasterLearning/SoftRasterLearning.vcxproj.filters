@@ -86,13 +86,13 @@
     <ClInclude Include="render_test\render_test_light_blinn_phong.hpp">
       <Filter>头文件\render_test</Filter>
     </ClInclude>
-    <ClInclude Include="render_test\varying_type.hpp">
+    <ClInclude Include="render_test\vs_out_type.hpp">
       <Filter>头文件\render_test</Filter>
     </ClInclude>
     <ClInclude Include="framework\material.hpp">
       <Filter>头文件\framework</Filter>
     </ClInclude>
-    <ClInclude Include="core\shader_varying.hpp">
+    <ClInclude Include="core\vs_out.hpp">
       <Filter>头文件\core</Filter>
     </ClInclude>
     <ClInclude Include="core\core_api.hpp">

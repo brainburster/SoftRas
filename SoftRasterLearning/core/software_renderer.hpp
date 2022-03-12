@@ -27,12 +27,12 @@ namespace core
 		RF_CULL_BACK = 2,
 		RF_CULL_CVV_SIMPLE = 4,
 		RF_CULL_CVV_CLIP = 8,
-		RF_ENABLE_MULTI_THREAD = 16,
+		//RF_ENABLE_MULTI_THREAD = 16,
 		RF_ENABLE_SIMPLE_AA = 32,
 		RF_ENABLE_BLEND = 64,
 		RF_ENABLE_DEPTH_TEST = 128,
 		//...
-		RF_DEFAULT = RF_CULL_BACK | RF_CULL_CVV_CLIP | RF_ENABLE_MULTI_THREAD | RF_ENABLE_BLEND | RF_ENABLE_DEPTH_TEST,
+		RF_DEFAULT = RF_CULL_BACK | RF_CULL_CVV_CLIP /*| RF_ENABLE_MULTI_THREAD */| RF_ENABLE_BLEND | RF_ENABLE_DEPTH_TEST,
 		RF_DEFAULT_AA = RF_DEFAULT | RF_ENABLE_SIMPLE_AA
 	};
 
@@ -41,7 +41,7 @@ namespace core
 	class Renderer
 	{
 	private:
-		//用来萃取顶点/像素着色器的输入类型
+		//用来萃取顶点/像素着色器的输入输出类型
 		template <typename T, typename R, typename In>
 		static In get_in_type(R(T::* f)(In) const volatile) {}
 		template <typename T, typename R, typename In>
@@ -50,18 +50,27 @@ namespace core
 		static In get_in_type(R(T::* f)(In) const) {}
 		template <typename T, typename R, typename In>
 		static In get_in_type(R(T::* f)(In)) {}
+		template <typename T, typename R, typename In>
+		static R get_out_type(R(T::* f)(In) const volatile) {}
+		template <typename T, typename R, typename In>
+		static R get_out_type(R(T::* f)(In) volatile) {}
+		template <typename T, typename R, typename In>
+		static R get_out_type(R(T::* f)(In) const) {}
+		template <typename T, typename R, typename In>
+		static R get_out_type(R(T::* f)(In)) {}
 
 	public:
-		using attribute_t = std::decay_t<decltype(get_in_type<Shader>(std::declval<decltype(&Shader::VS)>()))>;
-		using varying_t = std::decay_t<decltype(get_in_type<Shader>(std::declval<decltype(&Shader::FS)>()))>;
+		using vs_in_t = std::decay_t<decltype(get_in_type<Shader>(std::declval<decltype(&Shader::VS)>()))>;
+		using vs_out_t = std::decay_t<decltype(get_in_type<Shader>(std::declval<decltype(&Shader::FS)>()))>;
+		using fs_out_t = std::decay_t<decltype(get_out_type<Shader>(std::declval<decltype(&Shader::FS)>()))>;
 
-		Renderer(Context<Color>& ctx, const Shader& m) :
+		Renderer(Context<fs_out_t>& ctx, const Shader& m) :
 			context{ ctx },
 			shader{ m }
 		{
 		}
 
-		void DrawIndex(attribute_t* data, size_t* index, size_t n)
+		void DrawIndex(vs_in_t* data, size_t* index, size_t n)
 		{
 			for (size_t i = 0; i < n; i += 3)
 			{
@@ -69,7 +78,7 @@ namespace core
 			}
 		}
 
-		void DrawTriangles(attribute_t* data, size_t n)
+		void DrawTriangles(vs_in_t* data, size_t n)
 		{
 			for (size_t i = 0; i < n; i += 3)
 			{
@@ -77,12 +86,12 @@ namespace core
 			}
 		}
 
-		void DrawTriangle(attribute_t* p0, attribute_t* p1, attribute_t* p2)
+		void DrawTriangle(vs_in_t* p0, vs_in_t* p1, vs_in_t* p2)
 		{
 			if constexpr (bool(render_flag & RF_CULL_CVV_SIMPLE))
 			{
 				//本地空间 => 裁剪空间 clip space
-				varying_t triangle[3] = {
+				vs_out_t triangle[3] = {
 					{ shader.VS(*p0) },
 					{ shader.VS(*p1) },
 					{ shader.VS(*p2) }
@@ -93,7 +102,7 @@ namespace core
 			}
 			else if constexpr (bool(render_flag & RF_CULL_CVV_CLIP)) {
 				//本地空间 => 裁剪空间 clip space
-				varying_t triangle[8] = {
+				vs_out_t triangle[8] = {
 					{ shader.VS(*p0) },
 					{ shader.VS(*p1) },
 					{ shader.VS(*p2) }
@@ -101,7 +110,7 @@ namespace core
 				//CVV剔除
 				if (CVVCull(triangle)) return;
 				//CVV裁剪
-				varying_t polygon[8] = {};
+				vs_out_t polygon[8] = {};
 				size_t len = CVVClip(triangle, polygon);
 				if (len < 3)
 				{
@@ -120,7 +129,7 @@ namespace core
 		}
 	protected:
 
-		void RasterizeTriangle(varying_t* p0, varying_t* p1, varying_t* p2)
+		void RasterizeTriangle(vs_out_t* p0, vs_out_t* p1, vs_out_t* p2)
 		{
 			//获得ndc下的三角形三个顶点 (clip space => ndc)
 			Vec2 p[3] = {
@@ -193,8 +202,9 @@ namespace core
 			int y2 = (int)Clamp(q[0].y, 1.f, context.back_buffer_view.h - 1.f);
 
 			//从上到下扫描
+
 #pragma omp parallel for num_threads(4)
-			for (int y = y2; y >= y1 - 1; --y)
+			for (int y = y2; y >= y1; --y)
 			{
 				//隔行扫描
 				//if (((size_t)y & 1) == context.interlaced_scanning_flag) continue;
@@ -233,25 +243,14 @@ namespace core
 				int start = (int)x1;
 				int end = (int)x2;
 
-				if constexpr (bool(render_flag & RF_ENABLE_MULTI_THREAD))
+				for (int x = start; x <= end; ++x)
 				{
-					//#pragma omp parallel for num_threads(4)
-					for (int x = start; x <= end; ++x)
-					{
-						PixelProcessing(x, y, p, p0, p1, p2);
-					}
-				}
-				else
-				{
-					for (int x = start; x <= end; ++x)
-					{
-						PixelProcessing(x, y, p, p0, p1, p2);
-					}
+					PixelProcessing(x, y, p, p0, p1, p2);
 				}
 			}
 		}
 
-		void PixelProcessing_AA(int x, int y, Vec2* triangle, varying_t* p0, varying_t* p1, varying_t* p2)
+		void PixelProcessing_AA(int x, int y, Vec2* triangle, vs_out_t* p0, vs_out_t* p1, vs_out_t* p2)
 		{
 			//简易抗锯齿
 			float cover_count = 0;
@@ -323,7 +322,7 @@ namespace core
 				}
 			}
 
-			varying_t interp = *p0 * weight.x + *p1 * weight.y + *p2 * weight.z;
+			vs_out_t interp = *p0 * weight.x + *p1 * weight.y + *p2 * weight.z;
 			Color color = shader.FS(interp);
 			Color color0 = context.back_buffer_view.Get(x, y);
 
@@ -353,7 +352,7 @@ namespace core
 			context.depth_buffer_view.Set(x, y, depth);
 		}
 
-		void PixelProcessing_NoAA(int x, int y, Vec2* triangle, varying_t* p0, varying_t* p1, varying_t* p2)
+		void PixelProcessing_NoAA(int x, int y, Vec2* triangle, vs_out_t* p0, vs_out_t* p1, vs_out_t* p2)
 		{
 			Vec3 weight = GetInterpolationWeight(x + 0.5f, y + 0.5f, triangle);
 
@@ -370,7 +369,7 @@ namespace core
 			weight /= (weight.x + weight.y + weight.z);
 
 			//求插值
-			varying_t interp = *p0 * weight.x + *p1 * weight.y + *p2 * weight.z;
+			vs_out_t interp = *p0 * weight.x + *p1 * weight.y + *p2 * weight.z;
 			float depth = interp.position.z / interp.position.w;
 
 			//深度测试
@@ -399,7 +398,7 @@ namespace core
 			//写入fragment_buffer
 			context.back_buffer_view.Set(x, y, color);
 		}
-		void PixelProcessing(int x, int y, Vec2* triangle, varying_t* p0, varying_t* p1, varying_t* p2)
+		void PixelProcessing(int x, int y, Vec2* triangle, vs_out_t* p0, vs_out_t* p1, vs_out_t* p2)
 		{
 			if constexpr (bool(render_flag & RF_ENABLE_SIMPLE_AA))
 			{
@@ -411,7 +410,7 @@ namespace core
 			}
 		}
 
-		bool SimpleCull(varying_t triangle[3])
+		bool SimpleCull(vs_out_t triangle[3])
 		{
 			for (size_t i = 0; i < 3; ++i)
 			{
@@ -432,7 +431,7 @@ namespace core
 		}
 
 		//如果三个点都在CVV之外,直接剔除
-		bool CVVCull(varying_t triangle[3])
+		bool CVVCull(vs_out_t triangle[3])
 		{
 			float w0 = triangle[0].position.w;
 			float w1 = triangle[1].position.w;
@@ -461,7 +460,7 @@ namespace core
 			return false;
 		}
 
-		bool IsInside(varying_t* p, int plane)
+		bool IsInside(vs_out_t* p, int plane)
 		{
 			float x = p->position.x;
 			float y = p->position.y;
@@ -481,7 +480,7 @@ namespace core
 			return false;
 		}
 
-		varying_t GetClipIntersection(varying_t* p0, varying_t* p1, int plane)
+		vs_out_t GetClipIntersection(vs_out_t* p0, vs_out_t* p1, int plane)
 		{
 			//Q[x,y,z,w] = P1[x1,y1,z1,w1] + (P2[x2,y2,z2,w2] - P1[x1,y1,z1,w1]) * t
 			float t = 0;
@@ -508,13 +507,13 @@ namespace core
 			return (*p0) * (1 - t) + (*p1) * t;
 		}
 
-		size_t ClipAgainstPlane(varying_t* polygon_in, size_t len, varying_t* polygon_out, int plane)
+		size_t ClipAgainstPlane(vs_out_t* polygon_in, size_t len, vs_out_t* polygon_out, int plane)
 		{
 			size_t len_out = 0;
 			for (size_t i = 0; i < len; ++i)
 			{
-				varying_t* p0 = polygon_in + i;
-				varying_t* p1 = polygon_in + ((i + 1) % len);
+				vs_out_t* p0 = polygon_in + i;
+				vs_out_t* p1 = polygon_in + ((i + 1) % len);
 				//sutherland_hodgman算法
 				//检查p0, p1 是否在内侧,
 				int b_p0_inside = IsInside(p0, plane);
@@ -530,13 +529,13 @@ namespace core
 				{
 				case 1:
 				{
-					varying_t q = GetClipIntersection(p0, p1, plane);
+					vs_out_t q = GetClipIntersection(p0, p1, plane);
 					polygon_out[len_out++] = q;
 					break;
 				}
 				case 2:
 				{
-					varying_t q = GetClipIntersection(p0, p1, plane);
+					vs_out_t q = GetClipIntersection(p0, p1, plane);
 					polygon_out[len_out++] = q;
 					polygon_out[len_out++] = *p1;
 					break;
@@ -552,7 +551,7 @@ namespace core
 		}
 
 		//三角形与CVV相交, 裁剪并计算插值
-		size_t CVVClip(varying_t* polygon_in, varying_t* polygon_out)
+		size_t CVVClip(vs_out_t* polygon_in, vs_out_t* polygon_out)
 		{
 			size_t len = 3;
 			len = ClipAgainstPlane(polygon_in, len, polygon_out, 'z>0');
@@ -565,7 +564,7 @@ namespace core
 			return len;
 		}
 
-		void TransToScreenSpace(varying_t* polygon, size_t len) const
+		void TransToScreenSpace(vs_out_t* polygon, size_t len) const
 		{
 			for (int i = 0; i < len; ++i)
 			{
@@ -601,7 +600,7 @@ namespace core
 			return a.Cross(b) < 0;//&& b.Cross(c) > 0 && c.Cross(a) > 0;
 		}
 
-		bool IsPointInTriangle2D(float x, float y, varying_t* triangle) const
+		bool IsPointInTriangle2D(float x, float y, vs_out_t* triangle) const
 		{
 			Vec2 p = { x,y };
 			Vec2 pa = (Vec2)triangle[0].position - p;
@@ -628,7 +627,7 @@ namespace core
 		}
 
 	protected:
-		Context<Color>& context;
+		Context<fs_out_t>& context;
 		const Shader& shader;
 	};
 }

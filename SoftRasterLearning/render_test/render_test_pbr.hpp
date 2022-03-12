@@ -4,7 +4,8 @@
 #include "../framework/framework.hpp"
 #include "../loader/bmp_loader.hpp"
 #include "../loader/obj_loader.hpp"
-#include "varying_type.hpp"
+#include "vs_out_type.hpp"
+
 
 //
 class Material_PBR : public framework::IMaterial
@@ -28,18 +29,18 @@ struct Shader_PBR
 	core::Mat mvp = {};
 	core::Mat model = {};
 
-	Varying_Light_ws VS(const core::Model_Vertex& v) const
+	VsOut_Light_ws VS(const core::Model_Vertex& v) const
 	{
-		Varying_Light_ws varying{};
-		varying.position = mvp * v.position.ToHomoCoord();
-		varying.position_ws = model * v.position.ToHomoCoord();
-		varying.normal_ws = core::Vec3(model * v.normal).Normalize();
-		varying.uv = v.uv;
+		VsOut_Light_ws vs_out{};
+		vs_out.position = mvp * v.position.ToHomoCoord();
+		vs_out.position_ws = model * v.position.ToHomoCoord();
+		vs_out.normal_ws = core::Vec3(model * v.normal).Normalize();
+		vs_out.uv = v.uv;
 		//...
-		return varying;
+		return vs_out;
 	}
 
-	core::Vec4 FS(const Varying_Light_ws& v) const
+	core::Vec4 FS(const VsOut_Light_ws& v) const
 	{
 		using namespace core;
 		Vec3 albedo = material->albedo;
