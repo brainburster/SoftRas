@@ -9,6 +9,7 @@
 namespace core
 {
 	//渲染上下文
+	template<typename FsOut = Color>
 	class Context
 	{
 	protected:
@@ -38,6 +39,8 @@ namespace core
 
 		void CopyToBuffer(Buffer2DView<uint32>& screen_buffer_view)
 		{
+			static_assert(std::is_same_v<FsOut, Color>, "Error: 只有颜色buffer能输出到屏幕");
+
 			if (!back_buffer_view.buffer)
 			{
 				return;

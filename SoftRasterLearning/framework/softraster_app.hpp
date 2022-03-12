@@ -18,7 +18,7 @@ namespace framework
 		EngineState engine_state;
 		std::queue<MouseMotion, std::list<MouseMotion>> mouse_motions;
 		core::DC_WND dc_wnd;
-		core::Context ctx;
+		core::Context<core::Color> ctx;
 		std::shared_ptr<IScene> scene;
 
 		SoftRasterApp(const SoftRasterApp& other) = delete;
@@ -54,7 +54,7 @@ namespace framework
 			return scene->GetMainCamera();
 		}
 
-		virtual core::Context& GetCtx() noexcept override
+		virtual core::Context<core::Color>& GetCtx() noexcept override
 		{
 			return ctx;
 		}

@@ -130,7 +130,7 @@ private:
 	std::shared_ptr<framework::PointLight> light_p;
 	std::shared_ptr<framework::ILight> light;
 	std::shared_ptr<Material_Shadow_Mapping> material;
-	core::Context shadow_ctx;
+	core::Context<core::Color> shadow_ctx;
 public:
 	void Init(framework::IRenderEngine& engine) override
 	{

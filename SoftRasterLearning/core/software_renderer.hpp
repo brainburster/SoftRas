@@ -55,7 +55,7 @@ namespace core
 		using attribute_t = std::decay_t<decltype(get_in_type<Shader>(std::declval<decltype(&Shader::VS)>()))>;
 		using varying_t = std::decay_t<decltype(get_in_type<Shader>(std::declval<decltype(&Shader::FS)>()))>;
 
-		Renderer(Context& ctx, const Shader& m) :
+		Renderer(Context<Color>& ctx, const Shader& m) :
 			context{ ctx },
 			shader{ m }
 		{
@@ -628,7 +628,7 @@ namespace core
 		}
 
 	protected:
-		Context& context;
+		Context<Color>& context;
 		const Shader& shader;
 	};
 }
