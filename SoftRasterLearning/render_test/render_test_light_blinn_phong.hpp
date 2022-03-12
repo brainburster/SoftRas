@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "../core/core_api.hpp"
 #include "../framework/framework.hpp"
@@ -7,7 +7,7 @@
 #include "vs_out_type.hpp"
 
 
-//ÊÀ½ç¿Õ¼ä blinn_phong ×ÅÉ«Æ÷
+//ä¸–ç•Œç©ºé—´ blinn_phong ç€è‰²å™¨
 class Shader_Blinn_Phong
 {
 public:

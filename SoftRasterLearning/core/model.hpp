@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "types_and_defs.hpp"
 

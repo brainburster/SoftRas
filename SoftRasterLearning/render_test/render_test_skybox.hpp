@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #pragma once
 
@@ -8,7 +8,7 @@
 #include "../loader/obj_loader.hpp"
 #include "vs_out_type.hpp"
 
-//¾µÃæ·´Éäshader
+//é•œé¢åå°„shader
 class Shader_Mirror
 {
 public:

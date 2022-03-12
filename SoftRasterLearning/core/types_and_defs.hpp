@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "game_math.hpp"
 #include "vs_out.hpp"
@@ -23,14 +23,14 @@ namespace core
 	static constexpr float gamma = 2.2f;//2.2f;
 	static constexpr float inf = 1e20f;
 
-	//Ä¬ÈÏµÄ¶¥µãÀà,Ö»ÓĞÎ»ÖÃºÍÑÕÉ«2¸öÊôĞÔ, ¼Ì³Ğ core::vs_out_base<T> ¿É×÷ÎªPSµÄÊäÈë
+	//é»˜è®¤çš„é¡¶ç‚¹ç±»,åªæœ‰ä½ç½®å’Œé¢œè‰²2ä¸ªå±æ€§, ç»§æ‰¿ core::vs_out_base<T> å¯ä½œä¸ºPSçš„è¾“å…¥
 	struct Vertex_Default : core::vs_out_base<Vertex_Default>
 	{
 		Position position;
 		Color color;
 	};
 
-	//narrrow_case, ³­µÄgslµÄÊµÏÖhttps://github.com/microsoft/GSL/blob/main/include/gsl/util#L98
+	//narrrow_case, æŠ„çš„gslçš„å®ç°https://github.com/microsoft/GSL/blob/main/include/gsl/util#L98
 	template <class T, class U>
 	//[[gsl::suppress(type.1)]]
 	constexpr T narrow_cast(U&& u) noexcept

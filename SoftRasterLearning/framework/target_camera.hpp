@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #pragma once
 
@@ -106,7 +106,7 @@ namespace framework
 
 		Vec3 GetPosition() const override
 		{
-			//¼ÆËãÎ»ÖÃ
+			//è®¡ç®—ä½ç½®
 			Vec3 front = GetFront();
 			Vec3 pos = target->transform.position - front * distance + offset;
 			return pos;

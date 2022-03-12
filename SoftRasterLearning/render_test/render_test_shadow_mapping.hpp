@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "../core/core_api.hpp"
 #include "../framework/framework.hpp"
@@ -28,7 +28,7 @@ struct Shader_Shadow_Mapping
 
 	core::Vec4 FS(const VsOut_Light_ws& v) const
 	{
-		//¼ÆËãÑÕÉ«
+		//è®¡ç®—é¢œè‰²
 		core::Vec3 base_color = { 0.8f,0.8f,0.8f };
 		core::Vec3 light_dir = 0;
 		if (light_vec.w > 0.1f)
@@ -42,7 +42,7 @@ struct Shader_Shadow_Mapping
 		float ndl = max(v.normal_ws.Dot(-light_dir.Normalize()), 0.f);
 		core::Vec3 final_color = base_color * light_color * ndl;
 
-		//¼ÆËãshadow
+		//è®¡ç®—shadow
 		core::Vec4 farg_pos_light_space = light_mat * core::Vec4(v.position_ws, 1.f);
 		float w = farg_pos_light_space.w;
 		farg_pos_light_space /= w;
@@ -60,8 +60,8 @@ struct Shader_Shadow_Mapping
 		float d_receiver = farg_pos_light_space.z;
 		if (light_vec.w > 0.1f)
 		{
-			//Èç¹ûÊÇµã¹âÔ´£¬Í¸ÊÓÍ¶Ó°µ¼ÖÂÉî¶È±»Ñ¹Ëõ£¬ĞèÒª´ÓNDC×ª»»»ØÊÀ½ç×ø±ê
-			d_blocker = 200.f / (1000.1f - d_blocker * (999.9f)); //ÕâÀïÌáÇ°ÖªµÀÁË½üÔ¶Æ½ÃæÊÇ0.1,1000
+			//å¦‚æœæ˜¯ç‚¹å…‰æºï¼Œé€è§†æŠ•å½±å¯¼è‡´æ·±åº¦è¢«å‹ç¼©ï¼Œéœ€è¦ä»NDCè½¬æ¢å›ä¸–ç•Œåæ ‡
+			d_blocker = 200.f / (1000.1f - d_blocker * (999.9f)); //è¿™é‡Œæå‰çŸ¥é“äº†è¿‘è¿œå¹³é¢æ˜¯0.1,1000
 			d_receiver = 200.f / (1000.1f - d_receiver * (999.9f));
 		}
 
@@ -227,7 +227,7 @@ public:
 
 			core::Vec4 FS(const vs_out_t& v) const
 			{
-				//×îºóµÄÑÕÉ«²»ÖØÒªÖ»ĞèÒªÉî¶ÈÌùÍ¼
+				//æœ€åçš„é¢œè‰²ä¸é‡è¦åªéœ€è¦æ·±åº¦è´´å›¾
 				return { 0,0,0,0 };
 			}
 		};

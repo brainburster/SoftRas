@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <fstream>
 #include "core/texture.hpp"
@@ -25,10 +25,10 @@ namespace loader::bmp
 		core::uint32 height;
 		core::uint16 planes; //1
 		core::uint16 bitCount; //1,4,8,16,24,32
-		core::uint32 compression; //Ñ¹ËõÀàÐÍ
+		core::uint32 compression; //åŽ‹ç¼©ç±»åž‹
 		core::uint32 size_image;
-		core::uint32 xppm; // x ·Ö±æÂÊ x pixel per meter
-		core::uint32 yppm; // y ·Ö±æÂÊ
+		core::uint32 xppm; // x åˆ†è¾¨çŽ‡ x pixel per meter
+		core::uint32 yppm; // y åˆ†è¾¨çŽ‡
 		core::uint32 clrUsed;
 		core::uint32 clrImportant;
 	};
@@ -88,7 +88,7 @@ namespace loader::bmp
 			std::transform(tex_data.begin(), tex_data.end(), tex_data.begin(),
 				[](core::Vec4 color) {
 					return core::Vec4{
-					   pow(color.r, core::gamma),  //´ÓÙ¤Âí¿Õ¼äÓ³Éäµ½ÏßÐÔ¿Õ¼ä
+					   pow(color.r, core::gamma),  //ä»Žä¼½é©¬ç©ºé—´æ˜ å°„åˆ°çº¿æ€§ç©ºé—´
 					   pow(color.g, core::gamma),
 					   pow(color.b, core::gamma),
 					   color.a

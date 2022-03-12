@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "camera.hpp"
 #include "../core/game_math.hpp"

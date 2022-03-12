@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "../core/game_math.hpp"
 #include "../core/software_renderer.hpp"

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <thread>
 #include <mutex>
@@ -108,7 +108,7 @@ namespace framework
 		}
 
 	protected:
-		//ÎªwindwosÏûÏ¢Ìí¼Ó»Øµ÷º¯Êı£¬µ÷ÓÃÒ»´Î
+		//ä¸ºwindwosæ¶ˆæ¯æ·»åŠ å›è°ƒå‡½æ•°ï¼Œè°ƒç”¨ä¸€æ¬¡
 		virtual void HookInput() override
 		{
 			dc_wnd.AddWndProc(WM_KEYDOWN, [&](auto wParam, auto lParam) {
@@ -185,10 +185,10 @@ namespace framework
 				});
 		}
 
-		//³õÊ¼»¯
+		//åˆå§‹åŒ–
 		virtual void Init() override
 		{
-			dc_wnd.WndClassName(L"softraster_wnd_cls").WndName(L"¿Õ¸ñÇĞ»»³¡¾°").Size(800, 600).RemoveWndStyle(WS_MAXIMIZEBOX).Init();
+			dc_wnd.WndClassName(L"softraster_wnd_cls").WndName(L"ç©ºæ ¼åˆ‡æ¢åœºæ™¯").Size(800, 600).RemoveWndStyle(WS_MAXIMIZEBOX).Init();
 			ctx.Viewport(800, 600);
 		}
 		//
@@ -197,7 +197,7 @@ namespace framework
 			scene->Init(*this);
 		}
 
-		//¸üĞÂ
+		//æ›´æ–°
 		virtual void Update() override
 		{
 			scene->Update(*this);
@@ -229,7 +229,7 @@ namespace framework
 			}
 		}
 
-		//Ã¿Ö¡µ÷ÓÃ
+		//æ¯å¸§è°ƒç”¨
 		virtual void HandleInput() override
 		{
 			TranslateInput();
@@ -242,14 +242,14 @@ namespace framework
 			scene->HandleInput(*this);
 		}
 
-		//äÖÈ¾Ã¿Ö¡
+		//æ¸²æŸ“æ¯å¸§
 		virtual void RenderFrame() override
 		{
 			ctx.Clear({ 0.05f, 0.05f, 0.05f, 1.f });
 			scene->RenderFrame(*this);
 		}
 
-		//Ã¿Ö¡½áÊøºóµÄÇåÀí¹¤×÷
+		//æ¯å¸§ç»“æŸåçš„æ¸…ç†å·¥ä½œ
 		virtual void EndFrame() override
 		{
 		}

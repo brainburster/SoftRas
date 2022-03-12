@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "object.hpp"
 #include "render_engine.hpp"
@@ -83,7 +83,7 @@ namespace framework
 				}
 				core::Color FS(const vs_out_t& v) const
 				{
-					//±¾µØ¿Õ¼ä
+					//æœ¬åœ°ç©ºé—´
 					core::Color color = cube_map->Sample(v.position_ls);
 					return color;
 				}

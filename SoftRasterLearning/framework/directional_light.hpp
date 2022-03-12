@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "light.hpp"
 #include "billboard.hpp"
@@ -46,7 +46,7 @@ namespace framework
 		virtual void Render(IRenderEngine& engine) const override
 		{
 			//...
-			//¹«¸æ°å
+			//å…¬å‘Šæ¿
 			//
 			BillBoard bb;
 			bb.transform.position = transform.position;

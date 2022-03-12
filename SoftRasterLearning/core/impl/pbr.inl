@@ -1,28 +1,28 @@
-namespace core::pbr
+ï»¿namespace core::pbr
 {
-	//·ÆÄù¶û·½³ÌF£¨schlick½üËÆ£© F0 + (1-F0)(1-(n¡¤v))^5
-	//F0 ±íÊ¾´¹Ö±ÈëÉäÊ±(·¨Ïß¼Ğ½Ç0¡ã)µÄ·´ÉäÂÊ
-	//ndotv ¹Û²ìÏòÁ¿Óë·¨Ïß¼Ğ½Ç N dot V
+	//è²æ¶…å°”æ–¹ç¨‹Fï¼ˆschlickè¿‘ä¼¼ï¼‰ F0 + (1-F0)(1-(nÂ·v))^5
+	//F0 è¡¨ç¤ºå‚ç›´å…¥å°„æ—¶(æ³•çº¿å¤¹è§’0Â°)çš„åå°„ç‡
+	//ndotv è§‚å¯Ÿå‘é‡ä¸æ³•çº¿å¤¹è§’ N dot V
 	inline Vec3 FresnelSchlick(Vec3 F0, float ndotv)
 	{
 		return F0 + (1.0 - F0) * pow(1.0f - ndotv, 5.0f);
 	}
 
-	//ÊÜµ½´Ö²Ú¶ÈÓ°ÏìµÄ·ÆÄù¶ú·½³Ì£¬ÒòÎª´Ö²ÚÎ¢Æ½Ãæ»áÕÚ±Î·´Éä¹â
+	//å—åˆ°ç²—ç³™åº¦å½±å“çš„è²æ¶…è€³æ–¹ç¨‹ï¼Œå› ä¸ºç²—ç³™å¾®å¹³é¢ä¼šé®è”½åå°„å…‰
 	inline Vec3 FresnelSchlickRoughness(core::Vec3 F0, float ndotv, float roughness)
 	{
 		return F0 + (_mm_max_ps(core::Vec3(1.0f - roughness), F0) - F0) * pow(1.0f - ndotv, 5.0f);
 	}
 
-	//¼ÆËãf0(»ù´¡·´ÉäÂÊ), ÓÃ½ğÊô¶ÈºÍ·´ÕÕÂÊ¼ÆËã
-	//albedo ±íÊ¾±íÃæÑÕÉ«(Âş·´ÉäÏµÊı)»ò»ù´¡·´ÉäÂÊ
-	//metalness ±íÊ¾½ğÊô»ò·Ç½ğÊô
+	//è®¡ç®—f0(åŸºç¡€åå°„ç‡), ç”¨é‡‘å±åº¦å’Œåç…§ç‡è®¡ç®—
+	//albedo è¡¨ç¤ºè¡¨é¢é¢œè‰²(æ¼«åå°„ç³»æ•°)æˆ–åŸºç¡€åå°„ç‡
+	//metalness è¡¨ç¤ºé‡‘å±æˆ–éé‡‘å±
 	inline Vec3 GetF0(Vec3 albedo, float metalness)
 	{
 		return gmath::utility::Lerp(Vec3(0.04f), albedo, metalness);
 	}
 
-	//(Î¢Æ½Ãæ·¨Ïß)ÕıÌ¬·Ö²¼º¯ÊıD NDF(normal distribution function) (Trowbridge-Reitz GGX) Í¨¹ı´Ö²Ú¶È¾ö¶¨
+	//(å¾®å¹³é¢æ³•çº¿)æ­£æ€åˆ†å¸ƒå‡½æ•°D NDF(normal distribution function) (Trowbridge-Reitz GGX) é€šè¿‡ç²—ç³™åº¦å†³å®š
 	// roughness^2/pi*((n dot h)^2*(a^2-1)+1)^2
 	inline float DistributionGGX(float NdotH, float roughness)
 	{
@@ -34,9 +34,9 @@ namespace core::pbr
 		return nom / denom;
 	}
 
-	//¼¸ºÎº¯Êı£¨Î¢Æ½Ãæ±¾ÉíµÄÕÚµ²ÂÊ£©(Schlick-GGX)
+	//å‡ ä½•å‡½æ•°ï¼ˆå¾®å¹³é¢æœ¬èº«çš„é®æŒ¡ç‡ï¼‰(Schlick-GGX)
 	// (n dot v) / ((n dot v) (1-k) + k)
-	//kÊÇ¸ù¾İ´Ö²Ú¶ÈÉú³ÉµÄ
+	//kæ˜¯æ ¹æ®ç²—ç³™åº¦ç”Ÿæˆçš„
 	inline float GeometrySchlickGGX(float cos_theta, float k)
 	{
 		float nom = cos_theta;
@@ -44,7 +44,7 @@ namespace core::pbr
 		return nom / denom;
 	}
 
-	//¿¼ÂÇÁË¹Û²ìÏòÁ¿ºÍ¹âÏßÏòÁ¿2ÕßµÄ¼¸ºÎº¯Êı (Smith·¨)
+	//è€ƒè™‘äº†è§‚å¯Ÿå‘é‡å’Œå…‰çº¿å‘é‡2è€…çš„å‡ ä½•å‡½æ•° (Smithæ³•)
 	inline float GeometrySmith(float NdotV, float NdotL, float k)
 	{
 		float G1 = GeometrySchlickGGX(NdotV, k);
@@ -52,14 +52,14 @@ namespace core::pbr
 		return G1 * G2;
 	}
 
-	//Cook-Torrance BRDFµÄ¾µÃæ·´Éä²¿·Ö
+	//Cook-Torrance BRDFçš„é•œé¢åå°„éƒ¨åˆ†
 	//DFG/4(VdotN)(LdotN)
 	inline Vec3 SpecularCooKTorrance(float D, Vec3 F, float G, float NdotV, float NdotL)
 	{
 		return D * G / (4 * NdotV * NdotL + epsilon) * F;
 	}
 
-	//±£´æµ½ÎÄ¼ş
+	//ä¿å­˜åˆ°æ–‡ä»¶
 	inline void IBL::Save(const wchar_t* filename)
 	{
 		using namespace std;
@@ -83,7 +83,7 @@ namespace core::pbr
 
 		ofile.write(reinterpret_cast<char*>(&ibl_info), sizeof ibl_info);
 
-		ofile.write(reinterpret_cast<char*>(brdf_map->GetData().data()),ibl_info.brdf_map.size * sizeof(decltype(brdf_map->Get(0ULL, 0ULL))));
+		ofile.write(reinterpret_cast<char*>(brdf_map->GetData().data()), ibl_info.brdf_map.size * sizeof(decltype(brdf_map->Get(0ULL, 0ULL))));
 
 		for (size_t i = 0; i < 6; i++)
 		{
@@ -91,7 +91,7 @@ namespace core::pbr
 			ofile.write(reinterpret_cast<const char*>(tex.GetCData().data()), ibl_info.diffuse_map.size * sizeof(decltype(tex.Get(0ULL, 0ULL))));
 		}
 
-		for (const auto & specular_map : specular_maps)
+		for (const auto& specular_map : specular_maps)
 		{
 			const auto spec_tex0 = specular_map->GetTexture(0);
 			TextureHeader tex_info = {
@@ -108,7 +108,7 @@ namespace core::pbr
 		}
 	}
 
-	//´ÓÎÄ¼ş¶ÁÈ¡
+	//ä»æ–‡ä»¶è¯»å–
 	inline void IBL::Load(const wchar_t* filename)
 	{
 		using namespace std;
@@ -227,7 +227,7 @@ namespace core::pbr
 		return Vec2(float(i) / float(N), RadicalInverseVdC(i));
 	}
 
-	//»ñµÃ¸ù¾İroughnessËæ»úÉú³ÉµÄÇĞÏß¿Õ¼ä°ëÇò²ÉÑù
+	//è·å¾—æ ¹æ®roughnesséšæœºç”Ÿæˆçš„åˆ‡çº¿ç©ºé—´åŠçƒé‡‡æ ·
 	inline Vec3 IBL::ImportanceSampleGGX(Vec2 Xi, Vec3 N, float roughness)
 	{
 		float a = roughness * roughness;
@@ -257,7 +257,7 @@ namespace core::pbr
 		const Vec3 u = { 0,1,0 };
 		const Vec3 f = { 0,0,1 };
 		Mat3 rotate_mat[6] = {
-			//front, ²»ĞèÒªĞı×ª(×ø±êÏµ±ä»»),r,u,f
+			//front, ä¸éœ€è¦æ—‹è½¬(åæ ‡ç³»å˜æ¢),r,u,f
 			{r,u,f},
 			//back, -r,u,-f
 			{-r,u,-f},
@@ -324,7 +324,7 @@ namespace core::pbr
 		const Vec3 f = { 0,0,1 };
 
 		Mat3 rotate_mat[6] = {
-			//front, ²»ĞèÒªĞı×ª(×ø±êÏµ±ä»»),r,u,f
+			//front, ä¸éœ€è¦æ—‹è½¬(åæ ‡ç³»å˜æ¢),r,u,f
 			{r,u,f},
 			//back, -r,u,-f
 			{-r,u,-f},
@@ -346,15 +346,15 @@ namespace core::pbr
 			{
 				for (size_t i = 0; i < w; ++i)
 				{
-					//½«i,j,kÓ³Éäµ½±ß³¤Îª1µÄÕı·½Ìå·½ÌåÉÏ
+					//å°†i,j,kæ˜ å°„åˆ°è¾¹é•¿ä¸º1çš„æ­£æ–¹ä½“æ–¹ä½“ä¸Š
 					//i,j => {i/w-0.5f,j/w-0.5f,0.5f}
-					//k ¾ö¶¨Ğı×ª¾ØÕó
-					//»ñµÃenv²ÉÑù·½Ïò
+					//k å†³å®šæ—‹è½¬çŸ©é˜µ
+					//è·å¾—envé‡‡æ ·æ–¹å‘
 					Vec3 normal = Vec3{ (float)i / w - 0.5f, (float)j / h - 0.5f, 0.4999999f };
 					normal = rotate_mat[k] * normal;
 					normal = normal.Normalize();
 
-					//¼ÆËã¾í»ı
+					//è®¡ç®—å·ç§¯
 					Vec3 up = { 0.0, 1.0f, 0.0 };
 					Vec3 right = up.Cross(normal);
 					up = normal.Cross(right);
@@ -367,9 +367,9 @@ namespace core::pbr
 					{
 						for (float theta = 0.0f; theta < 0.5f * pi; theta += sampleDelta)
 						{
-							// spherical to cartesian (in tangent space), ¼ÆËã°ëÇò·½ÏòÄÚÇĞÏß¿Õ¼äµÄ²ÉÑù×ø±ê
+							// spherical to cartesian (in tangent space), è®¡ç®—åŠçƒæ–¹å‘å†…åˆ‡çº¿ç©ºé—´çš„é‡‡æ ·åæ ‡
 							Vec3  tangentSample = Vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
-							// tangent space to world ´ÓÇĞÏß¿Õ¼ä×ª»»µ½ÊÀ½ç¿Õ¼ä
+							// tangent space to world ä»åˆ‡çº¿ç©ºé—´è½¬æ¢åˆ°ä¸–ç•Œç©ºé—´
 							Vec3  sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * normal;
 							irradiance += env.Sample(sampleVec) * cos(theta) * sin(theta);
 							nrSamples++;

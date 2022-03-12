@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "object.hpp"
 #include "../core/texture.hpp"
@@ -43,7 +43,7 @@ namespace framework
 				}
 				core::Color FS(const vs_out_t& v) const
 				{
-					//±¾µØ¿Õ¼ä
+					//æœ¬åœ°ç©ºé—´
 					core::Color color = core::Texture::Sample(tex0.get(), v.uv);
 					return color;
 				}

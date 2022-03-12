@@ -1,4 +1,4 @@
-//vec4 sse¼ÓËÙ
+ï»¿//vec4 sseåŠ é€Ÿ
 namespace gmath
 {
 	constexpr Vec4<float>::Vec4(float v) : x{ v }, y{ v }, z{ v }, w{ v }{}
@@ -19,7 +19,7 @@ namespace gmath
 	__forceinline Vec4<float> _vectorcall Vec4<float>::Pow(float rhs) const noexcept
 	{
 		__m128 rhs4 = _mm_set_ps1(rhs);
-		return _mm_pow_ps(data_m128, rhs4); //¼ÙµÄintrinsic,
+		return _mm_pow_ps(data_m128, rhs4); //å‡çš„intrinsic,
 		//return _mm_exp10_ps(_mm_mul_ps(_mm_log10_ps(data_m128), rhs4));
 		//return _mm_sqrt_ps(data_m128);
 	}
@@ -169,7 +169,7 @@ namespace gmath
 	}
 };
 
-//vec3 sse¼ÓËÙ
+//vec3 sseåŠ é€Ÿ
 namespace gmath
 {
 	constexpr Vec3<float>::Vec3(float v) :x{ v }, y{ v }, z{ v }, _w{ 0 }{}
@@ -400,7 +400,7 @@ namespace gmath
 	}
 }
 
-//mat4x4 sse¼ÓËÙ
+//mat4x4 sseåŠ é€Ÿ
 namespace gmath
 {
 	constexpr Mat4x4<float>::Mat4x4() :data{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 } {}
@@ -419,7 +419,7 @@ namespace gmath
 	{
 	}
 
-	//¾ØÕó³Ë·¨
+	//çŸ©é˜µä¹˜æ³•
 	__forceinline Mat4x4<float> Mat4x4<float>::operator*(const Mat4x4<float>& rhs) const
 	{
 		__m128 lhs_column_0 = column[0];
@@ -431,13 +431,13 @@ namespace gmath
 		__m128 rhs_column_2 = rhs.column[2];
 		__m128 rhs_column_3 = rhs.column[3];
 
-		//¶ÔÃ¿¸öÁĞ½øĞĞÏòÁ¿³Ë·¨£¬×îºóºÏ²¢ÎªĞÂµÄ¾ØÕó
-		__m128 x = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(0, 0, 0, 0)); //ÌáÈ¡µÚÒ»ÁĞµÄµÚÒ»¸öÔªËØ
-		__m128 y = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(1, 1, 1, 1)); //ÌáÈ¡µÚÒ»ÁĞµÄµÚ¶ş¸öÔªËØ
-		__m128 z = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(2, 2, 2, 2)); //ÌáÈ¡µÚÒ»ÁĞµÄµÚÈı¸öÔªËØ
-		__m128 w = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(3, 3, 3, 3)); //ÌáÈ¡µÚÒ»ÁĞµÄµÚËÄ¸öÔªËØ
+		//å¯¹æ¯ä¸ªåˆ—è¿›è¡Œå‘é‡ä¹˜æ³•ï¼Œæœ€ååˆå¹¶ä¸ºæ–°çš„çŸ©é˜µ
+		__m128 x = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(0, 0, 0, 0)); //æå–ç¬¬ä¸€åˆ—çš„ç¬¬ä¸€ä¸ªå…ƒç´ 
+		__m128 y = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(1, 1, 1, 1)); //æå–ç¬¬ä¸€åˆ—çš„ç¬¬äºŒä¸ªå…ƒç´ 
+		__m128 z = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(2, 2, 2, 2)); //æå–ç¬¬ä¸€åˆ—çš„ç¬¬ä¸‰ä¸ªå…ƒç´ 
+		__m128 w = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(3, 3, 3, 3)); //æå–ç¬¬ä¸€åˆ—çš„ç¬¬å››ä¸ªå…ƒç´ 
 
-		//µÃµ½ĞÂµÄµÚÒ»ÁĞ
+		//å¾—åˆ°æ–°çš„ç¬¬ä¸€åˆ—
 		rhs_column_0 = _mm_mul_ps(lhs_column_0, x);
 		rhs_column_0 = _mm_add_ps(rhs_column_0, _mm_mul_ps(lhs_column_1, y));
 		rhs_column_0 = _mm_add_ps(rhs_column_0, _mm_mul_ps(lhs_column_2, z));
@@ -448,7 +448,7 @@ namespace gmath
 		z = _mm_shuffle_ps(rhs_column_1, rhs_column_1, _MM_SHUFFLE(2, 2, 2, 2));
 		w = _mm_shuffle_ps(rhs_column_1, rhs_column_1, _MM_SHUFFLE(3, 3, 3, 3));
 
-		//µÚ¶şÁĞ
+		//ç¬¬äºŒåˆ—
 		rhs_column_1 = _mm_mul_ps(lhs_column_0, x);
 		rhs_column_1 = _mm_add_ps(rhs_column_1, _mm_mul_ps(lhs_column_1, y));
 		rhs_column_1 = _mm_add_ps(rhs_column_1, _mm_mul_ps(lhs_column_2, z));
@@ -459,7 +459,7 @@ namespace gmath
 		z = _mm_shuffle_ps(rhs_column_2, rhs_column_2, _MM_SHUFFLE(2, 2, 2, 2));
 		w = _mm_shuffle_ps(rhs_column_2, rhs_column_2, _MM_SHUFFLE(3, 3, 3, 3));
 
-		//µÚÈıÁĞ
+		//ç¬¬ä¸‰åˆ—
 		rhs_column_2 = _mm_mul_ps(lhs_column_0, x);
 		rhs_column_2 = _mm_add_ps(rhs_column_2, _mm_mul_ps(lhs_column_1, y));
 		rhs_column_2 = _mm_add_ps(rhs_column_2, _mm_mul_ps(lhs_column_2, z));
@@ -470,7 +470,7 @@ namespace gmath
 		z = _mm_shuffle_ps(rhs_column_3, rhs_column_3, _MM_SHUFFLE(2, 2, 2, 2));
 		w = _mm_shuffle_ps(rhs_column_3, rhs_column_3, _MM_SHUFFLE(3, 3, 3, 3));
 
-		//µÚËÄÁĞ
+		//ç¬¬å››åˆ—
 		rhs_column_3 = _mm_mul_ps(lhs_column_0, x);
 		rhs_column_3 = _mm_add_ps(rhs_column_3, _mm_mul_ps(lhs_column_1, y));
 		rhs_column_3 = _mm_add_ps(rhs_column_3, _mm_mul_ps(lhs_column_2, z));
@@ -479,7 +479,7 @@ namespace gmath
 		return Mat4x4<float>{ rhs_column_0, rhs_column_1, rhs_column_2, rhs_column_3 };
 	}
 
-	//³ËÏòÁ¿ 4·ÖÁ¿
+	//ä¹˜å‘é‡ 4åˆ†é‡
 	__forceinline Vec4<float> _vectorcall Mat4x4<float>::operator*(Vec4<float> rhs) const
 	{
 		__m128 x = _mm_shuffle_ps(rhs, rhs, _MM_SHUFFLE(0, 0, 0, 0));
@@ -515,7 +515,7 @@ namespace gmath
 	}
 }
 
-//mat3x3 sse¼ÓËÙ
+//mat3x3 sseåŠ é€Ÿ
 namespace gmath
 {
 	constexpr Mat3x3<float>::Mat3x3() : data{ 1,0,0,0,0,1,0,0,0,0,1,0 } {};
@@ -531,7 +531,7 @@ namespace gmath
 	{
 	}
 
-	//³Ë¾ØÕó
+	//ä¹˜çŸ©é˜µ
 	__forceinline Mat3x3<float> Mat3x3<float>::operator*(const Mat3x3<float>& rhs) const
 	{
 		__m128 lhs_column_0 = column[0];
@@ -541,12 +541,12 @@ namespace gmath
 		__m128 rhs_column_1 = rhs.column[1];
 		__m128 rhs_column_2 = rhs.column[2];
 
-		//¶ÔÃ¿¸öÁĞ½øĞĞÏòÁ¿³Ë·¨£¬×îºóºÏ²¢ÎªĞÂµÄ¾ØÕó
-		__m128 x = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(0, 0, 0, 0)); //ÌáÈ¡µÚÒ»ÁĞµÄµÚÒ»¸öÔªËØ
-		__m128 y = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(1, 1, 1, 1)); //ÌáÈ¡µÚÒ»ÁĞµÄµÚ¶ş¸öÔªËØ
-		__m128 z = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(2, 2, 2, 2)); //ÌáÈ¡µÚÒ»ÁĞµÄµÚÈı¸öÔªËØ
+		//å¯¹æ¯ä¸ªåˆ—è¿›è¡Œå‘é‡ä¹˜æ³•ï¼Œæœ€ååˆå¹¶ä¸ºæ–°çš„çŸ©é˜µ
+		__m128 x = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(0, 0, 0, 0)); //æå–ç¬¬ä¸€åˆ—çš„ç¬¬ä¸€ä¸ªå…ƒç´ 
+		__m128 y = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(1, 1, 1, 1)); //æå–ç¬¬ä¸€åˆ—çš„ç¬¬äºŒä¸ªå…ƒç´ 
+		__m128 z = _mm_shuffle_ps(rhs_column_0, rhs_column_0, _MM_SHUFFLE(2, 2, 2, 2)); //æå–ç¬¬ä¸€åˆ—çš„ç¬¬ä¸‰ä¸ªå…ƒç´ 
 
-		//µÃµ½ĞÂµÄµÚÒ»ÁĞ
+		//å¾—åˆ°æ–°çš„ç¬¬ä¸€åˆ—
 		rhs_column_0 = _mm_mul_ps(lhs_column_0, x);
 		rhs_column_0 = _mm_add_ps(rhs_column_0, _mm_mul_ps(lhs_column_1, y));
 		rhs_column_0 = _mm_add_ps(rhs_column_0, _mm_mul_ps(lhs_column_2, z));
@@ -555,7 +555,7 @@ namespace gmath
 		y = _mm_shuffle_ps(rhs_column_1, rhs_column_1, _MM_SHUFFLE(1, 1, 1, 1));
 		z = _mm_shuffle_ps(rhs_column_1, rhs_column_1, _MM_SHUFFLE(2, 2, 2, 2));
 
-		//µÚ¶şÁĞ
+		//ç¬¬äºŒåˆ—
 		rhs_column_1 = _mm_mul_ps(lhs_column_0, x);
 		rhs_column_1 = _mm_add_ps(rhs_column_1, _mm_mul_ps(lhs_column_1, y));
 		rhs_column_1 = _mm_add_ps(rhs_column_1, _mm_mul_ps(lhs_column_2, z));
@@ -564,14 +564,14 @@ namespace gmath
 		y = _mm_shuffle_ps(rhs_column_2, rhs_column_2, _MM_SHUFFLE(1, 1, 1, 1));
 		z = _mm_shuffle_ps(rhs_column_2, rhs_column_2, _MM_SHUFFLE(2, 2, 2, 2));
 
-		//µÚÈıÁĞ
+		//ç¬¬ä¸‰åˆ—
 		rhs_column_2 = _mm_mul_ps(lhs_column_0, x);
 		rhs_column_2 = _mm_add_ps(rhs_column_2, _mm_mul_ps(lhs_column_1, y));
 		rhs_column_2 = _mm_add_ps(rhs_column_2, _mm_mul_ps(lhs_column_2, z));
 
 		return Mat3x3<float>{ rhs_column_0, rhs_column_1, rhs_column_2 };
 	}
-	//³ËÏòÁ¿
+	//ä¹˜å‘é‡
 	__forceinline Vec3<float> _vectorcall Mat3x3<float>::operator*(Vec3<float> rhs) const
 	{
 		__m128 x = _mm_shuffle_ps(rhs, rhs, _MM_SHUFFLE(0, 0, 0, 0));
@@ -594,7 +594,7 @@ namespace gmath
 	//	return ret;
 	//}
 
-	//×ªÖÃ
+	//è½¬ç½®
 	inline Mat3x3<float> Mat3x3<float>::Transpose() const
 	{
 		__m128 c0 = column[0];
@@ -606,10 +606,10 @@ namespace gmath
 		return Mat3x3{ c0,c1,c2 };
 	}
 
-	//ÇóÄæ
+	//æ±‚é€†
 	inline Mat3x3<float> Mat3x3<float>::Inverse() const
 	{
-		//ÔİÊ±²»ÓÃsse¸ÄÔì, ÒòÎªĞ§ÂÊ²»Ò»¶¨»á¸ß
+		//æš‚æ—¶ä¸ç”¨sseæ”¹é€ , å› ä¸ºæ•ˆç‡ä¸ä¸€å®šä¼šé«˜
 		float det = data[0] * data[5] * data[10] + data[4] * data[9] * data[2] + data[8] * data[1] * data[6] -
 			data[2] * data[5] * data[8] - data[6] * data[9] * data[0] - data[10] * data[1] * data[4];
 
@@ -620,15 +620,15 @@ namespace gmath
 
 		//A* / |A|
 		Mat3x3<float> _inverse = Mat3x3<float>{
-			//µÚÒ»ĞĞ
+			//ç¬¬ä¸€è¡Œ
 			 (data[5] * data[10] - data[9] * data[6]) / det,
 			-(data[4] * data[10] - data[8] * data[6]) / det,
 			(data[4] * data[9] - data[8] * data[5]) / det,
-			//µÚ¶şĞĞ
+			//ç¬¬äºŒè¡Œ
 			-(data[1] * data[10] - data[9] * data[2]) / det,
 			(data[0] * data[10] - data[8] * data[2]) / det,
 			-(data[0] * data[9] - data[8] * data[1]) / det,
-			//µÚÈıĞĞ
+			//ç¬¬ä¸‰è¡Œ
 			(data[1] * data[6] - data[5] * data[2]) / det,
 			-(data[0] * data[6] - data[4] * data[2]) / det,
 			(data[0] * data[5] - data[4] * data[1]) / det,
@@ -648,7 +648,7 @@ namespace gmath
 	}
 }
 
-//ËÄÔªÊı ²¿·Össe¼ÓËÙ
+//å››å…ƒæ•° éƒ¨åˆ†sseåŠ é€Ÿ
 namespace gmath
 {
 	constexpr Quaternions<float>::Quaternions() :x{ 0 }, y{ 0 }, z{ 0 }, w{ 1 } {}
@@ -662,7 +662,7 @@ namespace gmath
 		return data_m128;
 	}
 
-	//×ª»»ÎªÅ·À­½Ç
+	//è½¬æ¢ä¸ºæ¬§æ‹‰è§’
 	inline Vec3<float> Quaternions<float>::ToEulerAngles() const
 	{
 		return {
@@ -672,7 +672,7 @@ namespace gmath
 		};
 	}
 
-	//×ª»»ÎªĞı×ª¾ØÕó
+	//è½¬æ¢ä¸ºæ—‹è½¬çŸ©é˜µ
 	inline Mat4x4<float> Quaternions<float>::ToMat4() const
 	{
 		return {
@@ -683,7 +683,7 @@ namespace gmath
 		};
 	}
 
-	//×ª»»ÎªĞı×ª¾ØÕó
+	//è½¬æ¢ä¸ºæ—‹è½¬çŸ©é˜µ
 	inline Mat3x3<float> Quaternions<float>::ToMat3() const
 	{
 		return {
@@ -693,7 +693,7 @@ namespace gmath
 		};
 	}
 
-	//³ËËÄÔªÊı
+	//ä¹˜å››å…ƒæ•°
 	inline Quaternions<float>  __vectorcall Quaternions<float>::operator*(Quaternions rhs) const
 	{
 		__m128 xxxx = _mm_shuffle_ps(data_m128, data_m128, _MM_SHUFFLE(0, 0, 0, 0));
@@ -722,7 +722,7 @@ namespace gmath
 		//};
 	}
 
-	//¹éÒ»»¯
+	//å½’ä¸€åŒ–
 	inline Quaternions<float>__vectorcall Quaternions<float>::Normalize() const
 	{
 		//auto len = x * x + y * y + z * z + w * w;
@@ -730,7 +730,7 @@ namespace gmath
 		auto len = _mm_dp_ps(data_m128, data_m128, 0xff);
 		return _mm_div_ps(data_m128, len);
 	}
-	//ÇóÄæ
+	//æ±‚é€†
 	inline Quaternions<float> __vectorcall Quaternions<float>::Inverse() const
 	{
 		//auto len = x * x + y * y + z * z + w * w;
@@ -741,17 +741,17 @@ namespace gmath
 		len = _mm_div_ps(data_m128, len);
 		return _mm_mul_ps(len, Vec4<float>{-1, -1, -1, 1});
 	}
-	//³ËÏòÁ¿
+	//ä¹˜å‘é‡
 	inline Vec4<float> __vectorcall Quaternions<float>::operator*(Vec4<float> rhs) const
 	{
 		return ((*this) * Quaternions<float>{ rhs }*(this->Inverse())).data_m128;
 	}
-	//ÏßĞÔ²åÖµ
+	//çº¿æ€§æ’å€¼
 	inline Quaternions<float> Quaternions<float>::Lerp(Quaternions rhs, float t) const
 	{
 		return { (1.f - t) * x + t * rhs.x,(1.f - t) * y + t * rhs.y,(1.f - t) * z + t * rhs.z,(1.f - t) * w + t * rhs.w };
 	}
-	//ÇòÃæ²åÖµ
+	//çƒé¢æ’å€¼
 	inline Quaternions<float> Quaternions<float>::SLerp(Quaternions rhs, float t) const
 	{
 		auto len1 = sqrt(x * x + y * y + z * z + w * w);
@@ -768,7 +768,7 @@ namespace gmath
 	}
 }
 
-//ËÄÔªÊı
+//å››å…ƒæ•°
 namespace gmath
 {
 	template<typename T> inline Quaternions<T>::Quaternions() :x{ 0 }, y{ 0 }, z{ 0 }, w{ 1 } {}
@@ -776,7 +776,7 @@ namespace gmath
 	template<typename T> inline Quaternions<T>::Quaternions(Vec3<T> vec3) : x{ vec3.x }, y{ vec3.y }, z{ vec3.z }, w{ 0 }{}
 	template<typename T> inline Quaternions<T>::Quaternions(Vec3<T> a, float r) : x{ a.x * sin(r / 2) }, y{ a.y * sin(r / 2) }, z{ a.z * sin(r / 2) }, w{ cos(r / 2) }{}
 	template<typename T> inline Quaternions<T>::Quaternions(float x, float y, float z, float w) : x{ x }, y{ y }, z{ z }, w{ w } {}
-	//×ª»»ÎªÅ·À­½Ç
+	//è½¬æ¢ä¸ºæ¬§æ‹‰è§’
 	template<typename T>inline Vec3<T> Quaternions<T>::ToEulerAngles() const
 	{
 		return {
@@ -786,7 +786,7 @@ namespace gmath
 		};
 	}
 
-	//×ª»»ÎªĞı×ª¾ØÕó
+	//è½¬æ¢ä¸ºæ—‹è½¬çŸ©é˜µ
 	template<typename T>inline Mat4x4<T> Quaternions<T>::ToMat4() const
 	{
 		return {
@@ -797,7 +797,7 @@ namespace gmath
 		};
 	}
 
-	//×ª»»ÎªĞı×ª¾ØÕó
+	//è½¬æ¢ä¸ºæ—‹è½¬çŸ©é˜µ
 	template<typename T>inline Mat3x3<T> Quaternions<T>::ToMat3() const
 	{
 		return {
@@ -807,7 +807,7 @@ namespace gmath
 		};
 	}
 
-	//³ËËÄÔªÊı
+	//ä¹˜å››å…ƒæ•°
 	template<typename T>inline Quaternions<T> Quaternions<T>::operator*(const Quaternions& rhs) const
 	{
 		return {
@@ -818,31 +818,31 @@ namespace gmath
 		};
 	}
 
-	//¹éÒ»»¯
+	//å½’ä¸€åŒ–
 	template<typename T>inline Quaternions<T> Quaternions<T>::Normalize() const
 	{
 		auto len = x * x + y * y + z * z + w * w;
 		return { x / len,y / len,z / len,w / len };
 	}
-	//ÇóÄæ
+	//æ±‚é€†
 	template<typename T>inline Quaternions<T> Quaternions<T>::Inverse() const
 	{
 		auto len = x * x + y * y + z * z + w * w;
 		len = len * len;
 		return { -x / len ,-y / len,-z / len,w / len };
 	}
-	//³ËÏòÁ¿
+	//ä¹˜å‘é‡
 	template<typename T>inline Vec4<T> Quaternions<T>::operator*(const Vec4<T>& rhs) const
 	{
 		auto ret = (*this) * Quaternions<T>{ rhs } *(this->Inverse());
 		return { ret.x,ret.y,ret.z,ret.w };
 	}
-	//ÏßĞÔ²åÖµ
+	//çº¿æ€§æ’å€¼
 	template<typename T>inline Quaternions<T> Quaternions<T>::Lerp(Quaternions rhs, float t) const
 	{
 		return { (1.f - t) * x + t * rhs.x,(1.f - t) * y + t * rhs.y,(1.f - t) * z + t * rhs.z,(1.f - t) * w + t * rhs.w };
 	}
-	//ÇòÃæ²åÖµ
+	//çƒé¢æ’å€¼
 	template<typename T>inline Quaternions<T> Quaternions<T>::SLerp(Quaternions rhs, float t) const
 	{
 		auto len1 = sqrt(x * x + y * y + z * z + w * w);
@@ -1180,26 +1180,26 @@ namespace gmath
 		data[8] = i;
 	}
 
-	//³Ë¾ØÕó
+	//ä¹˜çŸ©é˜µ
 	template<typename T> inline Mat3x3<T> Mat3x3<T>::operator*(const Mat3x3& rhs) const
 	{
 		return Mat3x3{
-			//µÚÒ»ĞĞ
+			//ç¬¬ä¸€è¡Œ
 			data[0] * rhs.data[0] + data[1] * rhs.data[3] + data[2] * rhs.data[6],
 			data[0] * rhs.data[1] + data[1] * rhs.data[4] + data[2] * rhs.data[7],
 			data[0] * rhs.data[2] + data[1] * rhs.data[5] + data[2] * rhs.data[8],
-			//µÚ¶şĞĞ
+			//ç¬¬äºŒè¡Œ
 			data[3] * rhs.data[0] + data[4] * rhs.data[3] + data[5] * rhs.data[6],
 			data[3] * rhs.data[1] + data[4] * rhs.data[4] + data[5] * rhs.data[7],
 			data[3] * rhs.data[2] + data[4] * rhs.data[5] + data[5] * rhs.data[8],
-			//µÚÈıĞĞ
+			//ç¬¬ä¸‰è¡Œ
 			data[6] * rhs.data[0] + data[7] * rhs.data[3] + data[8] * rhs.data[6],
 			data[6] * rhs.data[1] + data[7] * rhs.data[4] + data[8] * rhs.data[7],
 			data[6] * rhs.data[2] + data[7] * rhs.data[5] + data[8] * rhs.data[8],
 		};
 	}
 
-	//³ËÏòÁ¿
+	//ä¹˜å‘é‡
 	template<typename T> inline Vec3<T> Mat3x3<T>::operator*(const Vec3<T>& rhs) const
 	{
 		return Vec3<T>{
@@ -1209,7 +1209,7 @@ namespace gmath
 		};
 	}
 
-	//³ËÏòÁ¿
+	//ä¹˜å‘é‡
 	template<typename T> inline Vec4<T> Mat3x3<T>::operator*(const Vec4<T>& rhs) const
 	{
 		return Vec4<T>{
@@ -1220,7 +1220,7 @@ namespace gmath
 		};
 	}
 
-	//¹¹Ôìµ¥Î»¾ØÕó
+	//æ„é€ å•ä½çŸ©é˜µ
 	template<typename T> inline Mat3x3<T> Mat3x3<T>::Unit()
 	{
 		return Mat3x3{
@@ -1230,7 +1230,7 @@ namespace gmath
 		};
 	}
 
-	//×ªÖÃ
+	//è½¬ç½®
 	template<typename T> inline Mat3x3<T> Mat3x3<T>::Transpose() const
 	{
 		return Mat3x3{
@@ -1240,69 +1240,69 @@ namespace gmath
 		};
 	}
 
-	//ÇóÄæ
+	//æ±‚é€†
 	template<typename T> inline Mat3x3<T> Mat3x3<T>::Inverse() const
 	{
 		// A^-1 =  A*/|A|
-		//A* : AµÄ°éËæ¾ØÕó
-		//|A| : AµÄĞĞÁĞÊ½
+		//A* : Açš„ä¼´éšçŸ©é˜µ
+		//|A| : Açš„è¡Œåˆ—å¼
 
-		//ÊÖËã |A|
+		//æ‰‹ç®— |A|
 		float det = data[0] * data[4] * data[8] + data[1] * data[5] * data[6] + data[2] * data[3] * data[7] -
 			data[6] * data[4] * data[2] - data[7] * data[5] * data[0] - data[8] * data[3] * data[1];
 
 		if (fabs(det) <= 1e-20)
 		{
-			//²»¿ÉÇóÄæ,·µ»Ø×ÔÉí
+			//ä¸å¯æ±‚é€†,è¿”å›è‡ªèº«
 			return *this;
 		}
 
-		//ÊÖËã A* / |A|£¨µÄ×ªÖÃ£©
+		//æ‰‹ç®— A* / |A|ï¼ˆçš„è½¬ç½®ï¼‰
 		Mat3x3<T> _inverse = Mat3x3<T>{
-			//µÚÒ»ĞĞ
+			//ç¬¬ä¸€è¡Œ
 			 (data[4] * data[8] - data[5] * data[7]) / det,
 			-(data[3] * data[8] - data[5] * data[6]) / det,
 			(data[3] * data[7] - data[4] * data[6]) / det,
-			//µÚ¶şĞĞ
+			//ç¬¬äºŒè¡Œ
 			-(data[1] * data[8] - data[2] * data[7]) / det,
 			(data[0] * data[8] - data[2] * data[6]) / det,
 			-(data[0] * data[7] - data[1] * data[6]) / det,
-			//µÚÈıĞĞ
+			//ç¬¬ä¸‰è¡Œ
 			(data[1] * data[5] - data[2] * data[4]) / det,
 			-(data[0] * data[5] - data[2] * data[3]) / det,
 			(data[0] * data[4] - data[1] * data[3]) / det,
 		};
 
-		//×ªÖÃ
+		//è½¬ç½®
 		_inverse = _inverse.Transpose();
 
-		//¾ØÕóÖĞ¿ÉÄÜ³öÏÖ-0.0f£¬µ«²»ÖØÒª, ÒòÎª¾ØÕóÖĞµÄÔªËØ²»»á±»³ı
+		//çŸ©é˜µä¸­å¯èƒ½å‡ºç°-0.0fï¼Œä½†ä¸é‡è¦, å› ä¸ºçŸ©é˜µä¸­çš„å…ƒç´ ä¸ä¼šè¢«é™¤
 		return _inverse;
 	}
 };
 
 namespace gmath
 {
-	//¾ØÕó³Ë·¨
+	//çŸ©é˜µä¹˜æ³•
 	template<typename T> Mat4x4<T> Mat4x4<T>::operator*(const Mat4x4& rhs) const
 	{
 		return Mat4x4{
-			//µÚÒ»ĞĞ
+			//ç¬¬ä¸€è¡Œ
 			data[0] * rhs.data[0] + data[1] * rhs.data[4] + data[2] * rhs.data[8] + data[3] * rhs.data[12],
 			data[0] * rhs.data[1] + data[1] * rhs.data[5] + data[2] * rhs.data[9] + data[3] * rhs.data[13],
 			data[0] * rhs.data[2] + data[1] * rhs.data[6] + data[2] * rhs.data[10] + data[3] * rhs.data[14],
 			data[0] * rhs.data[3] + data[1] * rhs.data[7] + data[2] * rhs.data[11] + data[3] * rhs.data[15],
-			//µÚ¶şĞĞ
+			//ç¬¬äºŒè¡Œ
 			data[4] * rhs.data[0] + data[5] * rhs.data[4] + data[6] * rhs.data[8] + data[7] * rhs.data[12],
 			data[4] * rhs.data[1] + data[5] * rhs.data[5] + data[6] * rhs.data[9] + data[7] * rhs.data[13],
 			data[4] * rhs.data[2] + data[5] * rhs.data[6] + data[6] * rhs.data[10] + data[7] * rhs.data[14],
 			data[4] * rhs.data[3] + data[5] * rhs.data[7] + data[6] * rhs.data[11] + data[7] * rhs.data[15],
-			//µÚÈıĞĞ
+			//ç¬¬ä¸‰è¡Œ
 			data[8] * rhs.data[0] + data[9] * rhs.data[4] + data[10] * rhs.data[8] + data[11] * rhs.data[12],
 			data[8] * rhs.data[1] + data[9] * rhs.data[5] + data[10] * rhs.data[9] + data[11] * rhs.data[13],
 			data[8] * rhs.data[2] + data[9] * rhs.data[6] + data[10] * rhs.data[10] + data[11] * rhs.data[14],
 			data[8] * rhs.data[3] + data[9] * rhs.data[7] + data[10] * rhs.data[11] + data[11] * rhs.data[15],
-			//µÚËÄĞĞ
+			//ç¬¬å››è¡Œ
 			data[12] * rhs.data[0] + data[13] * rhs.data[4] + data[14] * rhs.data[8] + data[15] * rhs.data[12],
 			data[12] * rhs.data[1] + data[13] * rhs.data[5] + data[14] * rhs.data[9] + data[15] * rhs.data[13],
 			data[12] * rhs.data[2] + data[13] * rhs.data[6] + data[14] * rhs.data[10] + data[15] * rhs.data[14],
@@ -1310,7 +1310,7 @@ namespace gmath
 		};
 	}
 
-	//³ËÏòÁ¿ 4·ÖÁ¿
+	//ä¹˜å‘é‡ 4åˆ†é‡
 	template<typename T> Vec4<T> Mat4x4<T>::operator*(const Vec4<T>& rhs) const
 	{
 		return Vec4<T>{
@@ -1391,7 +1391,7 @@ namespace gmath::utility
 		};
 	}
 
-	//Æ½ÒÆ
+	//å¹³ç§»
 	template<typename T>
 	inline Mat4x4<T> Translate(T x, T y, T z)
 	{
@@ -1466,7 +1466,7 @@ namespace gmath::utility
 		return Rz * Rx * Ry;
 	}
 
-	//Ëõ·Å
+	//ç¼©æ”¾
 	template<typename T>
 	inline Mat4x4<T> Scale(T x, T y, T z)
 	{
@@ -1478,7 +1478,7 @@ namespace gmath::utility
 		};
 	}
 
-	//Ëõ·Å
+	//ç¼©æ”¾
 	template<typename T>
 	inline Mat4x4<T> Scale(const Vec3<T>& v)
 	{
@@ -1490,7 +1490,7 @@ namespace gmath::utility
 		};
 	}
 
-	//view ¾ØÕó
+	//view çŸ©é˜µ
 	template<typename T>
 	inline Mat4x4<T> View(const Vec3<T>& position, const Vec3<T>& front, const Vec3<T>& up)
 	{
@@ -1511,7 +1511,7 @@ namespace gmath::utility
 		};
 	}
 
-	//Ïà»ú¾ØÕó
+	//ç›¸æœºçŸ©é˜µ
 	template<typename T>
 	inline Mat4x4<T> LookAt(const Vec3<T>& position, const Vec3<T>& target, const Vec3<T>& up)
 	{
@@ -1532,7 +1532,7 @@ namespace gmath::utility
 		};
 	}
 
-	//Õı½»
+	//æ­£äº¤
 	template<typename T>
 	inline Mat4x4<T> Ortho(T left, T right, T bottom, T top, T _near, T _far)
 	{
@@ -1553,7 +1553,7 @@ namespace gmath::utility
 		};
 	}
 
-	//Í¸ÊÓ¾ØÕó-¶¨ÒåÆ½½ØÍ·Ìå
+	//é€è§†çŸ©é˜µ-å®šä¹‰å¹³æˆªå¤´ä½“
 	template<typename T>
 	inline Mat4x4<T> Frustum(T left, T right, T bottom, T top, T _near, T _far)
 	{
@@ -1574,7 +1574,7 @@ namespace gmath::utility
 		};
 	}
 
-	//Í¸ÊÓ¾ØÕó
+	//é€è§†çŸ©é˜µ
 	template<typename T>
 	inline Mat4x4<T> Projection(T fovy, T aspect, T _near, T _far)
 	{

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "dc_wnd.hpp"
 #include "buffer_view.hpp"
@@ -8,7 +8,7 @@
 
 namespace core
 {
-	//äÖÈ¾ÉÏÏÂÎÄ
+	//æ¸²æŸ“ä¸Šä¸‹æ–‡
 	template<typename FsOut = Color>
 	class Context
 	{
@@ -39,7 +39,7 @@ namespace core
 
 		void CopyToBuffer(Buffer2DView<uint32>& screen_buffer_view)
 		{
-			static_assert(std::is_same_v<FsOut, Color>, "Error: Ö»ÓĞÑÕÉ«bufferÄÜÊä³öµ½ÆÁÄ»");
+			static_assert(std::is_same_v<FsOut, Color>, "Error: åªæœ‰é¢œè‰²bufferèƒ½è¾“å‡ºåˆ°å±å¹•");
 
 			if (!back_buffer_view.buffer)
 			{
@@ -86,7 +86,7 @@ namespace core
 		static Color32 TransFloat4colorToUint32color(const Color& color)
 		{
 			using gmath::utility::Clamp;
-			//½»»»r,bÍ¨µÀ
+			//äº¤æ¢r,bé€šé“
 			return Color32{
 				(unsigned char)(Clamp(color.b) * 255),
 				(unsigned char)(Clamp(color.g) * 255),

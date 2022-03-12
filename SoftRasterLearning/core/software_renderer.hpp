@@ -1,10 +1,10 @@
-#pragma once
+ï»¿#pragma once
 
 #include "context.hpp"
 
 namespace core
 {
-	//Ä¬ÈÏ×ÅÉ«Æ÷
+	//é»˜è®¤ç€è‰²å™¨
 	class Shader_Default
 	{
 	public:
@@ -32,16 +32,16 @@ namespace core
 		RF_ENABLE_BLEND = 64,
 		RF_ENABLE_DEPTH_TEST = 128,
 		//...
-		RF_DEFAULT = RF_CULL_BACK | RF_CULL_CVV_CLIP /*| RF_ENABLE_MULTI_THREAD */| RF_ENABLE_BLEND | RF_ENABLE_DEPTH_TEST,
+		RF_DEFAULT = RF_CULL_BACK | RF_CULL_CVV_CLIP /*| RF_ENABLE_MULTI_THREAD */ | RF_ENABLE_BLEND | RF_ENABLE_DEPTH_TEST,
 		RF_DEFAULT_AA = RF_DEFAULT | RF_ENABLE_SIMPLE_AA
 	};
 
-	//äÖÈ¾Æ÷Àà
+	//æ¸²æŸ“å™¨ç±»
 	template<typename Shader = Shader_Default, size_t render_flag = RF_DEFAULT>
 	class Renderer
 	{
 	private:
-		//ÓÃÀ´İÍÈ¡¶¥µã/ÏñËØ×ÅÉ«Æ÷µÄÊäÈëÊä³öÀàĞÍ
+		//ç”¨æ¥èƒå–é¡¶ç‚¹/åƒç´ ç€è‰²å™¨çš„è¾“å…¥è¾“å‡ºç±»å‹
 		template <typename T, typename R, typename In>
 		static In get_in_type(R(T::* f)(In) const volatile) {}
 		template <typename T, typename R, typename In>
@@ -90,26 +90,26 @@ namespace core
 		{
 			if constexpr (bool(render_flag & RF_CULL_CVV_SIMPLE))
 			{
-				//±¾µØ¿Õ¼ä => ²Ã¼ô¿Õ¼ä clip space
+				//æœ¬åœ°ç©ºé—´ => è£å‰ªç©ºé—´ clip space
 				vs_out_t triangle[3] = {
 					{ shader.VS(*p0) },
 					{ shader.VS(*p1) },
 					{ shader.VS(*p2) }
 				};
-				//¼òµ¥CVVÌŞ³ı
+				//ç®€å•CVVå‰”é™¤
 				if (SimpleCull(triangle)) return;
 				RasterizeTriangle(triangle, triangle + 1, triangle + 2);
 			}
 			else if constexpr (bool(render_flag & RF_CULL_CVV_CLIP)) {
-				//±¾µØ¿Õ¼ä => ²Ã¼ô¿Õ¼ä clip space
+				//æœ¬åœ°ç©ºé—´ => è£å‰ªç©ºé—´ clip space
 				vs_out_t triangle[8] = {
 					{ shader.VS(*p0) },
 					{ shader.VS(*p1) },
 					{ shader.VS(*p2) }
 				};
-				//CVVÌŞ³ı
+				//CVVå‰”é™¤
 				if (CVVCull(triangle)) return;
-				//CVV²Ã¼ô
+				//CVVè£å‰ª
 				vs_out_t polygon[8] = {};
 				size_t len = CVVClip(triangle, polygon);
 				if (len < 3)
@@ -117,10 +117,10 @@ namespace core
 					return;
 				}
 
-				//äÖÈ¾µÚÒ»¸öÈı½ÇĞÎ
+				//æ¸²æŸ“ç¬¬ä¸€ä¸ªä¸‰è§’å½¢
 				RasterizeTriangle(polygon, polygon + 1, polygon + 2);
 
-				//äÖÈ¾ºóÃæµÄÈı½ÇĞÎ
+				//æ¸²æŸ“åé¢çš„ä¸‰è§’å½¢
 				for (size_t i = 3; i < len; ++i)
 				{
 					RasterizeTriangle(polygon, polygon + i - 1, polygon + i);
@@ -131,19 +131,19 @@ namespace core
 
 		void RasterizeTriangle(vs_out_t* p0, vs_out_t* p1, vs_out_t* p2)
 		{
-			//»ñµÃndcÏÂµÄÈı½ÇĞÎÈı¸ö¶¥µã (clip space => ndc)
+			//è·å¾—ndcä¸‹çš„ä¸‰è§’å½¢ä¸‰ä¸ªé¡¶ç‚¹ (clip space => ndc)
 			Vec2 p[3] = {
 				p0->position / p0->position.w,
 				p1->position / p1->position.w,
 				p2->position / p2->position.w,
 			};
 
-			//×ª»¯ÎªÆÁÄ»×ø±ê screen space
+			//è½¬åŒ–ä¸ºå±å¹•åæ ‡ screen space
 			TransToScreenSpace(p, 3);
 
 			if constexpr (bool(render_flag & RF_CULL_BACK))
 			{
-				//ÌŞ³ı±³Ãæ
+				//å‰”é™¤èƒŒé¢
 				if (IsBackface(p))
 				{
 					return;
@@ -151,14 +151,14 @@ namespace core
 			}
 			if constexpr (bool(render_flag & RF_CULL_FRONT))
 			{
-				//ÌŞ³ıÇ°Ãæ
+				//å‰”é™¤å‰é¢
 				if (!IsBackface(p))
 				{
 					return;
 				}
 			}
 
-			//Éú³ÉAABB°üÎ§ºĞ
+			//ç”ŸæˆAABBåŒ…å›´ç›’
 			float left = inf, right = -inf, top = -inf, bottom = inf;
 
 			for (const auto& q : p) {
@@ -181,7 +181,7 @@ namespace core
 				}
 			}
 
-			//¶ÔÈı¸ö¶¥µã°´y×ø±ê´Ó¸ßµ½µ×½øĞĞÅÅĞò
+			//å¯¹ä¸‰ä¸ªé¡¶ç‚¹æŒ‰yåæ ‡ä»é«˜åˆ°åº•è¿›è¡Œæ’åº
 
 			Vec2 q[3] = { p[0],p[1],p[2] };
 
@@ -201,15 +201,15 @@ namespace core
 			int y1 = (int)Clamp(q[2].y, 1.f, context.back_buffer_view.h - 1.f);
 			int y2 = (int)Clamp(q[0].y, 1.f, context.back_buffer_view.h - 1.f);
 
-			//´ÓÉÏµ½ÏÂÉ¨Ãè
+			//ä»ä¸Šåˆ°ä¸‹æ‰«æ
 
 #pragma omp parallel for num_threads(4)
 			for (int y = y2; y >= y1; --y)
 			{
-				//¸ôĞĞÉ¨Ãè
+				//éš”è¡Œæ‰«æ
 				//if (((size_t)y & 1) == context.interlaced_scanning_flag) continue;
 
-				//¼ÆËã³öÖ±Ïß y = y Óë Èı½ÇĞÎÏà½»2µãµÄx×ø±ê
+				//è®¡ç®—å‡ºç›´çº¿ y = y ä¸ ä¸‰è§’å½¢ç›¸äº¤2ç‚¹çš„xåæ ‡
 				//float k = (q[2].y - q[0].y) / (q[2].x - q[0].x);
 				//float b = q[0].y - k * q[0].x;
 				//float x1 = ((float)y - b) / k;
@@ -252,7 +252,7 @@ namespace core
 
 		void PixelProcessing_AA(int x, int y, Vec2* triangle, vs_out_t* p0, vs_out_t* p1, vs_out_t* p2)
 		{
-			//¼òÒ×¿¹¾â³İ
+			//ç®€æ˜“æŠ—é”¯é½¿
 			float cover_count = 0;
 			constexpr size_t Mn = 9;
 
@@ -292,18 +292,18 @@ namespace core
 				return;
 			}
 
-			//È¡ÖĞĞÄÏñËØµÄÖĞĞÄ×ø±êµÄÈı½ÇĞÎÖØĞÄ×ø±ê
+			//å–ä¸­å¿ƒåƒç´ çš„ä¸­å¿ƒåæ ‡çš„ä¸‰è§’å½¢é‡å¿ƒåæ ‡
 			Vec3 weight = GetInterpolationWeight(x + 0.5f, y + 0.5f, triangle);
 
-			//¶ÔÖØĞÄ×ø±ê½øĞĞÍ¸ÊÓĞŞ¸´
+			//å¯¹é‡å¿ƒåæ ‡è¿›è¡Œé€è§†ä¿®å¤
 			weight.x /= p0->position.w;
 			weight.y /= p1->position.w;
 			weight.z /= p2->position.w;
 			weight /= (weight.x + weight.y + weight.z);
 
-			//ÇózÖá²åÖµ
+			//æ±‚zè½´æ’å€¼
 			Vec4 pos = p0->position * weight.x + p1->position * weight.y + p2->position * weight.z;
-			float depth = pos.z / pos.w; //´¢´æ¹éÒ»»¯zÖµ
+			float depth = pos.z / pos.w; //å‚¨å­˜å½’ä¸€åŒ–zå€¼
 			float depth0 = context.depth_buffer_view.Get(x, y);
 
 			if (fabs(depth - depth0) < 0.0005f / pos.w)
@@ -312,7 +312,7 @@ namespace core
 			}
 			else
 			{
-				//Éî¶È²âÊÔ
+				//æ·±åº¦æµ‹è¯•
 				if constexpr (bool(render_flag & RF_ENABLE_DEPTH_TEST))
 				{
 					if (depth > depth0)
@@ -339,16 +339,16 @@ namespace core
 
 			if constexpr (bool(render_flag & RF_ENABLE_BLEND))
 			{
-				//ÑÕÉ«»ìºÏ
+				//é¢œè‰²æ··åˆ
 				if (color.a < (1.f - epsilon))
 				{
 					color = BlendColor(color0, color);
 				}
 			}
 
-			//Ğ´Èëfragment_buffer
+			//å†™å…¥fragment_buffer
 			context.back_buffer_view.Set(x, y, color);
-			//Ğ´Èëdepth_buffer
+			//å†™å…¥depth_buffer
 			context.depth_buffer_view.Set(x, y, depth);
 		}
 
@@ -356,23 +356,23 @@ namespace core
 		{
 			Vec3 weight = GetInterpolationWeight(x + 0.5f, y + 0.5f, triangle);
 
-			//ÅĞ¶ÏÊÇ·ñÔÚÈı½ÇĞÎÄÚ
+			//åˆ¤æ–­æ˜¯å¦åœ¨ä¸‰è§’å½¢å†…
 			if (weight.x < epsilon || weight.y < epsilon || weight.z < epsilon)
 			{
 				return;
 			}
 
-			//¶Ô²åÖµ½øĞĞÍ¸ÊÓĞŞ¸´
+			//å¯¹æ’å€¼è¿›è¡Œé€è§†ä¿®å¤
 			weight.x /= p0->position.w;
 			weight.y /= p1->position.w;
 			weight.z /= p2->position.w;
 			weight /= (weight.x + weight.y + weight.z);
 
-			//Çó²åÖµ
+			//æ±‚æ’å€¼
 			vs_out_t interp = *p0 * weight.x + *p1 * weight.y + *p2 * weight.z;
 			float depth = interp.position.z / interp.position.w;
 
-			//Éî¶È²âÊÔ
+			//æ·±åº¦æµ‹è¯•
 			if constexpr (bool(render_flag & RF_ENABLE_DEPTH_TEST))
 			{
 				float depth0 = context.depth_buffer_view.Get(x, y);
@@ -380,7 +380,7 @@ namespace core
 				{
 					return;
 				}
-				//Ğ´Èëdepth_buffer
+				//å†™å…¥depth_buffer
 				context.depth_buffer_view.Set(x, y, depth);
 			}
 
@@ -388,14 +388,14 @@ namespace core
 
 			if constexpr (bool(render_flag & RF_ENABLE_BLEND))
 			{
-				//ÑÕÉ«»ìºÏ
+				//é¢œè‰²æ··åˆ
 				if (color.a < (1.f - epsilon))
 				{
 					Color color0 = context.back_buffer_view.Get(x, y);
 					color = gmath::utility::BlendColor(color0, color);
 				}
 			}
-			//Ğ´Èëfragment_buffer
+			//å†™å…¥fragment_buffer
 			context.back_buffer_view.Set(x, y, color);
 		}
 		void PixelProcessing(int x, int y, Vec2* triangle, vs_out_t* p0, vs_out_t* p1, vs_out_t* p2)
@@ -430,7 +430,7 @@ namespace core
 			return false;
 		}
 
-		//Èç¹ûÈı¸öµã¶¼ÔÚCVVÖ®Íâ,Ö±½ÓÌŞ³ı
+		//å¦‚æœä¸‰ä¸ªç‚¹éƒ½åœ¨CVVä¹‹å¤–,ç›´æ¥å‰”é™¤
 		bool CVVCull(vs_out_t triangle[3])
 		{
 			float w0 = triangle[0].position.w;
@@ -514,16 +514,16 @@ namespace core
 			{
 				vs_out_t* p0 = polygon_in + i;
 				vs_out_t* p1 = polygon_in + ((i + 1) % len);
-				//sutherland_hodgmanËã·¨
-				//¼ì²ép0, p1 ÊÇ·ñÔÚÄÚ²à,
+				//sutherland_hodgmanç®—æ³•
+				//æ£€æŸ¥p0, p1 æ˜¯å¦åœ¨å†…ä¾§,
 				int b_p0_inside = IsInside(p0, plane);
 				int b_p1_inside = IsInside(p1, plane);
 				int sh_flag = b_p1_inside << 1 | b_p0_inside;
 
-				//0: Èç¹û, p0ÔÚÍâ²à, p1ÔÚÍâ²à, Ê²Ã´¶¼²»×ö
-				//1: Èç¹û, p0ÔÚÄÚ²à, p1ÔÚÍâ²à, Çó½»µãq,  add q
-				//2: Èç¹û, p0ÔÚÍâ²à, p1ÔÚÄÚ²à, Çó½»µãq£¬ add q, p1
-				//3: Èç¹û, p0¡¢p1¶¼ÔÚÄÚ²â, add p1
+				//0: å¦‚æœ, p0åœ¨å¤–ä¾§, p1åœ¨å¤–ä¾§, ä»€ä¹ˆéƒ½ä¸åš
+				//1: å¦‚æœ, p0åœ¨å†…ä¾§, p1åœ¨å¤–ä¾§, æ±‚äº¤ç‚¹q,  add q
+				//2: å¦‚æœ, p0åœ¨å¤–ä¾§, p1åœ¨å†…ä¾§, æ±‚äº¤ç‚¹qï¼Œ add q, p1
+				//3: å¦‚æœ, p0ã€p1éƒ½åœ¨å†…æµ‹, add p1
 
 				switch (sh_flag)
 				{
@@ -550,7 +550,7 @@ namespace core
 			return len_out;
 		}
 
-		//Èı½ÇĞÎÓëCVVÏà½», ²Ã¼ô²¢¼ÆËã²åÖµ
+		//ä¸‰è§’å½¢ä¸CVVç›¸äº¤, è£å‰ªå¹¶è®¡ç®—æ’å€¼
 		size_t CVVClip(vs_out_t* polygon_in, vs_out_t* polygon_out)
 		{
 			size_t len = 3;
@@ -610,7 +610,7 @@ namespace core
 			return (pa.Cross(pb) > 0 && pb.Cross(pc) > 0 && pc.Cross(pa) > 0) || (pa.Cross(pb) < 0 && pb.Cross(pc) < 0 && pc.Cross(pa) < 0);
 		}
 
-		//»ñÈ¡²åÖµ
+		//è·å–æ’å€¼
 		Vec3 GetInterpolationWeight(float x, float y, Vec2* triangle) const
 		{
 			//t*p0+u*p0+v*p1=p, t=1-u-v;

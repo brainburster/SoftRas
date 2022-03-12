@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "types_and_defs.hpp"
 //#include <vector>
@@ -74,7 +74,7 @@ namespace core
 			x = x - _x;
 			y = y - _y;
 
-			//Ë«ÏßÐÔ²åÖµ
+			//åŒçº¿æ€§æ’å€¼
 			auto color0 = tex->Get(_x, _y);
 			auto color1 = tex->Get(_x + 1, _y);
 			auto color2 = tex->Get(_x, _y + 1);
@@ -126,7 +126,7 @@ namespace core
 		}
 
 	protected:
-		//¼ÆËã¶þÎ¬zÐÍÇúÏßµÄmorton code
+		//è®¡ç®—äºŒç»´zåž‹æ›²çº¿çš„morton code
 		size_t GetMortonCode(size_t x, size_t y) const noexcept
 		{
 			size_t z = 0;
@@ -144,7 +144,7 @@ namespace core
 			}
 			return z;
 		}
-		//¼ÆËã¶þÎ¬zÐÍÇúÏßµÄx,yÖµ
+		//è®¡ç®—äºŒç»´zåž‹æ›²çº¿çš„x,yå€¼
 		void GetXYformMortonCode(size_t value, size_t& x, size_t& y) const noexcept
 		{
 			x = y = 0;

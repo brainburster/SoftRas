@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include<type_traits>
 #include<immintrin.h>
@@ -20,7 +20,7 @@ namespace core
 			{
 				for (size_t i = 0; i < size; i += 4)
 				{
-					//ÊÖ¶¯ÏòÁ¿»¯
+					//æ‰‹åŠ¨å‘é‡åŒ–
 					__m128 _lhs = _mm_load_ps(&buffer_lhs[i]);
 					__m128 _rhs = _mm_load_ps(&buffer_rhs[i]);
 					__m128 _ret = _mm_add_ps(_lhs, _rhs);

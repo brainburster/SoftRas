@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <chrono>
 #include <functional>
@@ -56,21 +56,21 @@ namespace framework
 
 		virtual ~IRenderEngine() = default;
 	protected:
-		//ÎªwindwosÏûÏ¢Ìí¼Ó»Øµ÷º¯Êı£¬µ÷ÓÃÒ»´Î
+		//ä¸ºwindwosæ¶ˆæ¯æ·»åŠ å›è°ƒå‡½æ•°ï¼Œè°ƒç”¨ä¸€æ¬¡
 		virtual void HookInput() = 0;
-		//³õÊ¼»¯
+		//åˆå§‹åŒ–
 		virtual void Init() = 0;
-		//¸üĞÂ
+		//æ›´æ–°
 		virtual void Update() = 0;
-		//Ã¿Ö¡µ÷ÓÃ, Í¨¹ı»ñÈ¡ÊäÈëĞÅÏ¢´¦ÀíÂß¼­
+		//æ¯å¸§è°ƒç”¨, é€šè¿‡è·å–è¾“å…¥ä¿¡æ¯å¤„ç†é€»è¾‘
 		virtual void HandleInput() = 0;
-		//äÖÈ¾Ã¿Ö¡
+		//æ¸²æŸ“æ¯å¸§
 		virtual void RenderFrame() = 0;
-		//Ã¿Ö¡½áÊøºóµÄÇåÀí¹¤×÷
+		//æ¯å¸§ç»“æŸåçš„æ¸…ç†å·¥ä½œ
 		virtual void EndFrame() = 0;
 	};
 
-	//»ñÈ¡×éºÏ¼üĞÅÏ¢
+	//è·å–ç»„åˆé”®ä¿¡æ¯
 	template<char... VK>
 	inline bool IsKeyPressed()
 	{

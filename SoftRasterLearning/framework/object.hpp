@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "../core/software_renderer.hpp"
 #include "../core/model.hpp"
@@ -9,7 +9,7 @@ namespace framework
 {
 	class IRenderEngine;
 
-	//äÖÈ¾½Ó¿Ú
+	//æ¸²æŸ“æ¥å£
 	class IRenderAble
 	{
 	public:
@@ -18,7 +18,7 @@ namespace framework
 
 	//...
 
-	//Î»ÖÃĞı×ªËõ·ÅĞÅÏ¢
+	//ä½ç½®æ—‹è½¬ç¼©æ”¾ä¿¡æ¯
 	struct Transform
 	{
 		core::Vec3 position = { 0,0,0 };
@@ -31,7 +31,7 @@ namespace framework
 		}
 	};
 
-	//¿ÉÒÔ±»äÖÈ¾µÄÎïÌå
+	//å¯ä»¥è¢«æ¸²æŸ“çš„ç‰©ä½“
 	class Object : public IRenderAble //,...
 	{
 	public:
@@ -39,14 +39,14 @@ namespace framework
 		virtual ~Object() = default;
 	};
 
-	//ÓµÓĞmeshµÄÎïÌå
+	//æ‹¥æœ‰meshçš„ç‰©ä½“
 	class Entity : public Object
 	{
 	public:
 		std::shared_ptr<core::Model> model;
 	};
 
-	//ÓµÓĞ²ÄÖÊµÄÎïÌå
+	//æ‹¥æœ‰æè´¨çš„ç‰©ä½“
 	class MaterialEntity : public Entity
 	{
 	public:

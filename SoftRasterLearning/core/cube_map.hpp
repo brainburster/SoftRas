@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "texture.hpp"
 #include <memory>
@@ -38,8 +38,8 @@ namespace core
 
 		core::Vec4 Sample(core::Vec3 dir) const
 		{
-			//3¸ö·ÖÁ¿ÖĞ¾ø¶ÔÖµ×î´óµÄ,¾ö¶¨²ÉÑùÄÄ¸öÃæ
-			//¶ÔÊ£ÏÂµÄÁ½¸ö·ÖÁ¿"¹éÒ»»¯"£¬¾ö¶¨uv
+			//3ä¸ªåˆ†é‡ä¸­ç»å¯¹å€¼æœ€å¤§çš„,å†³å®šé‡‡æ ·å“ªä¸ªé¢
+			//å¯¹å‰©ä¸‹çš„ä¸¤ä¸ªåˆ†é‡"å½’ä¸€åŒ–"ï¼Œå†³å®šuv
 			float abs_x = fabs(dir.x) + core::epsilon;
 			float abs_y = fabs(dir.y) + core::epsilon;
 			float abs_z = fabs(dir.z) + core::epsilon;
@@ -51,14 +51,14 @@ namespace core
 			{
 				if (dir.x > 0)
 				{
-					//²ÉÑùÓÒÃæ
+					//é‡‡æ ·å³é¢
 					tex = right.get();
 					u = (-dir.z / abs_x + 1) / 2;
 					v = (dir.y / abs_x + 1) / 2;
 				}
 				else
 				{
-					//²ÉÑù×óÃæ
+					//é‡‡æ ·å·¦é¢
 					tex = left.get();
 					u = (dir.z / abs_x + 1) / 2;
 					v = (dir.y / abs_x + 1) / 2;
@@ -68,14 +68,14 @@ namespace core
 			{
 				if (dir.y > 0)
 				{
-					//²ÉÑù¶¥Ãæ
+					//é‡‡æ ·é¡¶é¢
 					tex = top.get();
 					u = (dir.x / abs_y + 1) / 2;
 					v = (-dir.z / abs_y + 1) / 2;
 				}
 				else
 				{
-					//²ÉÑùµ×Ãæ
+					//é‡‡æ ·åº•é¢
 					tex = bottom.get();
 					u = (dir.x / abs_y + 1) / 2;
 					v = (dir.z / abs_y + 1) / 2;
@@ -85,14 +85,14 @@ namespace core
 			{
 				if (dir.z > 0)
 				{
-					//²ÉÑùÇ°Ãæ
+					//é‡‡æ ·å‰é¢
 					tex = front.get();
 					u = (dir.x / abs_z + 1) / 2;
 					v = (dir.y / abs_z + 1) / 2;
 				}
 				else
 				{
-					//²ÉÑùºóÃæ
+					//é‡‡æ ·åé¢
 					tex = back.get();
 					u = (-dir.x / abs_z + 1) / 2;
 					v = (dir.y / abs_z + 1) / 2;

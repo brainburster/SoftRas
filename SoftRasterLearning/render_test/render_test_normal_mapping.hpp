@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "../core/core_api.hpp"
 #include "../framework/framework.hpp"
@@ -22,9 +22,9 @@ public:
 	{
 		using namespace core;
 
-		//Çó·¨Ïß¾ØÕó
+		//æ±‚æ³•çº¿çŸ©é˜µ
 		Mat3 normal_mat = model.ToMat3x3().Inverse().Transpose();
-		//Çótbn
+		//æ±‚tbn
 		Vec3 tangent = (normal_mat * v.tangent).Normalize();
 		Vec3 normal = (normal_mat * v.normal).Normalize();
 		//tangent = (tangent - tangent.Dot(normal) * normal).normalize();
@@ -54,11 +54,11 @@ public:
 	{
 		using namespace core;
 
-		Vec3 N = Vec3(Texture::Sample(normal_map, v.uv) * 2 - 1.f).Normalize(); //ÇĞÏß¿Õ¼ä·¨Ïß
+		Vec3 N = Vec3(Texture::Sample(normal_map, v.uv) * 2 - 1.f).Normalize(); //åˆ‡çº¿ç©ºé—´æ³•çº¿
 		Vec3 albedo = Vec3{ 0.91f };//Texture::Sample(tex0, v.uv);
 
-		//µÃµ½ÇĞÏß¿Õ¼äÖĞµÄL¡¢V¡¢H
-		//¾­¹ıÏßĞÔ²åÖµÖ®ºóÔ­ÏÈÊÇµ¥Î»ÏòÁ¿µÄ£¬²»Ò»¶¨»¹ÊÇ
+		//å¾—åˆ°åˆ‡çº¿ç©ºé—´ä¸­çš„Lã€Vã€H
+		//ç»è¿‡çº¿æ€§æ’å€¼ä¹‹ååŸå…ˆæ˜¯å•ä½å‘é‡çš„ï¼Œä¸ä¸€å®šè¿˜æ˜¯
 		Vec3 L = v.light_dir_ts.Normalize();
 		Vec3 V = v.view_dir_ts.Normalize();
 		Vec3 H = v.half_dir_ts.Normalize();

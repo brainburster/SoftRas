@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <cmath>
 #include <immintrin.h>
@@ -143,17 +143,17 @@ namespace gmath
 		Mat3x3(Vec3<T> a, Vec3<T> b, Vec3<T> c);
 		Mat3x3(T a, T b, T c, T d, T e, T f, T g, T h, T i);
 
-		//³Ë¾ØÕó
+		//ä¹˜çŸ©é˜µ
 		Mat3x3 operator*(const Mat3x3& rhs) const;
-		//³ËÏòÁ¿
+		//ä¹˜å‘é‡
 		Vec3<T> operator*(const Vec3<T>& rhs) const;
 		Vec4<T> operator*(const Vec4<T>& rhs) const;
 
-		//¹¹Ôìµ¥Î»¾ØÕó
+		//æ„é€ å•ä½çŸ©é˜µ
 		static Mat3x3 Unit();
-		//×ªÖÃ
+		//è½¬ç½®
 		Mat3x3 Transpose() const;
-		//ÇóÄæ
+		//æ±‚é€†
 		Mat3x3 Inverse() const;
 	};
 
@@ -162,10 +162,10 @@ namespace gmath
 	{
 		T data[16];
 
-		//¾ØÕó³Ë·¨
+		//çŸ©é˜µä¹˜æ³•
 		Mat4x4 operator*(const Mat4x4& rhs) const;
 
-		//³ËÏòÁ¿ 4·ÖÁ¿
+		//ä¹˜å‘é‡ 4åˆ†é‡
 		Vec4<T> operator*(const Vec4<T>& rhs) const;
 
 		Mat3x3<T> ToMat3x3() const;
@@ -185,26 +185,26 @@ namespace gmath
 		Quaternions(Vec3<T>, float);
 		Quaternions(float, float, float, float);
 
-		//×ª»»ÎªÅ·À­½Ç
+		//è½¬æ¢ä¸ºæ¬§æ‹‰è§’
 		Vec3<T> ToEulerAngles() const;
 
-		//×ª»»ÎªĞı×ª¾ØÕó
+		//è½¬æ¢ä¸ºæ—‹è½¬çŸ©é˜µ
 		Mat4x4<T> ToMat4() const;
 
-		//×ª»»ÎªĞı×ª¾ØÕó
+		//è½¬æ¢ä¸ºæ—‹è½¬çŸ©é˜µ
 		Mat3x3<T> ToMat3() const;
 
-		//³ËËÄÔªÊı
+		//ä¹˜å››å…ƒæ•°
 		Quaternions operator*(const Quaternions& rhs) const;
-		//¹éÒ»»¯
+		//å½’ä¸€åŒ–
 		Quaternions Normalize() const;
-		//ÇóÄæ
+		//æ±‚é€†
 		Quaternions Inverse() const;
-		//³ËÏòÁ¿
+		//ä¹˜å‘é‡
 		Vec4<T> operator*(const Vec4<T>& rhs) const;
-		//ÏßĞÔ²åÖµ
+		//çº¿æ€§æ’å€¼
 		Quaternions Lerp(Quaternions rhs, float t) const;
-		//ÇòÃæ²åÖµ
+		//çƒé¢æ’å€¼
 		Quaternions SLerp(Quaternions rhs, float t) const;
 	};
 
@@ -222,42 +222,42 @@ namespace gmath
 		float radians(float degree);
 		float degrees(float radian);
 
-		//µ¥Î»¾ØÕó
+		//å•ä½çŸ©é˜µ
 		template<typename T>
 		static Mat3x3<T> Mat3Unit();
 		template<typename T>
 		static Mat4x4<T> Mat4Unit();
 
-		//Æ½ÒÆ
+		//å¹³ç§»
 		template<typename T>
 		static Mat4x4<T> Translate(T x, T y, T z);
 
 		template<typename T>
 		static Mat4x4<T> Translate(const Vec3<T>& v);
-		//Ğı×ª
+		//æ—‹è½¬
 		template<typename T>
 		static Mat4x4<T> Rotate(T x, T y, T z);
 		template<typename T>
 		static Mat4x4<T> Rotate(const Vec3<T>& v);
-		//Ëõ·Å
+		//ç¼©æ”¾
 		template<typename T>
 		static Mat4x4<T> Scale(T x, T y, T z);
 		template<typename T>
 		static Mat4x4<T> Scale(const Vec3<T>& v);
 
-		//view ¾ØÕó
+		//view çŸ©é˜µ
 		template<typename T>
 		static Mat4x4<T> View(const Vec3<T>& position, const Vec3<T>& front, const Vec3<T>& up);
-		//Ïà»ú¾ØÕó
+		//ç›¸æœºçŸ©é˜µ
 		template<typename T>
 		static Mat4x4<T> LookAt(const Vec3<T>& position, const Vec3<T>& target, const Vec3<T>& up);
-		//Õı½»
+		//æ­£äº¤
 		template<typename T>
 		static Mat4x4<T> Ortho(T left, T right, T bottom, T top, T _near, T _far);
-		//Í¸ÊÓ¾ØÕó-¶¨ÒåÆ½½ØÍ·Ìå
+		//é€è§†çŸ©é˜µ-å®šä¹‰å¹³æˆªå¤´ä½“
 		template<typename T>
 		static Mat4x4<T> Frustum(T left, T right, T bottom, T top, T _near, T _far);
-		//Í¸ÊÓ¾ØÕó
+		//é€è§†çŸ©é˜µ
 		template<typename T>
 		static Mat4x4<T> Projection(T fovy, T aspect, T _near, T _far);
 	};
@@ -343,26 +343,26 @@ namespace gmath
 		constexpr Quaternions(float, float, float, float);
 		constexpr Quaternions(__m128 data);
 		constexpr operator __m128() const noexcept;
-		//×ª»»ÎªÅ·À­½Ç
+		//è½¬æ¢ä¸ºæ¬§æ‹‰è§’
 		Vec3<float> ToEulerAngles() const;
 
-		//×ª»»ÎªĞı×ª¾ØÕó
+		//è½¬æ¢ä¸ºæ—‹è½¬çŸ©é˜µ
 		Mat4x4<float> ToMat4() const;
 
-		//×ª»»ÎªĞı×ª¾ØÕó
+		//è½¬æ¢ä¸ºæ—‹è½¬çŸ©é˜µ
 		Mat3x3<float> ToMat3() const;
 
-		//³ËËÄÔªÊı
+		//ä¹˜å››å…ƒæ•°
 		Quaternions  __vectorcall operator*(Quaternions rhs) const;
-		//¹éÒ»»¯
+		//å½’ä¸€åŒ–
 		Quaternions __vectorcall Normalize() const;
-		//ÇóÄæ
+		//æ±‚é€†
 		Quaternions __vectorcall Inverse() const;
-		//³ËÏòÁ¿
+		//ä¹˜å‘é‡
 		Vec4<float> __vectorcall operator*(Vec4<float> rhs) const;
-		//ÏßĞÔ²åÖµ
+		//çº¿æ€§æ’å€¼
 		Quaternions Lerp(Quaternions rhs, float t) const;
-		//ÇòÃæ²åÖµ
+		//çƒé¢æ’å€¼
 		Quaternions SLerp(Quaternions rhs, float t) const;
 	};
 
@@ -449,23 +449,23 @@ namespace gmath
 			float data[16];
 			__m128 column[4];
 		};
-		//ĞŞ¸ÄÎªÁĞ¾ØÕó
+		//ä¿®æ”¹ä¸ºåˆ—çŸ©é˜µ
 		constexpr Mat4x4(float _0, float _1, float _2, float _3, float _4, float _5, float _6, float _7, float _8, float _9, float _10, float _11, float _12, float _13, float _14, float _15);
 
 		constexpr Mat4x4(__m128 c1, __m128 c2, __m128 c3, __m128 c4);
 
 		constexpr Mat4x4();
 
-		//¾ØÕó³Ë·¨
+		//çŸ©é˜µä¹˜æ³•
 		Mat4x4<float> operator*(const Mat4x4<float>& rhs) const;
 
-		//³ËÏòÁ¿ 4·ÖÁ¿
+		//ä¹˜å‘é‡ 4åˆ†é‡
 		Vec4<float> _vectorcall operator*(Vec4<float> rhs) const;
 
-		//×ªÖÃ
+		//è½¬ç½®
 		Mat4x4<float> Transpose() const;
 
-		//×ª»»µ½3x3¾ØÕó
+		//è½¬æ¢åˆ°3x3çŸ©é˜µ
 		Mat3x3<float> ToMat3x3() const;
 	};
 
@@ -482,15 +482,15 @@ namespace gmath
 		constexpr Mat3x3(__m128, __m128, __m128);
 		constexpr Mat3x3(float a, float b, float c, float d, float e, float f, float g, float h, float i);
 
-		//³Ë¾ØÕó
+		//ä¹˜çŸ©é˜µ
 		Mat3x3<float> operator*(const Mat3x3& rhs) const;
-		//³ËÏòÁ¿
+		//ä¹˜å‘é‡
 		Vec3<float> _vectorcall operator*(Vec3<float> rhs) const;
-		//×ªÖÃ
+		//è½¬ç½®
 		Mat3x3<float> Transpose() const;
-		//ÇóÄæ
+		//æ±‚é€†
 		Mat3x3<float> Inverse() const;
-		//×ª»»µ½4x4¾ØÕó
+		//è½¬æ¢åˆ°4x4çŸ©é˜µ
 		Mat4x4<float> ToMat4x4() const;
 	};
 };

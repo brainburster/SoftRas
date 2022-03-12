@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "render_test_light_blinn_phong.hpp"
 #include "render_test_normal_mapping.hpp"
@@ -90,27 +90,27 @@ protected:
 		framework::SetResource(L"sunlight", _sunlight_icon);
 		framework::SetResource(L"bulblight", _bulblight_icon);
 
-		//Ç¿ĞĞ°ÑÌì¿ÕºĞ±ä³ÉHDR
+		//å¼ºè¡ŒæŠŠå¤©ç©ºç›’å˜æˆHDR
 		auto* env_tex = reinterpret_cast<decltype(_front)*>(_cubemap.get());
 		for (size_t i = 0; i < 6; i++)
 		{
 			auto& data = env_tex[i]->GetData();
 			std::transform(data.begin(), data.end(), data.begin(), [](core::Vec4 color) {
-				//Ê¹ÓÃsinhº¯ÊıÌáÁÁ
-				return core::Vec4{ _mm_sinh_ps(color * 3.f) } / 3.f; //Ó¦¸Ã¿ÉÒÔ°ÑÔ­À´½Ó½ü1µÄÁÁ¶ÈÌá¸ßµ½3, ¶øµÍÁÁ¶ÈĞÅÏ¢¸Ä±äºÜÉÙ
-			});
+				//ä½¿ç”¨sinhå‡½æ•°æäº®
+				return core::Vec4{ _mm_sinh_ps(color * 3.f) } / 3.f; //åº”è¯¥å¯ä»¥æŠŠåŸæ¥æ¥è¿‘1çš„äº®åº¦æé«˜åˆ°3, è€Œä½äº®åº¦ä¿¡æ¯æ”¹å˜å¾ˆå°‘
+				});
 		}
 		//...
-		// ÔËĞĞÊ±¼ÆËã»·¾³¹âÕÕÌùÍ¼
+		// è¿è¡Œæ—¶è®¡ç®—ç¯å¢ƒå…‰ç…§è´´å›¾
 		//std::thread t{ [&]() {
 		//	_env_map->Init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
 		//} };
 		//t.detach();
 		// ...
-		// Ô¤¼ÆËã»·¾³¹âÕÕÌùÍ¼
+		// é¢„è®¡ç®—ç¯å¢ƒå…‰ç…§è´´å›¾
 		//_env_map->Init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
-		//_env_map->Save(L".\\resource\\env\\evn.ibl"); //Ğ¡ĞÄ¸²¸Ç
-		//// ´ÓÎÄ¼ş¼ÓÔØ¹âÕÕÌùÍ¼
+		//_env_map->Save(L".\\resource\\env\\evn.ibl"); //å°å¿ƒè¦†ç›–
+		//// ä»æ–‡ä»¶åŠ è½½å…‰ç…§è´´å›¾
 		_env_map->Load(L".\\resource\\env\\evn.ibl");
 		//...
 		SoftRasterApp::Init();

@@ -1,8 +1,8 @@
-#pragma once
+ï»¿#pragma once
 
 #include "../core/types_and_defs.hpp"
 
-//¼òµ¥VsOut
+//ç®€å•VsOut
 struct VsOut_Simple : core::vs_out_base<VsOut_Simple>
 {
 	core::Position position;
@@ -10,17 +10,17 @@ struct VsOut_Simple : core::vs_out_base<VsOut_Simple>
 	core::Vec3 normal;
 };
 
-//ÊÀ½ç¿Õ¼ä¹âÕÕ
+//ä¸–ç•Œç©ºé—´å…‰ç…§
 struct VsOut_Light_ws : core::vs_out_base<VsOut_Light_ws>
 {
 	core::Position position; //clip space
 	core::Vec3 position_ws;
 	core::Vec2 uv;
-	core::Vec3 normal_ws; //×ª»»µ½ world space Òª³ËÄ£ĞÍ(·¨Ïß)¾ØÕó
+	core::Vec3 normal_ws; //è½¬æ¢åˆ° world space è¦ä¹˜æ¨¡å‹(æ³•çº¿)çŸ©é˜µ
 	core::Mat3 TBN = {};
 };
 
-//ÇĞÏß¿Õ¼ä¹âÕÕ
+//åˆ‡çº¿ç©ºé—´å…‰ç…§
 struct VsOut_Light_ts : core::vs_out_base<VsOut_Light_ts>
 {
 	core::Position position; //clip space

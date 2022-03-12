@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "types_and_defs.hpp"
 #include "cube_map.hpp"
@@ -6,40 +6,40 @@
 
 namespace core::pbr
 {
-	//·ÆÄù¶û·½³ÌF£¨schlick½üËÆ£© F0 + (1-F0)(1-(n¡¤v))^5
-	//F0 ±íÊ¾´¹Ö±ÈëÉäÊ±(·¨Ïß¼Ğ½Ç0¡ã)µÄ·´ÉäÂÊ
-	//ndotv ¹Û²ìÏòÁ¿Óë·¨Ïß¼Ğ½Ç N dot V
+	//è²æ¶…å°”æ–¹ç¨‹Fï¼ˆschlickè¿‘ä¼¼ï¼‰ F0 + (1-F0)(1-(nÂ·v))^5
+	//F0 è¡¨ç¤ºå‚ç›´å…¥å°„æ—¶(æ³•çº¿å¤¹è§’0Â°)çš„åå°„ç‡
+	//ndotv è§‚å¯Ÿå‘é‡ä¸æ³•çº¿å¤¹è§’ N dot V
 	Vec3 FresnelSchlick(Vec3 F0, float ndotv);
 
-	//ÊÜµ½´Ö²Ú¶ÈÓ°ÏìµÄ·ÆÄù¶ú·½³Ì£¬ÒòÎª´Ö²ÚÎ¢Æ½Ãæ»áÕÚ±Î·´Éä¹â
+	//å—åˆ°ç²—ç³™åº¦å½±å“çš„è²æ¶…è€³æ–¹ç¨‹ï¼Œå› ä¸ºç²—ç³™å¾®å¹³é¢ä¼šé®è”½åå°„å…‰
 	core::Vec3 FresnelSchlickRoughness(core::Vec3 F0, float ndotv, float roughness);
 
-	//¼ÆËãf0(»ù´¡·´ÉäÂÊ), ÓÃ½ğÊô¶ÈºÍ·´ÕÕÂÊ¼ÆËã
-	//albedo ±íÊ¾±íÃæÑÕÉ«(Âş·´ÉäÏµÊı)»ò»ù´¡·´ÉäÂÊ
-	//metalness ±íÊ¾½ğÊô»ò·Ç½ğÊô
+	//è®¡ç®—f0(åŸºç¡€åå°„ç‡), ç”¨é‡‘å±åº¦å’Œåç…§ç‡è®¡ç®—
+	//albedo è¡¨ç¤ºè¡¨é¢é¢œè‰²(æ¼«åå°„ç³»æ•°)æˆ–åŸºç¡€åå°„ç‡
+	//metalness è¡¨ç¤ºé‡‘å±æˆ–éé‡‘å±
 	Vec3 GetF0(Vec3 albedo, float metalness);
 
-	//(Î¢Æ½Ãæ·¨Ïß)ÕıÌ¬·Ö²¼º¯ÊıD NDF(normal distribution function) (Trowbridge-Reitz GGX) Í¨¹ı´Ö²Ú¶È¾ö¶¨
+	//(å¾®å¹³é¢æ³•çº¿)æ­£æ€åˆ†å¸ƒå‡½æ•°D NDF(normal distribution function) (Trowbridge-Reitz GGX) é€šè¿‡ç²—ç³™åº¦å†³å®š
 	// roughness^2/pi*((n dot h)^2*(a^2-1)+1)^2
 	float DistributionGGX(float NdotH, float roughness);
 
-	//¼¸ºÎº¯Êı£¨Î¢Æ½Ãæ±¾ÉíµÄÕÚµ²ÂÊ£©(Schlick-GGX)
+	//å‡ ä½•å‡½æ•°ï¼ˆå¾®å¹³é¢æœ¬èº«çš„é®æŒ¡ç‡ï¼‰(Schlick-GGX)
 	// (n dot v) / ((n dot v) (1-k) + k)
-	//kÊÇ¸ù¾İ´Ö²Ú¶ÈÉú³ÉµÄ
+	//kæ˜¯æ ¹æ®ç²—ç³™åº¦ç”Ÿæˆçš„
 	float GeometrySchlickGGX(float cos_theta, float k);
 
-	//¿¼ÂÇÁË¹Û²ìÏòÁ¿ºÍ¹âÏßÏòÁ¿2ÕßµÄ¼¸ºÎº¯Êı (Smith·¨)
+	//è€ƒè™‘äº†è§‚å¯Ÿå‘é‡å’Œå…‰çº¿å‘é‡2è€…çš„å‡ ä½•å‡½æ•° (Smithæ³•)
 	float GeometrySmith(float NdotV, float NdotL, float k);
 
-	//Cook-Torrance BRDFµÄ¾µÃæ·´Éä²¿·Ö
+	//Cook-Torrance BRDFçš„é•œé¢åå°„éƒ¨åˆ†
 	//DFG/4(VdotN)(LdotN)
 	Vec3 SpecularCooKTorrance(float D, Vec3 F, float G, float NdotV, float NdotL);
 
 	struct IBL
 	{
-		std::shared_ptr<Texture> brdf_map; //BRDF»ı·ÖÍ¼
-		std::shared_ptr<CubeMap> diffuse_map; //Âş·´Éä²¿·Ö¾í»ı
-		std::vector<std::shared_ptr<CubeMap>> specular_maps; //¾µÃæ·´Éä²¿·Ö¾í»ı
+		std::shared_ptr<Texture> brdf_map; //BRDFç§¯åˆ†å›¾
+		std::shared_ptr<CubeMap> diffuse_map; //æ¼«åå°„éƒ¨åˆ†å·ç§¯
+		std::vector<std::shared_ptr<CubeMap>> specular_maps; //é•œé¢åå°„éƒ¨åˆ†å·ç§¯
 
 #pragma pack(push)
 #pragma pack(2)
@@ -68,7 +68,7 @@ namespace core::pbr
 		void InitBrdfMap();
 		float RadicalInverseVdC(size_t bits);
 		Vec2 Hammersley(size_t i, size_t N);
-		//»ñµÃ¸ù¾İroughnessËæ»úÉú³ÉµÄÇĞÏß¿Õ¼ä°ëÇò²ÉÑù
+		//è·å¾—æ ¹æ®roughnesséšæœºç”Ÿæˆçš„åˆ‡çº¿ç©ºé—´åŠçƒé‡‡æ ·
 		Vec3 ImportanceSampleGGX(Vec2 Xi, Vec3 N, float roughness);
 		void InitSpecularMaps(const CubeMap& env);
 		void InitDiffuseMap(const CubeMap& env);

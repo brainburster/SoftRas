@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <vector>
 #include <string_view>
@@ -50,7 +50,7 @@ namespace loader::obj
 					break;
 				}
 				SV line_sv = src.substr(i, tail - i);
-				//½âÎöĞĞ
+				//è§£æè¡Œ
 				ParseLine(line_sv, data);
 				i = tail + 1;
 			}
@@ -80,10 +80,10 @@ namespace loader::obj
 				float ty = f * (duv1.y * e0.y - duv0.y * e1.y);
 				float tz = f * (duv1.y * e0.z - duv0.y * e1.z);
 
-				//Çó³öÆ½ÃæµÄÇĞÏß
+				//æ±‚å‡ºå¹³é¢çš„åˆ‡çº¿
 				Vec3 tangent = Vec3{ tx,ty,tz }.Normalize();
 
-				//Çó³öÃ¿¸ö¶¥µãµÄÇĞÏß£¨ÒòÎª¿ÉÄÜÓĞ×Ô¶¨Òå·¨Ïß£©
+				//æ±‚å‡ºæ¯ä¸ªé¡¶ç‚¹çš„åˆ‡çº¿ï¼ˆå› ä¸ºå¯èƒ½æœ‰è‡ªå®šä¹‰æ³•çº¿ï¼‰
 				v0.tangent = (tangent - (tangent.Dot(v0.normal) * v0.normal)).Normalize();
 				v1.tangent = (tangent - (tangent.Dot(v1.normal) * v1.normal)).Normalize();
 				v2.tangent = (tangent - (tangent.Dot(v2.normal) * v2.normal)).Normalize();

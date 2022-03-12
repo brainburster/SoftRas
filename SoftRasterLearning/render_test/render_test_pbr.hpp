@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "../core/core_api.hpp"
 #include "../framework/framework.hpp"
@@ -21,7 +21,7 @@ public:
 	virtual void Render(const framework::Entity& entity, framework::IRenderEngine& engine) override;
 };
 
-//ÊÀ½ç¿Õ¼ä blinn_phong ×ÅÉ«Æ÷
+//ä¸–ç•Œç©ºé—´ blinn_phong ç€è‰²å™¨
 struct Shader_PBR
 {
 	Material_PBR* material = nullptr;
@@ -47,7 +47,7 @@ struct Shader_PBR
 		float metalness = material->metalness;
 		float roughness = material->roughness;
 		auto& IBL = material->ibl;
-		Vec3 N = v.normal_ws.Normalize(); //²åÖµÖ®ºó²»Ò»¶¨ÊÇ¹éÒ»»¯µÄ
+		Vec3 N = v.normal_ws.Normalize(); //æ’å€¼ä¹‹åä¸ä¸€å®šæ˜¯å½’ä¸€åŒ–çš„
 		Vec3 V = cam_pos_ws - v.position_ws;
 		float d_cam = V.Length();
 		V = V.Normalize();
@@ -73,7 +73,7 @@ struct Shader_PBR
 
 				float distance = (light->GetPosition() - v.position_ws).Length();
 				float attenuation = (light->GetLightCategory() == framework::ELightCategory::DirectionalLight) ? (1.0f) : (1.0f / (distance * distance));
-				Vec3 radiance = light->GetColor() * attenuation; //ÈëÉäµÄradiance
+				Vec3 radiance = light->GetColor() * attenuation; //å…¥å°„çš„radiance
 
 				float NdotL = max(N.Dot(L), 0.0f);
 				float NdotH = max(N.Dot(H), 0.0f);
@@ -90,7 +90,7 @@ struct Shader_PBR
 		}
 
 		core::Vec3 ambient = { 0.01f };
-		//¼ÆËã»·¾³¹â
+		//è®¡ç®—ç¯å¢ƒå…‰
 		if (IBL && material->b_enable_ibl)
 		{
 			Vec3 F0 = pbr::GetF0(albedo, metalness);
@@ -124,12 +124,12 @@ struct Shader_PBR
 
 inline void Material_PBR::Render(const framework::Entity& entity, framework::IRenderEngine& engine)
 {
-	//×¼±¸shaderÊı¾İ
+	//å‡†å¤‡shaderæ•°æ®
 	Shader_PBR shader{ this };
 	shader.mvp = engine.GetMainCamera()->GetProjectionViewMatrix() * entity.transform.GetModelMatrix();
 	shader.model = entity.transform.GetModelMatrix();
 	shader.cam_pos_ws = engine.GetMainCamera()->GetPosition();
-	//äÖÈ¾
+	//æ¸²æŸ“
 	core::Renderer<Shader_PBR> renderer = { engine.GetCtx(), shader };
 	renderer.DrawTriangles(&entity.model->mesh[0], entity.model->mesh.size());
 }
@@ -149,7 +149,7 @@ private:
 public:
 	void Init(framework::IRenderEngine& engine) override
 	{
-		//´´½¨¹âÔ´
+		//åˆ›å»ºå…‰æº
 		auto light0 = std::make_shared<framework::PointLight>();
 		light0->transform.position = { -8.f,16.f,-8.f };
 		light0->color = 16.0f;
@@ -164,7 +164,7 @@ public:
 		light3->dirction = { 0,0.5f,0.5f };
 		light3->color = 0.4f;
 
-		//´´½¨3x7¸öÇòÌå£¬xÖároughnessÔö´ó,yÖámetallicÔö´ó
+		//åˆ›å»º3x7ä¸ªçƒä½“ï¼Œxè½´roughnesså¢å¤§,yè½´metallicå¢å¤§
 		objects.reserve(32);
 		spheres.reserve(25);
 		for (size_t j = 0; j < 3; j++)
@@ -190,7 +190,7 @@ public:
 			}
 		}
 
-		//´´½¨ÉãÏñ»ú
+		//åˆ›å»ºæ‘„åƒæœº
 		target_camera = std::make_shared<framework::TargetCamera>(spheres[3ULL + 1ULL * 7], 30.f, 0.f, 0.1f);
 		fps_camera = std::make_shared <framework::FPSCamera>();
 		camera = target_camera;
@@ -287,14 +287,14 @@ public:
 
 		if (b_show_light)
 		{
-			//»­¼ÒËã·¨¶Ô¹âÔ´£¨Í¸Ã÷ÎïÌå½øĞĞÅÅĞò£©
+			//ç”»å®¶ç®—æ³•å¯¹å…‰æºï¼ˆé€æ˜ç‰©ä½“è¿›è¡Œæ’åºï¼‰
 			std::sort(lights.begin(), lights.end(), [&](auto l1, auto l2) {
-				//×ª»»µ½NDC¿Õ¼ä
+				//è½¬æ¢åˆ°NDCç©ºé—´
 				auto vp = camera->GetProjectionViewMatrix();
 				auto p1 = vp * l1->transform.position.ToHomoCoord();
 				auto p2 = vp * l2->transform.position.ToHomoCoord();
 				return p1.z / p1.w > p2.z / p2.w;
-			});
+				});
 
 			for (auto& light : lights)
 			{
