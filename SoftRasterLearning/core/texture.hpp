@@ -8,10 +8,11 @@ namespace core
 	class Texture
 	{
 	public:
-		Texture() :_w{ 0 }, _h{ 0 }, _order{ 0 } {}
+		Texture() :_w{ 0 }, _h{ 0 }, _xorder{ 0 }, _yorder{ 0 }, _order{ 0 } {}
 		Texture(const Texture&) = delete;
 		Texture& operator=(const Texture& other) = delete;
-		Texture(Texture&& other) noexcept : _data{ std::move(other._data) }, _w{ other._w }, _h{ other._h }, _order{ other._order } {}
+		Texture(Texture&& other) noexcept : _data{ std::move(other._data) }, _w{ other._w }, _h{ other._h },
+			_xorder{ other._xorder }, _yorder{ other._yorder }, _order{ other._order } {}
 		Texture& operator=(Texture&& other) noexcept
 		{
 			if (this == &other) { return *this; }
@@ -20,18 +21,18 @@ namespace core
 		}
 		Texture(size_t w, size_t h) :_w{ w }, _h{ h }, _order{ 0 }
 		{
-			size_t x_order = (size_t)ceil(log2(w));
-			size_t y_order = (size_t)ceil(log2(h));
-			_order = max(x_order, y_order);
-			_data.resize((size_t)pow(2, x_order)* (size_t)pow(2, y_order));
+			_xorder = (size_t)ceil(log2(w));
+			_yorder = (size_t)ceil(log2(h));
+			_order = _xorder + _yorder;
+			_data.resize((size_t)pow(2, _order));
 		}
 		template<typename T>
 		Texture(size_t w, size_t h, T* buffer) :_w{ w }, _h{ h }, _order{ 0 }
 		{
-			size_t x_order = ceil(log2(w));
-			size_t y_order = ceil(log2(h));
-			_order = max(x_order, y_order);
-			_data.resize(pow(2, x_order)* pow(2, y_order));
+			_xorder = (size_t)ceil(log2(w));
+			_yorder = (size_t)ceil(log2(h));
+			_order = _xorder + _yorder;
+			_data.resize((size_t)pow(2, _order));
 			const size_t size = w * h;
 #pragma omp parallel for num_threads(4)
 			for (int i = 0; i < size; ++i)
@@ -118,10 +119,10 @@ namespace core
 		{
 			this->_w = w;
 			this->_h = h;
-			size_t x_order = (size_t)ceil(log2(w));
-			size_t y_order = (size_t)ceil(log2(h));
-			_order = max(x_order, y_order);
-			_data.resize((size_t)pow(2, x_order) * (size_t)pow(2, y_order));
+			_xorder = (size_t)ceil(log2(w));
+			_yorder = (size_t)ceil(log2(h));
+			_order = _xorder + _yorder;
+			_data.resize((size_t)pow(2, _order));
 		}
 
 	protected:
@@ -129,12 +130,17 @@ namespace core
 		size_t GetMortonCode(size_t x, size_t y) const noexcept
 		{
 			size_t z = 0;
+			size_t i = 0;
 			for (size_t j = 0; j < _order; ++j) {
 				size_t mask = 1ULL << j;
-				if (x & mask)
-					z |= 1ULL << (0 + j * 2);
-				if (y & mask)
-					z |= 1ULL << (1 + j * 2);
+				if (j < _xorder) {
+					if (x & mask) z |= 1ULL << i;
+					++i;
+				}
+				if (j < _yorder) {
+					if (y & mask) z |= 1ULL << i;
+					++i;
+				}
 			}
 			return z;
 		}
@@ -142,13 +148,18 @@ namespace core
 		void GetXYformMortonCode(size_t value, size_t& x, size_t& y) const noexcept
 		{
 			x = y = 0;
+			size_t i = 0;
 			for (size_t j = 0; j < _order; ++j) {
-				size_t mask = 1ULL << j * 2;
-				if (value & mask)
-					y |= 1ULL << j;
-				mask <<= 1;
-				if (value & mask)
-					x |= 1ULL << j;
+				size_t mask = 1ULL << i;
+				if (j < _xorder) {
+					if (value & mask) x |= 1ULL << i;
+					++i;
+					mask <<= 1;
+				}
+				if (j < _yorder) {
+					if (value & mask) y |= 1ULL << i;
+					++i;
+				}
 			}
 		}
 
@@ -157,5 +168,7 @@ namespace core
 		size_t _w;
 		size_t _h;
 		size_t _order;
+		size_t _xorder;
+		size_t _yorder;
 	};
 }

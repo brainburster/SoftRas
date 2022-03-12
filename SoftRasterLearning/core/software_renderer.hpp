@@ -193,7 +193,7 @@ namespace core
 			int y2 = (int)Clamp(q[0].y, 1.f, context.back_buffer_view.h - 1.f);
 
 			//从上到下扫描
-#pragma omp parallel for num_threads(8)
+#pragma omp parallel for num_threads(4)
 			for (int y = y2; y >= y1 - 1; --y)
 			{
 				//隔行扫描

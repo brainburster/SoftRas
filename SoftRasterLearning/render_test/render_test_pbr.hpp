@@ -100,13 +100,14 @@ struct Shader_PBR
 			Vec3 irradiance = IBL->diffuse_map->Sample(N);
 			Vec3 diffuse = irradiance * albedo;
 			Vec3 R = (-V).Reflect(N).Normalize();
+			using gmath::utility::Clamp;
 			float u = roughness * 4.f;
 			size_t lod = size_t(u);
 			u = u - lod;
 			Vec3 prefilteredColor = IBL->specular_maps[lod]->Sample(R);
 			if (u > 0.05f)
 			{
-				size_t lod_1 = gmath::utility::Clamp(lod + 1, 0, 4);
+				size_t lod_1 = Clamp(lod + 1, 0, 4);
 				Vec3 prefilteredColor1 = IBL->specular_maps[lod_1]->Sample(R);
 				prefilteredColor = prefilteredColor * (1 - u) + prefilteredColor1 * u;
 			}
@@ -189,7 +190,7 @@ public:
 		}
 
 		//´´½¨ÉãÏñ»ú
-		target_camera = std::make_shared<framework::TargetCamera>(spheres[3 + 1 * 7], 30.f, 0.f, 0.1f);
+		target_camera = std::make_shared<framework::TargetCamera>(spheres[3ULL + 1ULL * 7], 30.f, 0.f, 0.1f);
 		fps_camera = std::make_shared <framework::FPSCamera>();
 		camera = target_camera;
 		skybox = std::make_shared<framework::Skybox>();
