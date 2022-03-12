@@ -2,6 +2,7 @@
 
 #include "types_and_defs.hpp"
 #include "cube_map.hpp"
+#include <fstream>
 
 namespace core::pbr
 {
@@ -36,15 +37,31 @@ namespace core::pbr
 
 	struct IBL
 	{
-		std::shared_ptr<CubeMap> diffuse_map; //漫反射部分卷积
 		std::shared_ptr<Texture> brdf_map; //BRDF积分图
+		std::shared_ptr<CubeMap> diffuse_map; //漫反射部分卷积
 		std::vector<std::shared_ptr<CubeMap>> specular_maps; //镜面反射部分卷积
-		struct FileHeader
-		{
-			size_t diffuse_map_size;
-			size_t brdf_map_size;
-			size_t num_of_specular_mas;
+
+#pragma pack(push)
+#pragma pack(2)
+		struct TextureHeader {
+			std::uint32_t size;
+			std::uint16_t w;
+			std::uint16_t h;
 		};
+		static_assert(sizeof(TextureHeader) == 8, "the size of TextureHeader must be 8 bytes");
+
+		struct IblFileHeader
+		{
+			TextureHeader brdf_map;
+			TextureHeader diffuse_map;
+			std::uint16_t num_of_specular_maps;
+		};
+		static_assert(sizeof(IblFileHeader) == 18, "the size of IblFileHeader must be 18 bytes");
+
+#pragma pack(pop)
+
+		void Save(const wchar_t* filename);
+		void Load(const wchar_t* filename);
 		IBL();
 		void Init(const CubeMap& env);
 		Vec2 IntegrateBRDF(float NdotV, float roughness);

@@ -29,4 +29,12 @@ namespace core
 		Position position;
 		Color color;
 	};
+
+	//抄的gsl的实现https://github.com/microsoft/GSL/blob/main/include/gsl/util#L98
+	template <class T, class U>
+	//[[gsl::suppress(type.1)]]
+	constexpr T narrow_cast(U&& u) noexcept
+	{
+		return static_cast<T>(std::forward<U>(u));
+	}
 }

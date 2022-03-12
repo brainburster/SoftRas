@@ -15,7 +15,7 @@ public:
 	core::Vec3 albedo;
 	float metalness = 0;
 	float roughness = 0;
-	bool b_enable_light = true;
+	bool b_enable_light = false;
 	bool b_enable_ibl = true;
 	virtual void Render(const framework::Entity& entity, framework::IRenderEngine& engine) override;
 };
@@ -142,7 +142,7 @@ private:
 	std::shared_ptr<framework::TargetCamera> target_camera;
 	std::shared_ptr<framework::Skybox> skybox;
 	std::shared_ptr<core::pbr::IBL> ibl;
-	bool b_show_light = true;
+	bool b_show_light = false;
 	bool b_show_skybox = true;
 public:
 	void Init(framework::IRenderEngine& engine) override
@@ -243,7 +243,7 @@ public:
 		{
 			skybox->cube_map = framework::GetResource<core::pbr::IBL>(L"env_map").value()->specular_maps[3];
 		}
-		else if (engine.GetInputState().key_pressed[VK_OEM_3])
+		else if (engine.GetInputState().key_pressed[VK_OEM_3] || engine.GetInputState().key_pressed['6'])
 		{
 			skybox->cube_map = framework::GetResource<core::CubeMap>(L"cube_map").value();
 		}
@@ -292,7 +292,7 @@ public:
 				auto p1 = vp * l1->transform.position.ToHomoCoord();
 				auto p2 = vp * l2->transform.position.ToHomoCoord();
 				return p1.z / p1.w > p2.z / p2.w;
-				});
+			});
 
 			for (auto& light : lights)
 			{

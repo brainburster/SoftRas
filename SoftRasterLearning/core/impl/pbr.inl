@@ -59,25 +59,106 @@ namespace core::pbr
 		return D * G / (4 * NdotV * NdotL + epsilon) * F;
 	}
 
+	//保存到文件
+	inline void IBL::Save(const wchar_t* filename)
+	{
+		using namespace std;
+		ofstream ofile(filename, ios_base::trunc | ios_base::out | ios_base::binary);
+
+		const auto diff_tex0 = diffuse_map->GetTexture(0);
+
+		IblFileHeader ibl_info = {
+			{
+				narrow_cast<std::uint32_t>(brdf_map->GetSize()),
+				narrow_cast<std::uint16_t>(brdf_map->GetWidth()),
+				narrow_cast<std::uint16_t>(brdf_map->GetHeight())
+			},
+			{
+				narrow_cast<std::uint32_t>(diff_tex0->GetSize()),
+				narrow_cast<std::uint16_t>(diff_tex0->GetWidth()),
+				narrow_cast<std::uint16_t>(diff_tex0->GetHeight())
+			},
+			narrow_cast<std::uint16_t>(specular_maps.size())
+		};
+
+		ofile.write(reinterpret_cast<char*>(&ibl_info), sizeof ibl_info);
+
+		ofile.write(reinterpret_cast<char*>(brdf_map->GetData().data()),ibl_info.brdf_map.size * sizeof(decltype(brdf_map->Get(0ULL, 0ULL))));
+
+		for (size_t i = 0; i < 6; i++)
+		{
+			const auto& tex = *diffuse_map->GetTexture(i);
+			ofile.write(reinterpret_cast<const char*>(tex.GetCData().data()), ibl_info.diffuse_map.size * sizeof(decltype(tex.Get(0ULL, 0ULL))));
+		}
+
+		for (const auto & specular_map : specular_maps)
+		{
+			const auto spec_tex0 = specular_map->GetTexture(0);
+			TextureHeader tex_info = {
+				narrow_cast<std::uint32_t>(spec_tex0->GetSize()),
+				narrow_cast<std::uint16_t>(spec_tex0->GetWidth()),
+				narrow_cast<std::uint16_t>(spec_tex0->GetHeight()),
+			};
+			ofile.write(reinterpret_cast<char*>(&tex_info), sizeof tex_info);
+			for (size_t i = 0; i < 6; i++)
+			{
+				const auto& tex = *specular_map->GetTexture(i);
+				ofile.write(reinterpret_cast<const char*>(tex.GetCData().data()), tex_info.size * sizeof(decltype(tex.Get(0ULL, 0ULL))));
+			}
+		}
+	}
+
+	//从文件读取
+	inline void IBL::Load(const wchar_t* filename)
+	{
+		using namespace std;
+		ifstream ifile(filename, ios_base::in | ios_base::binary);
+		brdf_map = std::make_shared<Texture>();
+		diffuse_map = std::make_shared<CubeMap>();
+		specular_maps.clear();
+
+		IblFileHeader ibl_info = {};
+		ifile.read(reinterpret_cast<char*>(&ibl_info), sizeof ibl_info);
+		brdf_map->Resize(ibl_info.brdf_map.w, ibl_info.brdf_map.h);
+		ifile.read(reinterpret_cast<char*>(brdf_map->GetData().data()), ibl_info.brdf_map.size * sizeof(decltype(brdf_map->Get(0ULL, 0ULL))));
+		for (size_t i = 0; i < 6; i++)
+		{
+			auto& tex = *diffuse_map->GetTexture(i);
+			tex.Resize(ibl_info.diffuse_map.w, ibl_info.diffuse_map.h);
+			ifile.read(reinterpret_cast<char*>(tex.GetData().data()), ibl_info.diffuse_map.size * sizeof(decltype(tex.Get(0ULL, 0ULL))));
+		}
+		specular_maps.resize(ibl_info.num_of_specular_maps);
+		for (auto& specular_map : specular_maps)
+		{
+			specular_map = std::make_shared<CubeMap>();
+			TextureHeader tex_info = {};
+			ifile.read(reinterpret_cast<char*>(&tex_info), sizeof tex_info);
+			for (size_t i = 0; i < 6; i++)
+			{
+				auto& tex = *specular_map->GetTexture(i);
+				tex.Resize(tex_info.w, tex_info.h);
+				ifile.read(reinterpret_cast<char*>(tex.GetData().data()), tex_info.size * sizeof(decltype(tex.Get(0ULL, 0ULL))));
+			}
+		}
+	}
+
 	inline IBL::IBL()
 	{
-		//size_t w = evn_map.front->GetWidth();
-		//size_t h = evn_map.front->GetHeight();
-		diffuse_map = std::make_shared<CubeMap>(32, 32);
+		brdf_map = std::make_shared<Texture>(512, 512);
+		diffuse_map = std::make_shared<CubeMap>(64, 64);
 		specular_maps.reserve(5);
+		specular_maps.emplace_back(std::make_shared<CubeMap>(256, 256));
 		specular_maps.emplace_back(std::make_shared<CubeMap>(128, 128));
 		specular_maps.emplace_back(std::make_shared<CubeMap>(64, 64));
 		specular_maps.emplace_back(std::make_shared<CubeMap>(32, 32));
 		specular_maps.emplace_back(std::make_shared<CubeMap>(16, 16));
-		specular_maps.emplace_back(std::make_shared<CubeMap>(8, 8));
-		brdf_map = std::make_shared<Texture>(256, 256);
 	}
 
 	inline void IBL::Init(const CubeMap& env)
 	{
+		InitBrdfMap();
 		InitDiffuseMap(env);
 		InitSpecularMaps(env);
-		InitBrdfMap();
 	}
 
 	inline Vec2 IBL::IntegrateBRDF(float NdotV, float roughness)
@@ -92,7 +173,7 @@ namespace core::pbr
 
 		Vec3 N = Vec3(0.0, 0.0, 1.0f);
 
-		const size_t SAMPLE_COUNT = 512u;
+		const size_t SAMPLE_COUNT = 2048u;
 		for (size_t i = 0u; i < SAMPLE_COUNT; ++i)
 		{
 			Vec2 Xi = Hammersley(i, SAMPLE_COUNT);
@@ -190,7 +271,7 @@ namespace core::pbr
 			{-f,u,r}
 		};
 
-		const size_t size_map[] = { 128,64,32,16,8 };
+		const size_t size_map[] = { 256,128,64,32,16 };
 		for (size_t mip = 0; mip < 5; ++mip)
 		{
 			size_t w = size_map[mip];
@@ -210,7 +291,7 @@ namespace core::pbr
 						Vec3 R = N;
 						Vec3 V = R;
 
-						const size_t SAMPLE_COUNT = 512u;
+						const size_t SAMPLE_COUNT = 2048u;
 						float totalWeight = 0.0f;
 						Vec3 prefilteredColor = 0.0f;
 						for (size_t i = 0u; i < SAMPLE_COUNT; ++i)

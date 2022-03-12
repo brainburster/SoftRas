@@ -6,6 +6,7 @@
 
 namespace loader::bmp
 {
+#pragma pack(push)
 #pragma pack(2)
 	struct BmpHeader
 	{
@@ -14,11 +15,9 @@ namespace loader::bmp
 		core::uint16 reserved[2];
 		core::uint32 offset;
 	};
-#pragma pack()
 
-	static_assert(sizeof(BmpHeader) == 14, "the size of bmp header must be 14 bytes");
+	static_assert(sizeof(BmpHeader) == 14, "the size of BmpHeader must be 14 bytes");
 
-#pragma pack(2)
 	struct BmpInfo
 	{
 		core::uint32 size_of_info;
@@ -33,9 +32,11 @@ namespace loader::bmp
 		core::uint32 clrUsed;
 		core::uint32 clrImportant;
 	};
-#pragma pack()
 
-	static_assert(sizeof(BmpInfo) == 40, "the size of bmp info must be 40 bytes");
+	static_assert(sizeof(BmpInfo) == 40, "the size of BmpInfo must be 40 bytes");
+
+#pragma pack(pop)
+
 
 	std::shared_ptr<core::Texture> LoadFromFile(const wchar_t* file_path, bool b_gamma_conrrection = true)
 	{
@@ -60,7 +61,7 @@ namespace loader::bmp
 		core::Texture texture;
 		const size_t width = bmp_info.width;
 		const size_t height = bmp_info.height;
-		texture.SetSize(width, height);
+		texture.Resize(width, height);
 
 		const size_t channel = bmp_info.bitCount == 32 ? 4 : 3;
 		const size_t size = width * height;

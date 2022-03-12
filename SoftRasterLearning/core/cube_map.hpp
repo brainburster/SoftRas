@@ -22,7 +22,7 @@ namespace core
 		{
 		}
 
-		CubeMap(size_t w, size_t h)
+		CubeMap(size_t w = 0ULL, size_t h = 0ULL)
 		{
 			front = std::make_shared<core::Texture>(w, h);
 			back = std::make_shared<core::Texture>(w, h);
@@ -30,6 +30,10 @@ namespace core
 			bottom = std::make_shared<core::Texture>(w, h);
 			left = std::make_shared<core::Texture>(w, h);
 			right = std::make_shared<core::Texture>(w, h);
+		}
+
+		decltype(front.get()) GetTexture(size_t id) {
+			return (&front)[max(min(id, 5ULL), 0ULL)].get();
 		}
 
 		core::Vec4 Sample(core::Vec3 dir) const

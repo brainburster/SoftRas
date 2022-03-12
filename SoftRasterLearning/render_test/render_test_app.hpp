@@ -90,21 +90,28 @@ protected:
 		framework::SetResource(L"sunlight", _sunlight_icon);
 		framework::SetResource(L"bulblight", _bulblight_icon);
 
+		//强行把天空盒变成HDR
 		auto* env_tex = reinterpret_cast<decltype(_front)*>(_cubemap.get());
 		for (size_t i = 0; i < 6; i++)
 		{
 			auto& data = env_tex[i]->GetData();
 			std::transform(data.begin(), data.end(), data.begin(), [](core::Vec4 color) {
 				//使用sinh函数提亮
-				return core::Vec4{ _mm_sinh_ps(color * 3.6f) } / 3.6f; //应该可以把原来接近1的亮度提高到4, 而低亮度信息几乎不变
-				});
+				return core::Vec4{ _mm_sinh_ps(color * 3.f) } / 3.f; //应该可以把原来接近1的亮度提高到3, 而低亮度信息改变很少
+			});
 		}
 		//...
-		//创建预计算环境光照贴图
-		std::thread t{ [&]() {
-			_env_map->Init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
-		} };
-		t.detach();
+		// 运行时计算环境光照贴图
+		//std::thread t{ [&]() {
+		//	_env_map->Init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
+		//} };
+		//t.detach();
+		// ...
+		// 预计算环境光照贴图
+		//_env_map->Init(*framework::GetResource<core::CubeMap>(L"cube_map").value().get());
+		//_env_map->Save(L".\\resource\\env\\evn.ibl"); //小心覆盖
+		//// 从文件加载光照贴图
+		_env_map->Load(L".\\resource\\env\\evn.ibl");
 		//...
 		SoftRasterApp::Init();
 		scene = std::make_shared<RenderTestScene>();
