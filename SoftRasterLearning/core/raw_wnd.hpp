@@ -21,7 +21,7 @@ namespace core
 
 		static void PeekMsg()
 		{
-			if (PeekMessage(&Msg(), NULL, NULL, NULL, PM_REMOVE))
+			while (PeekMessage(&Msg(), NULL, NULL, NULL, PM_REMOVE))
 			{
 				TranslateMessage(&Msg());
 				DispatchMessage(&Msg());
