@@ -2,12 +2,10 @@
 
 #include "../core/core_api.hpp"
 #include "../framework/framework.hpp"
-#include "../loader/bmp_loader.hpp"
-#include "../loader/obj_loader.hpp"
 #include "vs_out_type.hpp"
 
 
-class Shader_Normal
+class ShaderNormal
 {
 public:
 	core::Mat mvp = {};
@@ -90,7 +88,7 @@ public:
 	}
 };
 
-class Material_Normal : public framework::IMaterial
+class MaterialNormal : public framework::IMaterial
 {
 public:
 	std::shared_ptr<core::Texture> tex0;
@@ -98,8 +96,8 @@ public:
 
 	void Render(const framework::Entity& entity, framework::IRenderEngine& engine) override
 	{
-		Shader_Normal shader{};
-		core::Renderer<Shader_Normal> renderer = { engine.GetCtx(), shader };
+		ShaderNormal shader{};
+		core::Renderer<ShaderNormal> renderer = { engine.GetCtx(), shader };
 		shader.tex0 = tex0.get();
 		shader.normal_map = normal_map.get();
 		shader.mvp = engine.GetMainCamera()->GetProjectionViewMatrix() * entity.transform.GetModelMatrix();
@@ -111,7 +109,7 @@ public:
 	}
 };
 
-class Scene_Render_Test_Test_Normal : public framework::Scene
+class SceneRenderTestNormalMap : public framework::Scene
 {
 private:
 	std::shared_ptr<framework::MaterialEntity> sphere;
@@ -120,7 +118,7 @@ private:
 public:
 	void Init(framework::IRenderEngine& engine) override
 	{
-		auto material_normal = std::make_shared<Material_Normal>();
+		auto material_normal = std::make_shared<MaterialNormal>();
 		material_normal->tex0 = framework::GetResource<core::Texture>(L"tex0").value();
 		material_normal->normal_map = framework::GetResource<core::Texture>(L"normal_map").value();
 		sphere = Spawn<framework::MaterialEntity>();

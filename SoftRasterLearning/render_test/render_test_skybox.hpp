@@ -4,12 +4,10 @@
 
 #include "../core/core_api.hpp"
 #include "../framework/framework.hpp"
-#include "../loader/bmp_loader.hpp"
-#include "../loader/obj_loader.hpp"
 #include "vs_out_type.hpp"
 
 //镜面反射shader
-class Shader_Mirror
+class ShaderMirror
 {
 public:
 	core::Mat mvp = {};
@@ -51,7 +49,7 @@ public:
 	}
 };
 
-class Material_Mirror : public framework::IMaterial
+class MaterialMirror : public framework::IMaterial
 {
 public:
 	std::shared_ptr<core::CubeMap> cube_map;
@@ -59,8 +57,8 @@ public:
 
 	void Render(const framework::Entity& entity, framework::IRenderEngine& engine) override
 	{
-		Shader_Mirror shader{};
-		core::Renderer<Shader_Mirror> renderer = { engine.GetCtx(), shader };
+		ShaderMirror shader{};
+		core::Renderer<ShaderMirror> renderer = { engine.GetCtx(), shader };
 		shader.cube_map = cube_map.get();
 		shader.normal_map = normal_map.get();
 		shader.mvp = engine.GetMainCamera()->GetProjectionViewMatrix() * entity.transform.GetModelMatrix();
@@ -71,7 +69,7 @@ public:
 	}
 };
 
-class Scene_Render_Test_Skybox : public framework::Scene
+class SceneRenderTestSkybox : public framework::Scene
 {
 private:
 	std::shared_ptr<framework::MaterialEntity> sphere;
@@ -80,7 +78,7 @@ private:
 public:
 	void Init(framework::IRenderEngine& engine) override
 	{
-		auto material = std::make_shared<Material_Mirror>();
+		auto material = std::make_shared<MaterialMirror>();
 		material->cube_map = framework::GetResource<core::CubeMap>(L"cube_map").value();
 		material->normal_map = framework::GetResource<core::Texture>(L"normal_map").value();
 		auto skybox = Spawn<framework::Skybox>();

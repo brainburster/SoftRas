@@ -2,13 +2,11 @@
 
 #include "../core/core_api.hpp"
 #include "../framework/framework.hpp"
-#include "../loader/bmp_loader.hpp"
-#include "../loader/obj_loader.hpp"
 #include "vs_out_type.hpp"
 
 
 //世界空间 blinn_phong 着色器
-class Shader_Blinn_Phong
+class ShaderBlinnPhong
 {
 public:
 	core::Mat mvp = {};
@@ -47,7 +45,7 @@ public:
 	}
 };
 
-class Material_Blinn_Phong : public framework::IMaterial
+class MaterialBlinnPhong : public framework::IMaterial
 {
 public:
 	std::shared_ptr<core::Texture> tex0;
@@ -55,8 +53,8 @@ public:
 
 	void Render(const framework::Entity& entity, framework::IRenderEngine& engine) override
 	{
-		Shader_Blinn_Phong shader{};
-		core::Renderer<Shader_Blinn_Phong> renderer = { engine.GetCtx(), shader };
+		ShaderBlinnPhong shader{};
+		core::Renderer<ShaderBlinnPhong> renderer = { engine.GetCtx(), shader };
 		shader.tex0 = tex0.get();
 		shader.mvp = engine.GetMainCamera()->GetProjectionViewMatrix() * entity.transform.GetModelMatrix();
 		shader.m = entity.transform.GetModelMatrix();
@@ -69,7 +67,7 @@ public:
 	}
 };
 
-class Scene_Render_Test_Blinn_Phong : public framework::Scene
+class SceneRenderTestBlinnPhong : public framework::Scene
 {
 private:
 	std::shared_ptr<framework::MaterialEntity> sphere;
@@ -78,7 +76,7 @@ private:
 public:
 	void Init(framework::IRenderEngine& engine) override
 	{
-		auto material_blinn_phong = std::make_shared<Material_Blinn_Phong>();
+		auto material_blinn_phong = std::make_shared<MaterialBlinnPhong>();
 		material_blinn_phong->tex0 = framework::GetResource<core::Texture>(L"tex0").value();
 
 		//auto skybox = Spawn<framework::Skybox>();

@@ -2,13 +2,11 @@
 
 #include "../core/core_api.hpp"
 #include "../framework/framework.hpp"
-#include "../loader/bmp_loader.hpp"
-#include "../loader/obj_loader.hpp"
 #include "vs_out_type.hpp"
 
 
 //
-class Material_PBR : public framework::IMaterial
+class MaterialPBR : public framework::IMaterial
 {
 public:
 	std::shared_ptr<core::pbr::IBL> ibl;
@@ -21,10 +19,9 @@ public:
 	virtual void Render(const framework::Entity& entity, framework::IRenderEngine& engine) override;
 };
 
-//世界空间 blinn_phong 着色器
-struct Shader_PBR
+struct ShaderPBR
 {
-	Material_PBR* material = nullptr;
+	MaterialPBR* material = nullptr;
 	core::Vec3 cam_pos_ws = {};
 	core::Mat mvp = {};
 	core::Mat model = {};
@@ -122,19 +119,19 @@ struct Shader_PBR
 	}
 };
 
-inline void Material_PBR::Render(const framework::Entity& entity, framework::IRenderEngine& engine)
+inline void MaterialPBR::Render(const framework::Entity& entity, framework::IRenderEngine& engine)
 {
 	//准备shader数据
-	Shader_PBR shader{ this };
+	ShaderPBR shader{ this };
 	shader.mvp = engine.GetMainCamera()->GetProjectionViewMatrix() * entity.transform.GetModelMatrix();
 	shader.model = entity.transform.GetModelMatrix();
 	shader.cam_pos_ws = engine.GetMainCamera()->GetPosition();
 	//渲染
-	core::Renderer<Shader_PBR> renderer = { engine.GetCtx(), shader };
+	core::Renderer<ShaderPBR> renderer = { engine.GetCtx(), shader };
 	renderer.DrawTriangles(&entity.model->mesh[0], entity.model->mesh.size());
 }
 
-class Scene_Render_PBR : public framework::Scene
+class SceneRenderTestPBR : public framework::Scene
 {
 private:
 	std::vector<std::shared_ptr<framework::MaterialEntity>> spheres;
@@ -144,7 +141,7 @@ private:
 	std::shared_ptr<framework::TargetCamera> target_camera;
 	std::shared_ptr<framework::Skybox> skybox;
 	std::shared_ptr<core::pbr::IBL> ibl;
-	bool b_show_light = false;
+	bool b_show_light_icon = false;
 	bool b_show_skybox = true;
 public:
 	void Init(framework::IRenderEngine& engine) override
@@ -171,7 +168,7 @@ public:
 		{
 			for (size_t i = 0; i < 7; i++)
 			{
-				auto material = std::make_shared<Material_PBR>();
+				auto material = std::make_shared<MaterialPBR>();
 				material->albedo = { 0.91f,0.92f,0.92f };
 				material->metalness = j / 2.f;
 				material->roughness = i / 6.f;
@@ -211,16 +208,16 @@ public:
 		{
 			for (auto& sphere : spheres)
 			{
-				auto* material = static_cast<Material_PBR*>(sphere->material.get());
+				auto* material = static_cast<MaterialPBR*>(sphere->material.get());
 				material->b_enable_light = !material->b_enable_light;
-				b_show_light = !b_show_light;
+				b_show_light_icon = !b_show_light_icon;
 			}
 		}
 		if (engine.GetInputState().key_pressed['I'] || engine.GetInputState().key_pressed['B'])
 		{
 			for (auto& sphere : spheres)
 			{
-				auto* material = static_cast<Material_PBR*>(sphere->material.get());
+				auto* material = static_cast<MaterialPBR*>(sphere->material.get());
 				material->b_enable_ibl = !material->b_enable_ibl;
 				b_show_skybox = !b_show_skybox;
 			}
@@ -285,7 +282,7 @@ public:
 			skybox->Render(engine);
 		}
 
-		if (b_show_light)
+		if (b_show_light_icon)
 		{
 			//画家算法对光源（透明物体进行排序）
 			std::sort(lights.begin(), lights.end(), [&](auto l1, auto l2) {

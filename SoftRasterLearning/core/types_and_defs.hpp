@@ -3,6 +3,7 @@
 #include "game_math.hpp"
 #include "vs_out.hpp"
 #include <vector>
+#include <algorithm>
 
 namespace core
 {

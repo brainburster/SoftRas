@@ -12,10 +12,9 @@ namespace core
 	template<typename FsOut = Color>
 	class Context
 	{
-	protected:
+	public:
 		std::vector<FsOut> back_buffer;
 		std::vector<float> depth_buffer;
-	public:
 		Buffer2DView<FsOut> back_buffer_view;
 		Buffer2DView<float> depth_buffer_view;
 
@@ -59,28 +58,24 @@ namespace core
 			}
 		}
 
-		void Viewport(size_t w, size_t h, Color color = { 0,0,0,1 })
+		void Viewport(size_t w, size_t h)
 		{
 			depth_buffer.resize(w * h, inf);
-			back_buffer.resize(w * h, color);
-
-			back_buffer_view = { &back_buffer[0],w , h };
-			depth_buffer_view = { &depth_buffer[0],w , h };
+			back_buffer.resize(w * h);
+			back_buffer_view = { back_buffer.data(), w , h };
+			depth_buffer_view = { depth_buffer.data(), w , h };
 		}
 
-		void Clear(Color color = { 0,0,0,1 })
+		void Clear(FsOut fs_out)
 		{
-			auto w = back_buffer_view.w;
-			auto h = back_buffer_view.h;
+			std::for_each(back_buffer.begin(), back_buffer.end(), [&fs_out](auto& v) { v = fs_out; });
+			std::for_each(depth_buffer.begin(), depth_buffer.end(), [](auto& v) { v = inf; });
+		}
 
-			for (size_t y = 0; y < h; ++y)
-			{
-				for (size_t x = 0; x < w; ++x)
-				{
-					back_buffer[x + y * w] = color;
-					depth_buffer[x + y * w] = inf;
-				}
-			}
+		void Clear()
+		{
+			std::for_each(back_buffer.begin(), back_buffer.end(), [](auto& v) { v = {}; });
+			std::for_each(depth_buffer.begin(), depth_buffer.end(), [](auto& v) { v = inf; });
 		}
 
 		static Color32 TransFloat4colorToUint32color(const Color& color)

@@ -201,6 +201,7 @@ namespace framework
 		{
 			dc_wnd.WndClassName(L"softraster_wnd_cls").WndName(L"空格切换场景").Size(800, 600).RemoveWndStyle(WS_MAXIMIZEBOX).Init();
 			ctx.Viewport(800, 600);
+			gbuffer.Viewport(800, 600);
 		}
 		//
 		virtual void AfterInit()

@@ -5,6 +5,9 @@
 #include "render_test_skybox.hpp"
 #include "render_test_shadow_mapping.hpp"
 #include "render_test_pbr.hpp"
+#include "render_test_deferred_rendering.hpp"
+#include "loader\\bmp_loader.hpp"
+#include "loader\\obj_loader.hpp"
 
 class RenderTestScene final : public framework::IScene
 {
@@ -14,11 +17,12 @@ private:
 public:
 	void Init(framework::IRenderEngine& engine) override
 	{
-		sub_scenes.push_back(std::make_shared<Scene_Render_Test_Test_Normal>());
-		sub_scenes.push_back(std::make_shared<Scene_Render_Test_Blinn_Phong>());
-		sub_scenes.push_back(std::make_shared<Scene_Render_Shadow_Mapping>());
-		sub_scenes.push_back(std::make_shared<Scene_Render_Test_Skybox>());
-		sub_scenes.push_back(std::make_shared<Scene_Render_PBR>());
+		sub_scenes.push_back(std::make_shared<SceneRenderTestNormalMap>());
+		sub_scenes.push_back(std::make_shared<SceneRenderTestBlinnPhong>());
+		sub_scenes.push_back(std::make_shared<SceneRenderTestShadowMapping>());
+		sub_scenes.push_back(std::make_shared<SceneRenderTestSkybox>());
+		sub_scenes.push_back(std::make_shared<SceneRenderTestPBR>());
+		sub_scenes.push_back(std::make_shared<SceneRenderTestDrPBR>());
 
 		for (auto& sub_scene : sub_scenes)
 		{
@@ -97,7 +101,7 @@ protected:
 			auto& data = env_tex[i]->GetData();
 			std::transform(data.begin(), data.end(), data.begin(), [](core::Vec4 color) {
 				//使用sinh函数提亮
-				return core::Vec4{ _mm_sinh_ps(color * 3.f) } / 3.f; //应该可以把原来接近1的亮度提高到3, 而低亮度信息改变很少
+				return core::Vec4{ _mm_sinh_ps(color * 3.f) } / 3.f; //把原来接近1的亮度提高到3, 而低亮度信息改变很少
 				});
 		}
 		//...

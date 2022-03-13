@@ -47,16 +47,17 @@ namespace framework
 	//定义Guffer
 	struct GbufferType
 	{
-		core::Vec3 ambient_and_emissive; //环境光与自发光
-		core::Vec4 base_color; //固有色
-		core::Vec3 normal; //切线空间法线
-		core::Vec3 emissive; //自发光
-		float metallic; //金属性
-		float roughness;//粗糙度
-		//float ao; //环境光遮蔽
+		core::Vec4 base_color;	//固有色
+		core::Vec3 position;	//位置
+		core::Vec3 normal;		//法线
+		core::Vec3 emissive;	//自发光
+		core::Vec3 ambient;		//环境光
+		float metallic = 0.f;	//金属度
+		float roughness = 0.f;	//粗糙度
+		//float ao;				//环境光遮蔽
 		//core::Vec4 tangent_and_anisotropy; //切线与各向异性
-		//float diffuse;  //漫反射
-		//float specular; //镜面反射
+		//float diffuse;		//漫反射
+		//float specular;		//镜面反射
 	};
 
 	class IRenderEngine

@@ -2,11 +2,9 @@
 
 #include "../core/core_api.hpp"
 #include "../framework/framework.hpp"
-#include "../loader/bmp_loader.hpp"
-#include "../loader/obj_loader.hpp"
 #include "vs_out_type.hpp"
 
-struct Shader_Shadow_Mapping
+struct ShaderShadowMapping
 {
 	core::Mat model = {};
 	core::Mat mvp = {};
@@ -91,7 +89,7 @@ struct Shader_Shadow_Mapping
 	}
 };
 
-class Material_Shadow_Mapping : public framework::IMaterial
+class MaterialShadowMapping : public framework::IMaterial
 {
 public:
 	std::shared_ptr<core::Texture> tex0;
@@ -100,8 +98,8 @@ public:
 
 	void Render(const framework::Entity& entity, framework::IRenderEngine& engine) override
 	{
-		Shader_Shadow_Mapping shader{};
-		core::Renderer<Shader_Shadow_Mapping, core::RF_DEFAULT_AA> renderer = { engine.GetCtx(), shader };
+		ShaderShadowMapping shader{};
+		core::Renderer<ShaderShadowMapping, core::RF_DEFAULT_AA> renderer = { engine.GetCtx(), shader };
 		shader.tex0 = tex0.get();
 		shader.shadow_map = shadow_map;
 		shader.model = entity.transform.GetModelMatrix();
@@ -120,7 +118,7 @@ public:
 	}
 };
 
-class Scene_Render_Shadow_Mapping : public framework::Scene
+class SceneRenderTestShadowMapping : public framework::Scene
 {
 private:
 	std::shared_ptr<framework::MaterialEntity> cube;
@@ -129,12 +127,12 @@ private:
 	std::shared_ptr<framework::DirectionalLight> light_d;
 	std::shared_ptr<framework::PointLight> light_p;
 	std::shared_ptr<framework::ILight> light;
-	std::shared_ptr<Material_Shadow_Mapping> material;
+	std::shared_ptr<MaterialShadowMapping> material;
 	core::Context<core::Color> shadow_ctx;
 public:
 	void Init(framework::IRenderEngine& engine) override
 	{
-		material = std::make_shared<Material_Shadow_Mapping>();
+		material = std::make_shared<MaterialShadowMapping>();
 		material->tex0 = framework::GetResource<core::Texture>(L"tex0").value();
 		cube = Spawn<framework::MaterialEntity>();
 		cube->model = framework::GetResource<core::Model>(L"box").value();
@@ -231,7 +229,9 @@ public:
 				return { 0,0,0,0 };
 			}
 		};
+
 		shadow_ctx.Clear();
+
 		for (auto& object : objects)
 		{
 			if (const auto* entity = dynamic_cast<framework::Entity*>(object.get()))

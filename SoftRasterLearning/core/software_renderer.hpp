@@ -209,7 +209,7 @@ namespace core
 
 			//从上到下扫描
 
-#pragma omp parallel for num_threads(4)
+#pragma omp parallel for num_threads(6)
 			for (int y = y2; y >= y1; --y)
 			{
 				//隔行扫描
@@ -393,7 +393,7 @@ namespace core
 
 			fs_out_t fs_out = shader.FS(interp);
 
-			if constexpr (bool(render_flag & RF_ENABLE_BLEND) && std::is_same_v<Color, fs_out_t>)
+			if constexpr (std::is_same_v<Color, fs_out_t> && bool(render_flag & RF_ENABLE_BLEND))
 			{
 				//颜色混合
 				if (fs_out.a < (1.f - epsilon))
