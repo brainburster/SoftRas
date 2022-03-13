@@ -147,11 +147,11 @@
 		brdf_map = std::make_shared<Texture>(512, 512);
 		diffuse_map = std::make_shared<CubeMap>(64, 64);
 		specular_maps.reserve(5);
-		specular_maps.emplace_back(std::make_shared<CubeMap>(256, 256));
 		specular_maps.emplace_back(std::make_shared<CubeMap>(128, 128));
 		specular_maps.emplace_back(std::make_shared<CubeMap>(64, 64));
 		specular_maps.emplace_back(std::make_shared<CubeMap>(32, 32));
 		specular_maps.emplace_back(std::make_shared<CubeMap>(16, 16));
+		specular_maps.emplace_back(std::make_shared<CubeMap>(8, 8));
 	}
 
 	inline void IBL::Init(const CubeMap& env)
@@ -243,7 +243,7 @@
 		H.z = cosTheta;
 
 		// from tangent-space vector to world-space sample vector
-		Vec3 up = abs(N.z) < 0.999 ? Vec3(0.0, 0.0, 1.0f) : Vec3(1.0f, 0.0, 0.0);
+		Vec3 up = abs(N.z) < 0.999f ? Vec3(0.0, 0.0, 1.0f) : Vec3(1.0f, 0.0, 0.0);
 		Vec3 tangent = up.Cross(N).Normalize();
 		Vec3 bitangent = N.Cross(tangent);
 
@@ -271,7 +271,7 @@
 			{-f,u,r}
 		};
 
-		const size_t size_map[] = { 256,128,64,32,16 };
+		const size_t size_map[] = { 128,64,32,16,8 };
 		for (size_t mip = 0; mip < 5; ++mip)
 		{
 			size_t w = size_map[mip];

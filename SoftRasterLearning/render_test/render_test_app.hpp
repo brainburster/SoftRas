@@ -65,7 +65,7 @@ protected:
 
 	void Init() override
 	{
-		auto _bunny = loader::obj::LoadFromFile(L".\\resource\\models\\bunny.obj");
+		auto _bunny = loader::obj::LoadFromFile(L".\\resource\\models\\bunny2.obj");
 		auto _sphere = loader::obj::LoadFromFile(L".\\resource\\models\\sphere.obj");
 		auto _box = loader::obj::LoadFromFile(L".\\resource\\models\\box.obj");
 
@@ -101,7 +101,7 @@ protected:
 			auto& data = env_tex[i]->GetData();
 			std::transform(data.begin(), data.end(), data.begin(), [](core::Vec4 color) {
 				//使用sinh函数提亮
-				return core::Vec4{ _mm_sinh_ps(color * 3.f) } / 3.f; //把原来接近1的亮度提高到3, 而低亮度信息改变很少
+				return core::Vec4{ _mm_sinh_ps(color * 2.1f) } / 2.1f; //把原来接近1的亮度提高到2, 而低亮度信息改变很少
 				});
 		}
 		//...

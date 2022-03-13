@@ -78,7 +78,6 @@ struct ShaderDrPBR
 			ambient = Kd * diffuse + specular;
 		}
 
-		//这个copy到gbuffer太卡了
 		framework::GbufferType g{};
 		g.base_color = Vec4(material->albedo, 1);
 		g.ambient = ambient;
@@ -104,7 +103,7 @@ inline void MaterialDrPBR::Render(const framework::Entity& entity, framework::IR
 class SceneRenderTestDrPBR : public framework::Scene
 {
 private:
-	std::vector<std::shared_ptr<framework::MaterialEntity>> spheres;
+	std::vector<std::shared_ptr<framework::MaterialEntity>> bunnys;
 	std::vector<std::shared_ptr<framework::Object>> lights;
 	std::shared_ptr<framework::ICamera> camera;
 	std::shared_ptr<framework::FPSCamera> fps_camera;
@@ -133,26 +132,26 @@ public:
 		light3->color = 0.4f;
 
 		//创建3x3个球体，x轴roughness增大,y轴metallic增大
-		for (size_t j = 0; j < 3; j++)
+		for (size_t j = 0; j < 2; j++)
 		{
-			for (size_t i = 0; i < 3; i++)
+			for (size_t i = 0; i < 4; i++)
 			{
 				auto material = std::make_shared<MaterialDrPBR>();
-				material->albedo = { 0.91f,0.92f,0.92f };
-				material->metalness = j / 2.f;
-				material->roughness = i / 2.f;
+				material->albedo = { 0.77f,0.78f,0.78f };
+				material->metalness = j / 1.f;
+				material->roughness = i / 3.f;
 				material->ibl = framework::GetResource<core::pbr::IBL>(L"env_map").value();
-				auto sphere = Spawn<framework::MaterialEntity>();
-				sphere->transform.position = { i * 2.f,j * 2.f,0 };
-				sphere->model = framework::GetResource<core::Model>(L"bunny").value();
-				sphere->transform.scale *= 10.f;
-				sphere->material = material;
-				spheres.push_back(sphere);
+				auto bunny = Spawn<framework::MaterialEntity>();
+				bunny->transform.position = { i * 2.f,j * 2.f,0 };
+				bunny->model = framework::GetResource<core::Model>(L"bunny").value();
+				bunny->transform.scale *= 10.f;
+				bunny->material = material;
+				bunnys.push_back(bunny);
 			}
 		}
 
 		//创建摄像机
-		target_camera = std::make_shared<framework::TargetCamera>(spheres[1], 10.f, 0.f, 0.1f);
+		target_camera = std::make_shared<framework::TargetCamera>(bunnys[4], 10.f, 0.f, 0.1f);
 		fps_camera = std::make_shared <framework::FPSCamera>();
 		camera = target_camera;
 		skybox = std::make_shared<framework::Skybox>();
@@ -170,18 +169,13 @@ public:
 		camera->HandleInput(engine);
 		if (engine.GetInputState().key_pressed['L'])
 		{
-			for (auto& sphere : spheres)
-			{
-				auto* material = static_cast<MaterialDrPBR*>(sphere->material.get());
-				material->b_enable_light = !material->b_enable_light;
-				b_show_light_icon = !b_show_light_icon;
-			}
+			b_show_light_icon = !b_show_light_icon;
 		}
 		if (engine.GetInputState().key_pressed['I'] || engine.GetInputState().key_pressed['B'])
 		{
-			for (auto& sphere : spheres)
+			for (auto& bunny : bunnys)
 			{
-				auto* material = static_cast<MaterialDrPBR*>(sphere->material.get());
+				auto* material = static_cast<MaterialDrPBR*>(bunny->material.get());
 				material->b_enable_ibl = !material->b_enable_ibl;
 				b_show_skybox = !b_show_skybox;
 			}

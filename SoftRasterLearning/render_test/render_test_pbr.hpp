@@ -6,7 +6,7 @@
 
 
 //
-class MaterialPBR : public framework::IMaterial
+class Material_PBR : public framework::IMaterial
 {
 public:
 	std::shared_ptr<core::pbr::IBL> ibl;
@@ -19,9 +19,9 @@ public:
 	virtual void Render(const framework::Entity& entity, framework::IRenderEngine& engine) override;
 };
 
-struct ShaderPBR
+struct Shader_PBR
 {
-	MaterialPBR* material = nullptr;
+	Material_PBR* material = nullptr;
 	core::Vec3 cam_pos_ws = {};
 	core::Mat mvp = {};
 	core::Mat model = {};
@@ -119,15 +119,15 @@ struct ShaderPBR
 	}
 };
 
-inline void MaterialPBR::Render(const framework::Entity& entity, framework::IRenderEngine& engine)
+inline void Material_PBR::Render(const framework::Entity& entity, framework::IRenderEngine& engine)
 {
 	//准备shader数据
-	ShaderPBR shader{ this };
+	Shader_PBR shader{ this };
 	shader.mvp = engine.GetMainCamera()->GetProjectionViewMatrix() * entity.transform.GetModelMatrix();
 	shader.model = entity.transform.GetModelMatrix();
 	shader.cam_pos_ws = engine.GetMainCamera()->GetPosition();
 	//渲染
-	core::Renderer<ShaderPBR> renderer = { engine.GetCtx(), shader };
+	core::Renderer<Shader_PBR> renderer = { engine.GetCtx(), shader };
 	renderer.DrawTriangles(&entity.model->mesh[0], entity.model->mesh.size());
 }
 
@@ -168,7 +168,7 @@ public:
 		{
 			for (size_t i = 0; i < 7; i++)
 			{
-				auto material = std::make_shared<MaterialPBR>();
+				auto material = std::make_shared<Material_PBR>();
 				material->albedo = { 0.91f,0.92f,0.92f };
 				material->metalness = j / 2.f;
 				material->roughness = i / 6.f;
@@ -208,7 +208,7 @@ public:
 		{
 			for (auto& sphere : spheres)
 			{
-				auto* material = static_cast<MaterialPBR*>(sphere->material.get());
+				auto* material = static_cast<Material_PBR*>(sphere->material.get());
 				material->b_enable_light = !material->b_enable_light;
 				b_show_light_icon = !b_show_light_icon;
 			}
@@ -217,7 +217,7 @@ public:
 		{
 			for (auto& sphere : spheres)
 			{
-				auto* material = static_cast<MaterialPBR*>(sphere->material.get());
+				auto* material = static_cast<Material_PBR*>(sphere->material.get());
 				material->b_enable_ibl = !material->b_enable_ibl;
 				b_show_skybox = !b_show_skybox;
 			}
