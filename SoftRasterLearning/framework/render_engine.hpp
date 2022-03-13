@@ -44,12 +44,27 @@ namespace framework
 		size_t cur_scene_id;
 	};
 
+	//定义Guffer
+	struct GbufferType
+	{
+		core::Vec3 ambient_and_emissive; //环境光与自发光
+		core::Vec4 base_color; //固有色
+		core::Vec3 normal; //切线空间法线
+		core::Vec3 emissive; //自发光
+		float metallic; //金属性
+		float roughness;//粗糙度
+		//float ao; //环境光遮蔽
+		//core::Vec4 tangent_and_anisotropy; //切线与各向异性
+		//float diffuse;  //漫反射
+		//float specular; //镜面反射
+	};
+
 	class IRenderEngine
 	{
 	public:
 		virtual void Run() = 0;
-
 		virtual core::Context<core::Color>& GetCtx() noexcept = 0;
+		virtual core::Context<GbufferType>& GetGBuffer() noexcept = 0;
 		virtual const InputState& GetInputState() const noexcept = 0;
 		virtual const EngineState& GetEngineState() const noexcept = 0;
 		virtual const ICamera* GetMainCamera() const = 0;
@@ -66,7 +81,7 @@ namespace framework
 		virtual void HandleInput() = 0;
 		//渲染每帧
 		virtual void RenderFrame() = 0;
-		//每帧结束后的清理工作
+		//每帧结束前
 		virtual void EndFrame() = 0;
 	};
 

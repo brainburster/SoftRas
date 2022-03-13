@@ -43,7 +43,7 @@ namespace core
 	class Renderer
 	{
 	private:
-		//用来萃取顶点/像素着色器的输入输出类型
+		//用来萃取顶点/像素着色器的输入、输出类型
 		template <typename T, typename R, typename In>
 		static In get_in_type(R(T::* f)(In) const volatile) {}
 		template <typename T, typename R, typename In>
@@ -63,8 +63,12 @@ namespace core
 
 	public:
 		using vs_in_t = std::decay_t<decltype(get_in_type<Shader>(std::declval<decltype(&Shader::VS)>()))>;
-		using vs_out_t = std::decay_t<decltype(get_in_type<Shader>(std::declval<decltype(&Shader::FS)>()))>;
+		using vs_out_t = std::decay_t<decltype(get_out_type<Shader>(std::declval<decltype(&Shader::VS)>()))>;
+		using fs_in_t = std::decay_t<decltype(get_in_type<Shader>(std::declval<decltype(&Shader::FS)>()))>;
 		using fs_out_t = std::decay_t<decltype(get_out_type<Shader>(std::declval<decltype(&Shader::FS)>()))>;
+		//断言shader的合法性
+		static_assert(std::is_base_of_v<vs_out_base<vs_out_t>, vs_out_t>, "the output type of vs_shader must be inherited from vs_out_base");
+		static_assert(std::is_same_v<vs_out_t, fs_in_t>, "the output ype of vs_shader must be the same as the input type of the fs_shader");
 
 		Renderer(Context<fs_out_t>& ctx, const Shader& m) :
 			context{ ctx },

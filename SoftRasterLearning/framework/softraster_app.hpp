@@ -19,6 +19,7 @@ namespace framework
 		std::queue<MouseMotion, std::list<MouseMotion>> mouse_motions;
 		core::DC_WND dc_wnd;
 		core::Context<core::Color> ctx;
+		core::Context<GbufferType> gbuffer;
 		std::shared_ptr<IScene> scene;
 
 		SoftRasterApp(const SoftRasterApp& other) = delete;
@@ -59,6 +60,11 @@ namespace framework
 			return ctx;
 		}
 
+		virtual core::Context<GbufferType>& GetGBuffer() noexcept override
+		{
+			return gbuffer;
+		}
+
 		virtual const InputState& GetInputState() const noexcept override
 		{
 			return input_state;
@@ -80,12 +86,7 @@ namespace framework
 			std::thread render_theard([&]() {
 				while (!dc_wnd.app_should_close())
 				{
-					auto last = engine_state.time;
-					engine_state.time = std::chrono::system_clock::now();
-					engine_state.delta = std::chrono::duration_cast<std::chrono::milliseconds>(engine_state.time - last);
-					engine_state.delta_count = engine_state.delta.count();
-					engine_state.total_time += engine_state.delta_count;
-					engine_state.frame_count++;
+					UpdateTime();
 
 					HandleInput();
 					Update();
@@ -105,6 +106,16 @@ namespace framework
 			}
 
 			render_theard.join();
+		}
+
+		void UpdateTime()
+		{
+			auto last = engine_state.time;
+			engine_state.time = std::chrono::system_clock::now();
+			engine_state.delta = std::chrono::duration_cast<std::chrono::milliseconds>(engine_state.time - last);
+			engine_state.delta_count = engine_state.delta.count();
+			engine_state.total_time += engine_state.delta_count;
+			engine_state.frame_count++;
 		}
 
 	protected:
@@ -249,7 +260,7 @@ namespace framework
 			scene->RenderFrame(*this);
 		}
 
-		//每帧结束后的清理工作
+		//每帧结束前
 		virtual void EndFrame() override
 		{
 		}
