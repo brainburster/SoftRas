@@ -9,6 +9,7 @@
 class MaterialDrPBR : public framework::IMaterial
 {
 public:
+	std::shared_ptr<core::Texture> normal_map = nullptr;
 	std::shared_ptr<core::pbr::IBL> ibl;
 	core::Vec3 albedo;
 	float metalness = 0;
@@ -28,11 +29,17 @@ struct ShaderDrPBR
 
 	VsOut_Light_ws VS(const core::Model_Vertex& v) const
 	{
+		using namespace core;
 		VsOut_Light_ws vs_out{};
 		vs_out.position = mvp * v.position.ToHomoCoord();
 		vs_out.position_ws = model * v.position.ToHomoCoord();
-		vs_out.normal_ws = core::Vec3(model * v.normal).Normalize();
+		vs_out.normal_ws = Vec3(model * v.normal).Normalize();
 		vs_out.uv = v.uv;
+		Mat3 normal_mat = model.ToMat3x3().Inverse().Transpose(); //保证法线矩阵是正交的
+		Vec3 tangent = (normal_mat * v.tangent).Normalize();
+		Vec3 normal = (normal_mat * v.normal).Normalize();
+		Vec3 bitangent = normal.Cross(tangent).Normalize();
+		vs_out.TBN = { tangent, bitangent,normal };
 		//...
 		return vs_out;
 	}
@@ -43,7 +50,9 @@ struct ShaderDrPBR
 		Vec3 albedo = material->albedo;
 		float metalness = material->metalness;
 		float roughness = material->roughness;
-		Vec3 N = v.normal_ws.Normalize(); //插值之后不一定是归一化的
+		Vec3 N = Vec3(Texture::Sample(material->normal_map.get(), v.uv) * 2 - 1.f);
+		N = (v.TBN * N).Normalize();
+		//Vec3 N = v.normal_ws.Normalize();
 		Vec3 V = cam_pos_ws - v.position_ws;
 		float d_cam = V.Length();
 		V = V.Normalize();
@@ -140,6 +149,7 @@ public:
 				material->albedo = { 0.77f,0.78f,0.78f };
 				material->metalness = j / 1.f;
 				material->roughness = i / 3.f;
+				material->normal_map = framework::GetResource<core::Texture>(L"bunny_normal_map").value();
 				material->ibl = framework::GetResource<core::pbr::IBL>(L"env_map").value();
 				auto bunny = Spawn<framework::MaterialEntity>();
 				bunny->transform.position = { i * 2.f,j * 2.f,0 };

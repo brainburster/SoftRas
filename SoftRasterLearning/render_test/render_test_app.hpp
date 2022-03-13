@@ -74,6 +74,8 @@ protected:
 		auto _bulblight_icon = loader::bmp::LoadFromFile(L".\\resource\\pictures\\icon\\bulblight.bmp");
 
 		auto _normal_map = loader::bmp::LoadFromFile(L".\\resource\\pictures\\normal.bmp", false);
+		auto _bunny_normal_map = loader::bmp::LoadFromFile(L".\\resource\\pictures\\bunny_normal.bmp", false);
+
 
 		auto _front = loader::bmp::LoadFromFile(L".\\resource\\pictures\\cubemap\\front.bmp");
 		auto _back = loader::bmp::LoadFromFile(L".\\resource\\pictures\\cubemap\\back.bmp");
@@ -87,6 +89,7 @@ protected:
 		framework::SetResource(L"env_map", _env_map);
 		framework::SetResource(L"cube_map", _cubemap);
 		framework::SetResource(L"bunny", _bunny);
+		framework::SetResource(L"bunny_normal_map", _bunny_normal_map);
 		framework::SetResource(L"sphere", _sphere);
 		framework::SetResource(L"box", _box);
 		framework::SetResource(L"tex0", _tex);
