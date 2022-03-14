@@ -38,8 +38,8 @@ namespace core::pbr
 	struct IBL
 	{
 		std::shared_ptr<Texture> brdf_map; //BRDF积分图
-		std::shared_ptr<CubeMap> diffuse_map; //漫反射部分卷积
-		std::vector<std::shared_ptr<CubeMap>> specular_maps; //镜面反射部分卷积
+		std::shared_ptr<CubeMap> irradiance_map; //光照贴图
+		std::vector<std::shared_ptr<CubeMap>> specular_maps; //镜面反射贴图
 
 #pragma pack(push)
 #pragma pack(2)
@@ -53,7 +53,7 @@ namespace core::pbr
 		struct IblFileHeader
 		{
 			TextureHeader brdf_map;
-			TextureHeader diffuse_map;
+			TextureHeader irradiance_map;
 			std::uint16_t num_of_specular_maps;
 		};
 		static_assert(sizeof(IblFileHeader) == 18, "the size of IblFileHeader must be 18 bytes");
@@ -71,7 +71,7 @@ namespace core::pbr
 		//获得根据roughness随机生成的切线空间半球采样
 		Vec3 ImportanceSampleGGX(Vec2 Xi, Vec3 N, float roughness);
 		void InitSpecularMaps(const CubeMap& env);
-		void InitDiffuseMap(const CubeMap& env);
+		void InitIrradianceMap(const CubeMap& env);
 	};
 }
 

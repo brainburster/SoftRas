@@ -95,7 +95,7 @@ struct Shader_PBR
 			Vec3 Ks = pbr::FresnelSchlick(F0, NdotV);
 			Vec3 Kd = 1.0f - Ks;
 			Kd *= 1.0f - metalness;
-			Vec3 irradiance = IBL->diffuse_map->Sample(N);
+			Vec3 irradiance = IBL->irradiance_map->Sample(N);
 			Vec3 diffuse = irradiance * albedo;
 			Vec3 R = (-V).Reflect(N).Normalize();
 			using gmath::utility::Clamp;
@@ -192,7 +192,7 @@ public:
 		fps_camera = std::make_shared <framework::FPSCamera>();
 		camera = target_camera;
 		skybox = std::make_shared<framework::Skybox>();
-		skybox->cube_map = framework::GetResource<core::pbr::IBL>(L"env_map").value()->diffuse_map;
+		skybox->cube_map = framework::GetResource<core::pbr::IBL>(L"env_map").value()->irradiance_map;
 		//..
 		lights.reserve(4);
 		lights.push_back(light0);
@@ -224,7 +224,7 @@ public:
 		}
 		if (engine.GetInputState().key_pressed['1'])
 		{
-			skybox->cube_map = framework::GetResource<core::pbr::IBL>(L"env_map").value()->diffuse_map;
+			skybox->cube_map = framework::GetResource<core::pbr::IBL>(L"env_map").value()->irradiance_map;
 		}
 		else if (engine.GetInputState().key_pressed['2'])
 		{

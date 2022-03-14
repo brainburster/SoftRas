@@ -65,7 +65,7 @@
 		using namespace std;
 		ofstream ofile(filename, ios_base::trunc | ios_base::out | ios_base::binary);
 
-		const auto diff_tex0 = diffuse_map->GetTexture(0);
+		const auto diff_tex0 = irradiance_map->GetTexture(0);
 
 		IblFileHeader ibl_info = {
 			{
@@ -87,8 +87,8 @@
 
 		for (size_t i = 0; i < 6; i++)
 		{
-			const auto& tex = *diffuse_map->GetTexture(i);
-			ofile.write(reinterpret_cast<const char*>(tex.GetCData().data()), ibl_info.diffuse_map.size * sizeof(decltype(tex.Get(0ULL, 0ULL))));
+			const auto& tex = *irradiance_map->GetTexture(i);
+			ofile.write(reinterpret_cast<const char*>(tex.GetCData().data()), ibl_info.irradiance_map.size * sizeof(decltype(tex.Get(0ULL, 0ULL))));
 		}
 
 		for (const auto& specular_map : specular_maps)
@@ -114,7 +114,7 @@
 		using namespace std;
 		ifstream ifile(filename, ios_base::in | ios_base::binary);
 		brdf_map = std::make_shared<Texture>();
-		diffuse_map = std::make_shared<CubeMap>();
+		irradiance_map = std::make_shared<CubeMap>();
 		specular_maps.clear();
 
 		IblFileHeader ibl_info = {};
@@ -123,9 +123,9 @@
 		ifile.read(reinterpret_cast<char*>(brdf_map->GetData().data()), ibl_info.brdf_map.size * sizeof(decltype(brdf_map->Get(0ULL, 0ULL))));
 		for (size_t i = 0; i < 6; i++)
 		{
-			auto& tex = *diffuse_map->GetTexture(i);
-			tex.Resize(ibl_info.diffuse_map.w, ibl_info.diffuse_map.h);
-			ifile.read(reinterpret_cast<char*>(tex.GetData().data()), ibl_info.diffuse_map.size * sizeof(decltype(tex.Get(0ULL, 0ULL))));
+			auto& tex = *irradiance_map->GetTexture(i);
+			tex.Resize(ibl_info.irradiance_map.w, ibl_info.irradiance_map.h);
+			ifile.read(reinterpret_cast<char*>(tex.GetData().data()), ibl_info.irradiance_map.size * sizeof(decltype(tex.Get(0ULL, 0ULL))));
 		}
 		specular_maps.resize(ibl_info.num_of_specular_maps);
 		for (auto& specular_map : specular_maps)
@@ -145,7 +145,7 @@
 	inline IBL::IBL()
 	{
 		brdf_map = std::make_shared<Texture>(512, 512);
-		diffuse_map = std::make_shared<CubeMap>(64, 64);
+		irradiance_map = std::make_shared<CubeMap>(64, 64);
 		specular_maps.reserve(5);
 		specular_maps.emplace_back(std::make_shared<CubeMap>(128, 128));
 		specular_maps.emplace_back(std::make_shared<CubeMap>(64, 64));
@@ -157,7 +157,7 @@
 	inline void IBL::Init(const CubeMap& env)
 	{
 		InitBrdfMap();
-		InitDiffuseMap(env);
+		InitIrradianceMap(env);
 		InitSpecularMaps(env);
 	}
 
@@ -316,9 +316,9 @@
 		}
 	}
 
-	inline void IBL::InitDiffuseMap(const CubeMap& env)
+	inline void IBL::InitIrradianceMap(const CubeMap& env)
 	{
-		auto* diffuse_arrary = reinterpret_cast<std::shared_ptr<Texture>*>(diffuse_map.get());
+		auto* diffuse_arrary = reinterpret_cast<std::shared_ptr<Texture>*>(irradiance_map.get());
 		const Vec3 r = { 1,0,0 };
 		const Vec3 u = { 0,1,0 };
 		const Vec3 f = { 0,0,1 };
