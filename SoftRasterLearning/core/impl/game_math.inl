@@ -1,5 +1,4 @@
-﻿#include "..\game_math.hpp"
-//vec4 sse加速
+﻿//vec4 sse加速
 namespace gmath
 {
 	constexpr Vec4<float>::Vec4(float v) : x{ v }, y{ v }, z{ v }, w{ v }{}
