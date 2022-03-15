@@ -48,7 +48,7 @@ namespace core
 			auto w = screen_buffer_view.w;
 			auto h = screen_buffer_view.h;
 
-#pragma omp parallel for num_threads(4)
+#pragma omp parallel for num_threads(8)
 			for (int y = 0; y < h; ++y)
 			{
 				for (int x = 0; x < w; ++x)
@@ -83,10 +83,10 @@ namespace core
 			using gmath::utility::Clamp;
 			//交换r,b通道
 			return Color32{
-				(unsigned char)(Clamp(color.b) * 255),
-				(unsigned char)(Clamp(color.g) * 255),
-				(unsigned char)(Clamp(color.r) * 255),
-				(unsigned char)(Clamp(color.a) * 255)
+				(unsigned char)(Clamp(color.b) * 255U),
+				(unsigned char)(Clamp(color.g) * 255U),
+				(unsigned char)(Clamp(color.r) * 255U),
+				(unsigned char)(Clamp(color.a) * 255U)
 			};
 		}
 	};

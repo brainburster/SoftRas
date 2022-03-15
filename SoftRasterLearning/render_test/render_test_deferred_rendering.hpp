@@ -1,7 +1,5 @@
 ﻿#pragma once
 
-#pragma once
-
 #include "../core/core_api.hpp"
 #include "../framework/framework.hpp"
 #include "vs_out_type.hpp"
@@ -281,7 +279,7 @@ protected:
 		const int size = narrow_cast<int>(gbuffer.back_buffer.size());
 		auto cam_pos_ws = engine.GetMainCamera()->GetPosition();
 
-#pragma omp parallel for num_threads(4)
+#pragma omp parallel for num_threads(8)
 		for (int i = 0; i < size; i++)
 		{
 			PixelInfo p_info = gbuffer.back_buffer[i];
