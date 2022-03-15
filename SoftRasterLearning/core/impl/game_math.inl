@@ -1,4 +1,5 @@
-﻿//vec4 sse加速
+﻿#include "..\game_math.hpp"
+//vec4 sse加速
 namespace gmath
 {
 	constexpr Vec4<float>::Vec4(float v) : x{ v }, y{ v }, z{ v }, w{ v }{}
@@ -416,6 +417,26 @@ namespace gmath
 
 	constexpr Mat4x4<float>::Mat4x4(__m128 c1, __m128 c2, __m128 c3, __m128 c4) :
 		column{ c1,c2,c3,c4 }
+	{
+	}
+
+	constexpr Mat4x4<float>::Mat4x4(float a, float b, float c, float d) :
+		data{
+		a,0,0,0,
+		0,b,0,0,
+		0,0,c,0,
+		0,0,0,d
+	}
+	{
+	}
+
+	constexpr Mat4x4<float>::Mat4x4(Vec4<float> diag) :
+		data{
+		diag.x,0,0,0,
+		0,diag.y,0,0,
+		0,0,diag.z,0,
+		0,0,0,diag.w
+	}
 	{
 	}
 
@@ -861,10 +882,10 @@ namespace gmath
 
 namespace gmath
 {
-	template<typename T> inline Vec4<T>::Vec4(T v) : x{ v }, y{ v }, z{ v }, w{ v }{}
-	template<typename T> inline Vec4<T>::Vec4(T x, T y, T z, T w) : x{ x }, y{ y }, z{ z }, w{ w }{}
-	template<typename T> inline Vec4<T>::Vec4(const Vec2<T>& vec2, T z, T w) : x{ vec2.x }, y{ vec2.y }, z{ z }, w{ w }{}
-	template<typename T> inline Vec4<T>::Vec4(const Vec3<T>& vec3, T w) : x{ vec3.x }, y{ vec3.y }, z{ vec3.z }, w{ w }{}
+	template<typename T> Vec4<T>::Vec4(T v) : x{ v }, y{ v }, z{ v }, w{ v }{}
+	template<typename T> Vec4<T>::Vec4(T x, T y, T z, T w) : x{ x }, y{ y }, z{ z }, w{ w }{}
+	template<typename T> Vec4<T>::Vec4(const Vec2<T>& vec2, T z, T w) : x{ vec2.x }, y{ vec2.y }, z{ z }, w{ w }{}
+	template<typename T> Vec4<T>::Vec4(const Vec3<T>& vec3, T w) : x{ vec3.x }, y{ vec3.y }, z{ vec3.z }, w{ w }{}
 
 	template<typename T>inline  T  Vec4<T>::Dot(const Vec4<T>& rhs) const
 	{
@@ -937,11 +958,11 @@ namespace gmath
 
 namespace gmath
 {
-	template<typename T> inline Vec3<T>::Vec3(T v) : x{ v }, y{ v }, z{ v }{}
+	template<typename T> Vec3<T>::Vec3(T v) : x{ v }, y{ v }, z{ v }{}
 
-	template<typename T> inline Vec3<T>::Vec3(T x, T y, T z) : x{ x }, y{ y }, z{ z }{}
+	template<typename T> Vec3<T>::Vec3(T x, T y, T z) : x{ x }, y{ y }, z{ z }{}
 
-	template<typename T> inline Vec3<T>::Vec3(const Vec4<T>& vec4) :
+	template<typename T> Vec3<T>::Vec3(const Vec4<T>& vec4) :
 		x{ vec4.x },
 		y{ vec4.y },
 		z{ vec4.z }

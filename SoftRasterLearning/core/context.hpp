@@ -45,8 +45,8 @@ namespace core
 				return;
 			}
 
-			auto w = screen_buffer_view.w;
-			auto h = screen_buffer_view.h;
+			size_t w = screen_buffer_view.w;
+			size_t h = screen_buffer_view.h;
 
 #pragma omp parallel for num_threads(8)
 			for (int y = 0; y < h; ++y)

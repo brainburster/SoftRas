@@ -19,17 +19,17 @@ namespace gmath
 		{
 			struct
 			{
-				float x;
-				float y;
-				float z;
-				float w;
+				T x;
+				T y;
+				T z;
+				T w;
 			};
 			struct
 			{
-				float r;
-				float g;
-				float b;
-				float a;
+				T r;
+				T g;
+				T b;
+				T a;
 			};
 		};
 
@@ -453,6 +453,10 @@ namespace gmath
 		constexpr Mat4x4(float _0, float _1, float _2, float _3, float _4, float _5, float _6, float _7, float _8, float _9, float _10, float _11, float _12, float _13, float _14, float _15);
 
 		constexpr Mat4x4(__m128 c1, __m128 c2, __m128 c3, __m128 c4);
+
+		constexpr Mat4x4(float a, float b, float c, float d);
+
+		constexpr Mat4x4(Vec4<float> diag);
 
 		constexpr Mat4x4();
 
