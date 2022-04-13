@@ -49,6 +49,8 @@ namespace core
 			using gmath::utility::Clamp;
 			x = Clamp(x, 0ULL, _w - 1);
 			y = Clamp(y, 0ULL, _h - 1);
+			//x = x % _w;
+			//y = y % _h;
 
 			//const size_t i = x + y * _w;
 			const size_t i = GetIndex(x, y);
@@ -60,6 +62,8 @@ namespace core
 			using gmath::utility::Clamp;
 			x = Clamp(x, 0ULL, _w - 1);
 			y = Clamp(y, 0ULL, _h - 1);
+			//x = x % _w;
+			//y = y % _h;
 
 			const size_t i = GetIndex(x, y);
 			return _data[i];
@@ -68,8 +72,8 @@ namespace core
 		static Vec4 Sample(Texture* tex, Vec2 uv) noexcept
 		{
 			if (!tex) return { 0,0,0,1.f };
-			float x = uv.x * tex->_w;
-			float y = uv.y * tex->_h;
+			float x = uv.x * tex->_w - 0.5f;
+			float y = uv.y * tex->_h - 0.5f;
 			auto _x = (size_t)x;
 			auto _y = (size_t)y;
 			x = x - _x;
