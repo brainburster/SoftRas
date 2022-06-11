@@ -44,4 +44,6 @@
 
 ## 展示
 
-![capture.gif](capture.gif)
+![capture1](/picture/capture1.png)
+![capture2](/picture/capture2.png)
+![capture.gif](/picture/capture.gif)
